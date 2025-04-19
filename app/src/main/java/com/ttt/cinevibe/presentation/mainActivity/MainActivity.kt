@@ -13,6 +13,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.ttt.cinevibe.ui.theme.CineVibeTheme
 import dagger.hilt.android.AndroidEntryPoint
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.navigation
+import com.ttt.cinevibe.presentation.auth.AuthDestinations
+import com.ttt.cinevibe.presentation.auth.LoginScreen
+import com.ttt.cinevibe.presentation.auth.RegisterScreen
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -21,11 +28,31 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             CineVibeTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
+                val navController = rememberNavController()
+                NavHost(navController = navController, startDestination = "auth_flow") {
+                    navigation(startDestination = AuthDestinations.LOGIN_ROUTE, route = "auth_flow") {
+                        composable(AuthDestinations.LOGIN_ROUTE) {
+                            LoginScreen(
+                                onLoginClick = { email, password ->
+                                    // TODO: Handle login logic and navigate to main app
+                                },
+                                onRegisterClick = {
+                                    navController.navigate(AuthDestinations.REGISTER_ROUTE)
+                                }
+                            )
+                        }
+                        composable(AuthDestinations.REGISTER_ROUTE) {
+                            RegisterScreen(
+                                onRegisterClick = { email, password ->
+                                    // TODO: Handle registration logic and navigate to main app
+                                },
+                                onLoginClick = {
+                                    navController.popBackStack()
+                                }
+                            )
+                        }
+                    }
+                    // TODO: Add main app navigation destinations here
                 }
             }
         }
