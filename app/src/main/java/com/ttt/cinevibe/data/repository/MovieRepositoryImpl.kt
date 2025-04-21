@@ -1,7 +1,7 @@
 package com.ttt.cinevibe.data.repository
 
 import com.ttt.cinevibe.data.remote.MovieApi
-import com.ttt.cinevibe.data.remote.dto.toMovie
+import com.ttt.cinevibe.data.remote.dto.MovieDto
 import com.ttt.cinevibe.domain.model.Movie
 import com.ttt.cinevibe.domain.repository.MovieRepository
 import com.ttt.cinevibe.utils.Constants
