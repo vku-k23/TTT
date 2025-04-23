@@ -1,13 +1,25 @@
 package com.ttt.cinevibe.presentation.auth
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.ttt.cinevibe.ui.theme.Black
+import com.ttt.cinevibe.ui.theme.DarkGray
+import com.ttt.cinevibe.ui.theme.NetflixRed
+import com.ttt.cinevibe.ui.theme.White
 
 @Composable
 fun RegisterScreen(
@@ -18,53 +30,184 @@ fun RegisterScreen(
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
 
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+            .background(Black)
     ) {
-        Text("Đăng ký", style = MaterialTheme.typography.headlineMedium)
-        Spacer(modifier = Modifier.height(24.dp))
-        OutlinedTextField(
-            value = email,
-            onValueChange = { email = it },
-            label = { Text("Email") },
-            modifier = Modifier.fillMaxWidth()
+        // Background gradient overlay
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            Color.Black.copy(alpha = 0.8f),
+                            Color.Black
+                        )
+                    )
+                )
         )
-        Spacer(modifier = Modifier.height(16.dp))
-        OutlinedTextField(
-            value = password,
-            onValueChange = { password = it },
-            label = { Text("Mật khẩu") },
-            visualTransformation = PasswordVisualTransformation(),
-            modifier = Modifier.fillMaxWidth()
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        OutlinedTextField(
-            value = confirmPassword,
-            onValueChange = { confirmPassword = it },
-            label = { Text("Xác nhận mật khẩu") },
-            visualTransformation = PasswordVisualTransformation(),
-            modifier = Modifier.fillMaxWidth()
-        )
-        Spacer(modifier = Modifier.height(24.dp))
-        Button(
-            onClick = { onRegisterClick(email, password) },
-            modifier = Modifier.fillMaxWidth()
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("Đăng ký")
-        }
-        Spacer(modifier = Modifier.height(16.dp))
-        TextButton(onClick = onLoginClick) {
-            Text("Đã có tài khoản? Đăng nhập ngay")
+            Spacer(modifier = Modifier.height(60.dp))
+            
+            // Logo
+            Text(
+                text = "CINEVIBE",
+                color = NetflixRed,
+                fontSize = 40.sp,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center
+            )
+            
+            Spacer(modifier = Modifier.height(60.dp))
+            
+            // Register title
+            Text(
+                text = "Create Account",
+                color = White,
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.align(Alignment.Start)
+            )
+            
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            // Subtitle
+            Text(
+                text = "Just a few more steps and you're done!",
+                color = Color.Gray,
+                fontSize = 14.sp,
+                modifier = Modifier.align(Alignment.Start)
+            )
+            
+            Spacer(modifier = Modifier.height(24.dp))
+            
+            // Email field
+            TextField(
+                value = email,
+                onValueChange = { email = it },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                placeholder = { Text("Email", color = Color.Gray) },
+                colors = TextFieldDefaults.colors(
+                    unfocusedContainerColor = DarkGray,
+                    focusedContainerColor = DarkGray,
+                    unfocusedTextColor = White,
+                    focusedTextColor = White,
+                    cursorColor = White,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent
+                ),
+                shape = RoundedCornerShape(4.dp),
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
+            )
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // Password field
+            TextField(
+                value = password,
+                onValueChange = { password = it },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                placeholder = { Text("Password", color = Color.Gray) },
+                visualTransformation = PasswordVisualTransformation(),
+                colors = TextFieldDefaults.colors(
+                    unfocusedContainerColor = DarkGray,
+                    focusedContainerColor = DarkGray,
+                    unfocusedTextColor = White,
+                    focusedTextColor = White,
+                    cursorColor = White,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent
+                ),
+                shape = RoundedCornerShape(4.dp),
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
+            )
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // Confirm Password field
+            TextField(
+                value = confirmPassword,
+                onValueChange = { confirmPassword = it },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                placeholder = { Text("Confirm Password", color = Color.Gray) },
+                visualTransformation = PasswordVisualTransformation(),
+                colors = TextFieldDefaults.colors(
+                    unfocusedContainerColor = DarkGray,
+                    focusedContainerColor = DarkGray,
+                    unfocusedTextColor = White,
+                    focusedTextColor = White,
+                    cursorColor = White,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent
+                ),
+                shape = RoundedCornerShape(4.dp),
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
+            )
+            
+            Spacer(modifier = Modifier.height(24.dp))
+            
+            // Register button
+            Button(
+                onClick = { 
+                    if (password == confirmPassword) {
+                        onRegisterClick(email, password) 
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                enabled = email.isNotEmpty() && password.isNotEmpty() && password == confirmPassword,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = NetflixRed,
+                    disabledContainerColor = NetflixRed.copy(alpha = 0.6f)
+                ),
+                shape = RoundedCornerShape(4.dp)
+            ) {
+                Text(
+                    text = "Sign Up",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+            
+            Spacer(modifier = Modifier.weight(1f))
+            
+            // Already have account
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(bottom = 16.dp)
+            ) {
+                Text(
+                    text = "Already have an account?",
+                    color = Color.Gray,
+                    fontSize = 14.sp
+                )
+                TextButton(onClick = onLoginClick) {
+                    Text(
+                        text = "Sign in",
+                        color = White,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
         }
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun PreviewRegisterScreen() {
-    RegisterScreen(onRegisterClick = { _, _ -> }, onLoginClick = {})
 }

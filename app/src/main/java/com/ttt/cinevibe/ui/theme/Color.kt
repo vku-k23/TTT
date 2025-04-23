@@ -2,13 +2,19 @@ package com.ttt.cinevibe.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val Black = Color(0xFF1C1E21) // Dark Background
-val Blue = Color(0xFF1877F2) // Primary
+// Primary colors
+val NetflixRed = Color(0xFFE50914)
+val Black = Color(0xFF000000)
+val DarkGray = Color(0xFF121212)
+val MediumGray = Color(0xFF252525)
+val LightGray = Color(0xFF808080)
+val White = Color(0xFFFFFFFF)
 
-val DarkRed = Color(0xFFC30052) // Dark Error
+// Accent colors
+val Blue = Color(0xFF1877F2)
+val DarkRed = Color(0xFFC30052)
 val LightRed = Color(0xFFFF84B7)
 
-val LightBlack = Color(0xFF3A3B3C) // Dark Surface
-
-val BlueGray = Color(0xFFA0A3BD)
-val WhiteGray = Color(0xFFB0B3B8)
+// UI element colors
+val TopTenRed = Color(0xFFE50914)
+val FeaturedContentOverlay = Color(0x80000000) // 50% transparent black

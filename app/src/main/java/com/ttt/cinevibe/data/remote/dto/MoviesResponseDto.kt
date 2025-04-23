@@ -1,13 +1,15 @@
 package com.ttt.cinevibe.data.remote.dto
 
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class MoviesResponseDto(
     val page: Int,
-    @SerializedName("results")
+    @SerialName("results")
     val movies: List<MovieDto>,
-    @SerializedName("total_pages")
+    @SerialName("total_pages")
     val totalPages: Int,
-    @SerializedName("total_results")
+    @SerialName("total_results")
     val totalResults: Int
 )
