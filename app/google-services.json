@@ -12,7 +12,12 @@
           "package_name": "com.ttt.cinevibe"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "167142890496-eoc7u42fcncisr82f0mjndn9j7n9la8g.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyB360-mdR_PFoKgzBfQvH8um1Cy822nIqI"
@@ -20,7 +25,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "167142890496-eoc7u42fcncisr82f0mjndn9j7n9la8g.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
