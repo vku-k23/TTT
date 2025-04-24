@@ -1,6 +1,6 @@
 package com.ttt.cinevibe.data.remote.interceptor
 
-import com.ttt.cinevibe.utils.Constants
+import com.ttt.cinevibe.data.remote.ApiConstants
 import okhttp3.Interceptor
 import okhttp3.Response
 import javax.inject.Inject
@@ -12,7 +12,7 @@ class AuthInterceptor @Inject constructor() : Interceptor {
         val originalUrl = originalRequest.url
         
         val url = originalUrl.newBuilder()
-            .addQueryParameter("api_key", Constants.API_KEY)
+            .addQueryParameter("api_key", ApiConstants.API_KEY)
             .build()
             
         val request = originalRequest.newBuilder()

@@ -1,6 +1,6 @@
 package com.ttt.cinevibe.data.repository
 
-import com.ttt.cinevibe.data.remote.ApiConstants
+import android.util.Log
 import com.ttt.cinevibe.data.remote.api.MovieApiService
 import com.ttt.cinevibe.data.remote.models.MovieDto
 import com.ttt.cinevibe.domain.model.Movie
@@ -24,10 +24,12 @@ class MovieRepositoryImpl @Inject constructor(
                 loadGenres()
             }
             
-            val response = movieApiService.getPopularMovies(ApiConstants.API_KEY)
+            val response = movieApiService.getPopularMovies()
+            Log.d("MovieRepository", "Popular movies fetched: ${response.results.size}")
             emit(response.results.map { it.toDomainModel(genresCache) })
         } catch (e: Exception) {
             // In a real app, you would log the error or handle it more gracefully
+            Log.e("MovieRepository", "Error fetching popular movies", e)
             emit(emptyList())
         }
     }
@@ -38,9 +40,11 @@ class MovieRepositoryImpl @Inject constructor(
                 loadGenres()
             }
             
-            val response = movieApiService.getTopRatedMovies(ApiConstants.API_KEY)
+            val response = movieApiService.getTopRatedMovies()
+            Log.d("MovieRepository", "Top rated movies fetched: ${response.results.size}")
             emit(response.results.map { it.toDomainModel(genresCache) })
         } catch (e: Exception) {
+            Log.e("MovieRepository", "Error fetching top rated movies", e)
             emit(emptyList())
         }
     }
@@ -51,9 +55,11 @@ class MovieRepositoryImpl @Inject constructor(
                 loadGenres()
             }
             
-            val response = movieApiService.getTrendingMovies(ApiConstants.API_KEY)
+            val response = movieApiService.getTrendingMovies()
+            Log.d("MovieRepository", "Trending movies fetched: ${response.results.size}")
             emit(response.results.map { it.toDomainModel(genresCache) })
         } catch (e: Exception) {
+            Log.e("MovieRepository", "Error fetching trending movies", e)
             emit(emptyList())
         }
     }
@@ -64,9 +70,11 @@ class MovieRepositoryImpl @Inject constructor(
                 loadGenres()
             }
             
-            val response = movieApiService.getUpcomingMovies(ApiConstants.API_KEY)
+            val response = movieApiService.getUpcomingMovies()
+            Log.d("MovieRepository", "Upcoming movies fetched: ${response.results.size}")
             emit(response.results.map { it.toDomainModel(genresCache) })
         } catch (e: Exception) {
+            Log.e("MovieRepository", "Error fetching upcoming movies", e)
             emit(emptyList())
         }
     }
@@ -77,12 +85,11 @@ class MovieRepositoryImpl @Inject constructor(
                 loadGenres()
             }
             
-            val response = movieApiService.searchMovies(
-                apiKey = ApiConstants.API_KEY,
-                query = query
-            )
+            val response = movieApiService.searchMovies(query = query)
+            Log.d("MovieRepository", "Search movies fetched: ${response.results.size}")
             emit(response.results.map { it.toDomainModel(genresCache) })
         } catch (e: Exception) {
+            Log.e("MovieRepository", "Error searching movies", e)
             emit(emptyList())
         }
     }
@@ -100,10 +107,11 @@ class MovieRepositoryImpl @Inject constructor(
     
     private suspend fun loadGenres() {
         try {
-            val genreResponse = movieApiService.getGenres(ApiConstants.API_KEY)
+            val genreResponse = movieApiService.getGenres()
             genresCache = genreResponse.genres.associate { it.id to it.name }
         } catch (e: Exception) {
             // Handle error or retry logic
+            Log.e("MovieRepository", "Error loading genres", e)
         }
     }
     
@@ -114,8 +122,8 @@ class MovieRepositoryImpl @Inject constructor(
             id = this.id,
             title = this.title,
             overview = this.overview,
-            posterPath = this.posterPath?.let { "${ApiConstants.IMAGE_BASE_URL}${ApiConstants.POSTER_SIZE}$it" },
-            backdropPath = this.backdropPath?.let { "${ApiConstants.IMAGE_BASE_URL}${ApiConstants.BACKDROP_SIZE}$it" },
+            posterPath = this.posterPath, // Store just the path, not the full URL
+            backdropPath = this.backdropPath, // Store just the path, not the full URL
             releaseDate = this.releaseDate,
             voteAverage = this.voteAverage,
             genres = genreNames

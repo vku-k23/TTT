@@ -1,10 +1,10 @@
 package com.ttt.cinevibe.data.di
 
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
+import com.ttt.cinevibe.data.remote.ApiConstants
 import com.ttt.cinevibe.data.remote.MovieApi
 import com.ttt.cinevibe.data.remote.api.MovieApiService
 import com.ttt.cinevibe.data.remote.interceptor.AuthInterceptor
-import com.ttt.cinevibe.utils.Constants
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -53,7 +53,7 @@ object NetworkModule {
     fun provideRetrofit(okHttpClient: OkHttpClient, json: Json): Retrofit {
         val contentType = "application/json".toMediaType()
         return Retrofit.Builder()
-            .baseUrl(Constants.BASE_URL)
+            .baseUrl(ApiConstants.BASE_URL)
             .client(okHttpClient)
             .addConverterFactory(json.asConverterFactory(contentType))
             .build()
