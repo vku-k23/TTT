@@ -9,7 +9,7 @@ object ApiConstants {
     const val BACKDROP_SIZE = "w1280"
     
     // Common query parameters
-    const val PARAM_API_KEY = "api_key"
+    const val PARAM_API_KEY = "3fd2be6f0c70a2a598f084ddfb75487c"
     const val PARAM_LANGUAGE = "language"
     const val DEFAULT_LANGUAGE = "en-US"
     const val PARAM_PAGE = "page"
