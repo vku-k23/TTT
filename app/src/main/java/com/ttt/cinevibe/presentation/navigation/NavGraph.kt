@@ -14,6 +14,7 @@ import com.ttt.cinevibe.presentation.downloads.DownloadsScreen
 import com.ttt.cinevibe.presentation.home.HomeScreen
 import com.ttt.cinevibe.presentation.newhot.NewHotScreen
 import com.ttt.cinevibe.presentation.newhot.NewHotViewModel
+import com.ttt.cinevibe.presentation.profile.ProfileScreen
 import com.ttt.cinevibe.presentation.search.SearchScreen
 
 @Composable
@@ -51,16 +52,16 @@ fun NavGraph(navController: NavHostController) {
             DownloadsScreen()
         }
         
-        // We'll comment out ProfileScreen until it's implemented
-        /*
         composable(route = Screens.PROFILE_ROUTE) {
             ProfileScreen(
-                onNavigateBack = {
-                    navController.popBackStack()
+                onLogout = {
+                    // Navigate back to auth flow when user logs out
+                    navController.navigate("auth_graph") {
+                        popUpTo(0) { inclusive = true }
+                    }
                 }
             )
         }
-        */
         
         // Detail screen with movie ID parameter
         composable(
