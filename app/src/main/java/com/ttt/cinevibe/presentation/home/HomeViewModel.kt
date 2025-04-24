@@ -6,6 +6,7 @@ import com.ttt.cinevibe.domain.model.Movie
 import com.ttt.cinevibe.domain.usecases.movies.GetPopularMoviesUseCase
 import com.ttt.cinevibe.domain.usecases.movies.GetTopRatedMoviesUseCase
 import com.ttt.cinevibe.domain.usecases.movies.GetTrendingMoviesUseCase
+import com.ttt.cinevibe.domain.usecases.movies.GetUpcomingMoviesUseCase
 import com.ttt.cinevibe.domain.usecases.movies.SearchMoviesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.FlowPreview
@@ -24,6 +25,7 @@ class HomeViewModel @Inject constructor(
     private val getPopularMoviesUseCase: GetPopularMoviesUseCase,
     private val getTopRatedMoviesUseCase: GetTopRatedMoviesUseCase,
     private val getTrendingMoviesUseCase: GetTrendingMoviesUseCase,
+    private val getUpcomingMoviesUseCase: GetUpcomingMoviesUseCase,
     private val searchMoviesUseCase: SearchMoviesUseCase
 ) : ViewModel() {
 
@@ -38,6 +40,7 @@ class HomeViewModel @Inject constructor(
     private val _popularMovies = MutableStateFlow<List<Movie>>(emptyList())
     private val _topRatedMovies = MutableStateFlow<List<Movie>>(emptyList())
     private val _trendingMovies = MutableStateFlow<List<Movie>>(emptyList())
+    private val _upcomingMovies = MutableStateFlow<List<Movie>>(emptyList())
     private var _featuredMovie: Movie? = null
 
     init {
@@ -49,6 +52,7 @@ class HomeViewModel @Inject constructor(
         fetchPopularMovies()
         fetchTopRatedMovies()
         fetchTrendingMovies()
+        fetchUpcomingMovies()
     }
     
     fun getFeaturedMovie(): Movie {
@@ -69,6 +73,8 @@ class HomeViewModel @Inject constructor(
     fun getTopRatedMovies(): List<Movie> = _topRatedMovies.value
     
     fun getTrendingMovies(): List<Movie> = _trendingMovies.value
+    
+    fun getUpcomingMovies(): List<Movie> = _upcomingMovies.value
     
     fun onSearchQueryChanged(query: String) {
         _searchQuery.value = query
@@ -126,6 +132,19 @@ class HomeViewModel @Inject constructor(
                 .catch { /* Handle error silently as this is a background load */ }
                 .collect { movies ->
                     _trendingMovies.value = movies
+                    _allMovies.value = (_allMovies.value + movies).distinctBy { it.id }
+                    // Update featured movie
+                    updateFeaturedMovie()
+                }
+        }
+    }
+    
+    private fun fetchUpcomingMovies() {
+        viewModelScope.launch {
+            getUpcomingMoviesUseCase()
+                .catch { /* Handle error silently as this is a background load */ }
+                .collect { movies ->
+                    _upcomingMovies.value = movies
                     _allMovies.value = (_allMovies.value + movies).distinctBy { it.id }
                     // Update featured movie
                     updateFeaturedMovie()

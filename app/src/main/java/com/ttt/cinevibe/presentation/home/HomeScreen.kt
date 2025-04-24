@@ -1,10 +1,11 @@
 package com.ttt.cinevibe.presentation.home
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,13 +19,16 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -38,68 +42,117 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import com.ttt.cinevibe.R
+import com.ttt.cinevibe.data.remote.ApiConstants
 import com.ttt.cinevibe.domain.model.Movie
-import com.ttt.cinevibe.presentation.components.MovieItem
 import com.ttt.cinevibe.ui.theme.Black
 import com.ttt.cinevibe.ui.theme.DarkGray
 import com.ttt.cinevibe.ui.theme.NetflixRed
 import com.ttt.cinevibe.ui.theme.White
-import com.ttt.cinevibe.utils.Constants
 
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel(),
     onMovieClick: (Movie) -> Unit = {}
 ) {
+    val uiState by viewModel.uiState.collectAsState()
     val featuredMovie = viewModel.getFeaturedMovie()
     val popularMovies = viewModel.getPopularMovies()
     val topRatedMovies = viewModel.getTopRatedMovies()
     val trendingMovies = viewModel.getTrendingMovies()
+    val upcomingMovies = viewModel.getUpcomingMovies()
 
-    LazyColumn(
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .background(Black)
     ) {
-        // Featured movie banner
-        item {
-            FeaturedMovieBanner(
-                movie = featuredMovie,
-                onPlayClick = { /* Handle play click */ },
-                onInfoClick = { onMovieClick(featuredMovie) }
-            )
-        }
+        when (uiState) {
+            is HomeUiState.Loading -> {
+                CircularProgressIndicator(
+                    modifier = Modifier.align(Alignment.Center),
+                    color = NetflixRed
+                )
+            }
+            
+            is HomeUiState.Error -> {
+                Column(
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = (uiState as HomeUiState.Error).message,
+                        color = White,
+                        textAlign = TextAlign.Center
+                    )
+                    
+                    Spacer(modifier = Modifier.height(16.dp))
+                    
+                    Button(
+                        onClick = { viewModel.retry() },
+                        colors = ButtonDefaults.buttonColors(containerColor = NetflixRed)
+                    ) {
+                        Text("Retry", color = White)
+                    }
+                }
+            }
+            
+            is HomeUiState.Success -> {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    // Featured movie banner
+                    item {
+                        FeaturedMovieBanner(
+                            movie = featuredMovie,
+                            onPlayClick = { /* Handle play click */ },
+                            onInfoClick = { onMovieClick(featuredMovie) }
+                        )
+                    }
+                    
+                    // Popular movies row
+                    item {
+                        MovieRow(
+                            title = "Popular on CineVibe",
+                            movies = popularMovies,
+                            onMovieClick = onMovieClick
+                        )
+                    }
+                    
+                    // Trending movies row
+                    item {
+                        MovieRow(
+                            title = "Trending Now",
+                            movies = trendingMovies,
+                            onMovieClick = onMovieClick
+                        )
+                    }
+                    
+                    // Top Rated movies row
+                    item {
+                        MovieRow(
+                            title = "Top Rated",
+                            movies = topRatedMovies,
+                            onMovieClick = onMovieClick
+                        )
+                    }
+                    
+                    // Upcoming movies row
+                    item {
+                        MovieRow(
+                            title = "Coming Soon",
+                            movies = upcomingMovies,
+                            onMovieClick = onMovieClick
+                        )
+                    }
 
-        // Popular movies row
-        item {
-            MovieRow(
-                title = "Popular on CineVibe",
-                movies = popularMovies,
-                onMovieClick = onMovieClick
-            )
-        }
-
-        // Trending movies row
-        item {
-            MovieRow(
-                title = "Trending Now",
-                movies = trendingMovies,
-                onMovieClick = onMovieClick
-            )
-        }
-
-        // Top Rated movies row
-        item {
-            MovieRow(
-                title = "Top Rated",
-                movies = topRatedMovies,
-                onMovieClick = onMovieClick
-            )
-        }
-
-        // Add spacing at the bottom
-        item {
-            Spacer(modifier = Modifier.height(80.dp))
+                    // Add spacing at the bottom
+                    item {
+                        Spacer(modifier = Modifier.height(80.dp))
+                    }
+                }
+            }
         }
     }
 }
@@ -118,7 +171,12 @@ fun FeaturedMovieBanner(
         // Movie poster
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
-                .data(Constants.IMAGE_BASE_URL + Constants.IMAGE_SIZE_W500 + movie.posterPath)
+                .data(
+                    if (movie.posterPath != null)
+                        ApiConstants.IMAGE_BASE_URL + ApiConstants.BACKDROP_SIZE + movie.backdropPath
+                    else
+                        "https://via.placeholder.com/500x750?text=${movie.title}"
+                )
                 .build(),
             contentDescription = "Featured movie poster",
             modifier = Modifier.fillMaxSize(),
@@ -239,15 +297,15 @@ fun MovieRow(
         
         LazyRow(
             modifier = Modifier.fillMaxWidth(),
-            contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 16.dp)
+            contentPadding = PaddingValues(horizontal = 16.dp)
         ) {
             items(movies) { movie ->
                 MoviePoster(
                     movie = movie,
                     onClick = { onMovieClick(movie) },
                     modifier = Modifier
-                        .width(120.dp)
-                        .height(180.dp)
+                        .width(125.dp)
+                        .height(187.dp)
                         .padding(end = 8.dp)
                 )
             }
@@ -261,18 +319,24 @@ fun MoviePoster(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    AsyncImage(
-        model = ImageRequest.Builder(LocalContext.current)
-            .data(
-                if (movie.posterPath != null)
-                    Constants.IMAGE_BASE_URL + Constants.IMAGE_SIZE_W500 + movie.posterPath
-                else
-                    "https://via.placeholder.com/500x750?text=No+Image"
-            )
-            .build(),
-        contentDescription = "Movie poster for ${movie.title}",
+    Box(
         modifier = modifier
-            .clip(RoundedCornerShape(4.dp)),
-        contentScale = ContentScale.Crop
-    )
+            .shadow(elevation = 8.dp, shape = RoundedCornerShape(4.dp))
+            .clip(RoundedCornerShape(4.dp))
+            .clickable(onClick = onClick)
+    ) {
+        AsyncImage(
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(
+                    if (movie.posterPath != null)
+                        ApiConstants.IMAGE_BASE_URL + ApiConstants.POSTER_SIZE + movie.posterPath
+                    else
+                        "https://via.placeholder.com/500x750?text=${movie.title}"
+                )
+                .build(),
+            contentDescription = "Movie poster for ${movie.title}",
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop
+        )
+    }
 }
