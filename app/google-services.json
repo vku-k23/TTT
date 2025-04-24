@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "167142890496",
+    "project_id": "movies-app-5cc60",
+    "storage_bucket": "movies-app-5cc60.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:167142890496:android:c8a91fd34f07d024344ce5",
+        "android_client_info": {
+          "package_name": "com.ttt.cinevibe"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "167142890496-eoc7u42fcncisr82f0mjndn9j7n9la8g.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB360-mdR_PFoKgzBfQvH8um1Cy822nIqI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "167142890496-eoc7u42fcncisr82f0mjndn9j7n9la8g.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -22,10 +22,11 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.ttt.cinevibe.domain.model.Movie
 import com.ttt.cinevibe.presentation.NavDestinations
-import com.ttt.cinevibe.presentation.auth.LoginScreen
-import com.ttt.cinevibe.presentation.auth.RegisterScreen
+import com.ttt.cinevibe.presentation.auth.AUTH_GRAPH_ROUTE
+import com.ttt.cinevibe.presentation.auth.authNavGraph
 import com.ttt.cinevibe.presentation.detail.MovieDetailScreen
 import com.ttt.cinevibe.presentation.home.HomeScreen
+import com.ttt.cinevibe.presentation.main.MainScreen
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -52,39 +53,17 @@ class MainActivity : ComponentActivity() {
 fun CineVibeApp() {
     val navController = rememberNavController()
     
-    NavHost(navController = navController, startDestination = NavDestinations.AUTH_FLOW) {
-        // Auth flow
-        navigation(
-            startDestination = NavDestinations.LOGIN_ROUTE, 
-            route = NavDestinations.AUTH_FLOW
-        ) {
-            composable(NavDestinations.LOGIN_ROUTE) {
-                LoginScreen(
-                    onLoginClick = { _, _ ->
-                        // Navigate to main flow after successful login
-                        navController.navigate(NavDestinations.MAIN_FLOW) {
-                            popUpTo(NavDestinations.AUTH_FLOW) { inclusive = true }
-                        }
-                    },
-                    onRegisterClick = {
-                        navController.navigate(NavDestinations.REGISTER_ROUTE)
-                    }
-                )
+    NavHost(navController = navController, startDestination = AUTH_GRAPH_ROUTE) {
+        // Firebase Auth flow using our new components
+        authNavGraph(
+            navController = navController,
+            onAuthSuccess = {
+                // Navigate to main flow after successful authentication
+                navController.navigate(NavDestinations.MAIN_FLOW) {
+                    popUpTo(AUTH_GRAPH_ROUTE) { inclusive = true }
+                }
             }
-            composable(NavDestinations.REGISTER_ROUTE) {
-                RegisterScreen(
-                    onRegisterClick = { _, _ ->
-                        // Navigate to main flow after successful registration
-                        navController.navigate(NavDestinations.MAIN_FLOW) {
-                            popUpTo(NavDestinations.AUTH_FLOW) { inclusive = true }
-                        }
-                    },
-                    onLoginClick = {
-                        navController.popBackStack()
-                    }
-                )
-            }
-        }
+        )
         
         // Main app flow
         navigation(
@@ -92,11 +71,7 @@ fun CineVibeApp() {
             route = NavDestinations.MAIN_FLOW
         ) {
             composable(NavDestinations.HOME_ROUTE) {
-                HomeScreen(
-                    onMovieClick = { movie ->
-                        navController.navigate("${NavDestinations.MOVIE_DETAIL_ROUTE}/${movie.id}")
-                    }
-                )
+                MainScreen()
             }
             
             composable(
@@ -105,12 +80,8 @@ fun CineVibeApp() {
                     navArgument("movieId") { type = NavType.IntType }
                 )
             ) { backStackEntry ->
-                // In a real app, you would fetch movie details using the ID
-                // For now, we'll use a temporary movie object
                 val movieId = backStackEntry.arguments?.getInt("movieId") ?: -1
                 
-                // This is a workaround for the demo - in a real app, use a ViewModel 
-                // to fetch movie details by ID from the repository
                 val dummyMovie = Movie(
                     id = movieId,
                     title = "Movie #$movieId",

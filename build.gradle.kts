@@ -7,3 +7,9 @@ plugins {
     kotlin("plugin.serialization") version "2.1.10"
     id("com.google.devtools.ksp") version "2.1.10-1.0.31" apply false
 }
+
+buildscript {
+    dependencies {
+        classpath("com.google.gms:google-services:4.4.1")
+    }
+}
