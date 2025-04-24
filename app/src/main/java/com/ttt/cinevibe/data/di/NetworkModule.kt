@@ -2,6 +2,7 @@ package com.ttt.cinevibe.data.di
 
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import com.ttt.cinevibe.data.remote.MovieApi
+import com.ttt.cinevibe.data.remote.api.MovieApiService
 import com.ttt.cinevibe.data.remote.interceptor.AuthInterceptor
 import com.ttt.cinevibe.utils.Constants
 import dagger.Module
@@ -62,5 +63,11 @@ object NetworkModule {
     @Singleton
     fun provideMovieApi(retrofit: Retrofit): MovieApi {
         return retrofit.create(MovieApi::class.java)
+    }
+    
+    @Provides
+    @Singleton
+    fun provideMovieApiService(retrofit: Retrofit): MovieApiService {
+        return retrofit.create(MovieApiService::class.java)
     }
 }

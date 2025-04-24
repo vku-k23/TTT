@@ -36,7 +36,7 @@ fun BottomNavBar(
                 onClick = { onItemClick(index) },
                 icon = {
                     Icon(
-                        painter = painterResource(id = item.icon),
+                        painter = painterResource(id = if (isSelected) item.selectedIcon else item.unselectedIcon),
                         contentDescription = item.title,
                         modifier = Modifier.size(24.dp),
                         tint = if (isSelected) NetflixRed else LightGray

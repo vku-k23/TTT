@@ -1,18 +1,19 @@
 package com.ttt.cinevibe.presentation.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import com.ttt.cinevibe.presentation.details.MovieDetailScreen
+import com.ttt.cinevibe.domain.model.Movie
+import com.ttt.cinevibe.presentation.detail.MovieDetailScreen
 import com.ttt.cinevibe.presentation.downloads.DownloadsScreen
 import com.ttt.cinevibe.presentation.home.HomeScreen
 import com.ttt.cinevibe.presentation.newhot.NewHotScreen
 import com.ttt.cinevibe.presentation.newhot.NewHotViewModel
-import com.ttt.cinevibe.presentation.profile.ProfileScreen
 import com.ttt.cinevibe.presentation.search.SearchScreen
 
 @Composable
@@ -22,29 +23,44 @@ fun NavGraph(navController: NavHostController) {
         startDestination = Screens.HOME_ROUTE
     ) {
         composable(route = Screens.HOME_ROUTE) {
-            HomeScreen(navController = navController)
+            HomeScreen(
+                onMovieClick = { movie ->
+                    navController.navigate(Screens.movieDetailRoute(movie.id.toString()))
+                }
+            )
         }
         
         composable(route = Screens.NEW_HOT_ROUTE) {
             val viewModel = hiltViewModel<NewHotViewModel>()
             NewHotScreen(
-                navController = navController,
-                comingSoonMovies = viewModel.getComingSoonMovies(),
-                everyoneWatchingMovies = viewModel.getEveryoneWatchingMovies()
+                onMovieClick = { movie ->
+                    navController.navigate(Screens.movieDetailRoute(movie.id.toString()))
+                }
             )
         }
         
         composable(route = Screens.SEARCH_ROUTE) {
-            SearchScreen(navController = navController)
+            SearchScreen(
+                onMovieClick = { movie ->
+                    navController.navigate(Screens.movieDetailRoute(movie.id.toString()))
+                }
+            )
         }
         
         composable(route = Screens.DOWNLOADS_ROUTE) {
-            DownloadsScreen(navController = navController)
+            DownloadsScreen()
         }
         
+        // We'll comment out ProfileScreen until it's implemented
+        /*
         composable(route = Screens.PROFILE_ROUTE) {
-            ProfileScreen(navController = navController)
+            ProfileScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                }
+            )
         }
+        */
         
         // Detail screen with movie ID parameter
         composable(
@@ -52,9 +68,23 @@ fun NavGraph(navController: NavHostController) {
             arguments = listOf(navArgument(Screens.MOVIE_DETAIL_ARG) { type = NavType.IntType })
         ) {
             val movieId = it.arguments?.getInt(Screens.MOVIE_DETAIL_ARG) ?: 0
+            
+            // Sample dummy movie for testing purposes
+            val dummyMovie = Movie(
+                id = movieId,
+                title = "Movie #$movieId",
+                overview = "This is a sample movie description.",
+                posterPath = null,
+                backdropPath = null,
+                releaseDate = "2025-04-23",
+                voteAverage = 4.5
+            )
+            
             MovieDetailScreen(
-                navController = navController,
-                movieId = movieId
+                movie = dummyMovie,
+                onBackClick = {
+                    navController.popBackStack()
+                }
             )
         }
     }
