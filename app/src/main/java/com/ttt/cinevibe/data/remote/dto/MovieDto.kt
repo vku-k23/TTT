@@ -1,17 +1,19 @@
 package com.ttt.cinevibe.data.remote.dto
 
-import com.google.gson.annotations.SerializedName
 import com.ttt.cinevibe.domain.model.Movie
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class MovieDto(
     val id: Int,
     val title: String,
     val overview: String,
-    @SerializedName("poster_path")
+    @SerialName("poster_path")
     val posterPath: String?,
-    @SerializedName("release_date")
+    @SerialName("release_date")
     val releaseDate: String?,
-    @SerializedName("vote_average")
+    @SerialName("vote_average")
     val voteAverage: Double
 ) {
     fun toMovie(): Movie {
