@@ -2,13 +2,19 @@ package com.ttt.cinevibe.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val Black = Color(0xFF1C1E21) // Dark Background
-val Blue = Color(0xFF1877F2) // Primary
+val Purple80 = Color(0xFFD0BCFF)
+val PurpleGrey80 = Color(0xFFCCC2DC)
+val Pink80 = Color(0xFFEFB8C8)
 
-val DarkRed = Color(0xFFC30052) // Dark Error
-val LightRed = Color(0xFFFF84B7)
+val Purple40 = Color(0xFF6650a4)
+val PurpleGrey40 = Color(0xFF625b71)
+val Pink40 = Color(0xFF7D5260)
 
-val LightBlack = Color(0xFF3A3B3C) // Dark Surface
+val NetflixRed = Color(0xFFE50914) // Standard Netflix Red color
 
-val BlueGray = Color(0xFFA0A3BD)
-val WhiteGray = Color(0xFFB0B3B8)
+// Added colors based on user feedback
+val Black = Color(0xFF000000)
+val Blue = Color(0xFF2196F3) // Example Blue
+val DarkRed = Color(0xFFB00020) // Example Dark Red for errors
+val LightBlack = Color(0xFF121212) // Example slightly lighter black
+val LightRed = Color(0xFFEF5350) // Example Light Red

@@ -3,74 +3,61 @@ package com.ttt.cinevibe.presentation.mainActivity
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import com.ttt.cinevibe.ui.theme.CineVibeTheme
-import dagger.hilt.android.AndroidEntryPoint
-import androidx.navigation.compose.rememberNavController
+import androidx.core.view.WindowCompat
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.navigation
-import com.ttt.cinevibe.presentation.auth.AuthDestinations
-import com.ttt.cinevibe.presentation.auth.LoginScreen
-import com.ttt.cinevibe.presentation.auth.RegisterScreen
+import androidx.navigation.compose.rememberNavController
+import com.ttt.cinevibe.presentation.auth.AuthNavigation
+import com.ttt.cinevibe.presentation.home.HomeScreen
+import com.ttt.cinevibe.ui.theme.CineVibeTheme
+import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+
         setContent {
+            val navController = rememberNavController()
             CineVibeTheme {
-                val navController = rememberNavController()
-                NavHost(navController = navController, startDestination = "auth_flow") {
-                    navigation(startDestination = AuthDestinations.LOGIN_ROUTE, route = "auth_flow") {
-                        composable(AuthDestinations.LOGIN_ROUTE) {
-                            LoginScreen(
-                                onLoginClick = { email, password ->
-                                    // TODO: Handle login logic and navigate to main app
-                                },
-                                onRegisterClick = {
-                                    navController.navigate(AuthDestinations.REGISTER_ROUTE)
+                NavHost(navController = navController, startDestination = "auth") {
+                    composable("auth") {
+                        AuthNavigation(
+                            navController = navController,
+                            onAuthSuccess = {
+                                navController.navigate("home") {
+                                    popUpTo("auth") { inclusive = true } // Xoá toàn bộ auth khỏi backstack
                                 }
-                            )
-                        }
-                        composable(AuthDestinations.REGISTER_ROUTE) {
-                            RegisterScreen(
-                                onRegisterClick = { email, password ->
-                                    // TODO: Handle registration logic and navigate to main app
-                                },
-                                onLoginClick = {
-                                    navController.popBackStack()
-                                }
-                            )
-                        }
+                            }
+                        )
                     }
-                    // TODO: Add main app navigation destinations here
+
+                    composable("home") {
+                        HomeScreen(navController)
+                    }
                 }
             }
         }
+
     }
 }
 
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
+fun CineVibeApp() {
+    val navController = rememberNavController()
 
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
     CineVibeTheme {
-        Greeting("Android")
+        // Optional: Scaffold nếu bạn cần TopBar/BottomBar
+        NavHost(
+            navController = navController,
+            startDestination = "auth_flow"
+        ) {
+            composable("auth_flow") {
+                AuthNavigation(navController = navController)
+            }
+        }
     }
 }
