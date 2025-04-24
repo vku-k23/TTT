@@ -7,6 +7,7 @@ object Screens {
     const val DOWNLOADS_ROUTE = "downloads"
     const val PROFILE_ROUTE = "profile"
     const val MOVIE_DETAIL_ROUTE = "movie_detail"
+    const val MOVIE_DETAIL_ARG = "movieId"
     
     // Route with arguments
     fun movieDetailRoute(movieId: String): String = "$MOVIE_DETAIL_ROUTE/$movieId"

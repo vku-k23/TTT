@@ -11,6 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.core.view.WindowCompat
 import com.ttt.cinevibe.ui.theme.CineVibeTheme
 import dagger.hilt.android.AndroidEntryPoint
 import androidx.navigation.NavType
@@ -42,24 +43,6 @@ class MainActivity : ComponentActivity() {
                 ) {
                     CineVibeApp()
                 }
-            }
-        }
-
-    }
-}
-
-@Composable
-fun CineVibeApp() {
-    val navController = rememberNavController()
-
-    CineVibeTheme {
-        // Optional: Scaffold nếu bạn cần TopBar/BottomBar
-        NavHost(
-            navController = navController,
-            startDestination = "auth_flow"
-        ) {
-            composable("auth_flow") {
-                AuthNavigation(navController = navController)
             }
         }
     }
@@ -133,6 +116,7 @@ fun CineVibeApp() {
                     title = "Movie #$movieId",
                     overview = "This is a sample movie description. In a real application, you would fetch this data from the API based on the movie ID.",
                     posterPath = null,
+                    backdropPath = null,
                     releaseDate = "2025-04-23",
                     voteAverage = 4.5
                 )

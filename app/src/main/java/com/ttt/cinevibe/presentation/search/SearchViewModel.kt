@@ -75,6 +75,7 @@ class SearchViewModel @Inject constructor() : ViewModel() {
                 title = "$genre Movie ${index + 1}",
                 overview = "This is a $genre movie about exciting adventures and compelling characters.",
                 posterPath = null, // Would be actual paths in production
+                backdropPath = null,
                 releaseDate = "2024-${(index % 12) + 1}-${(index % 28) + 1}",
                 voteAverage = 3.5 + (index % 15) / 10.0
             )
