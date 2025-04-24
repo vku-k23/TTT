@@ -30,8 +30,11 @@ import com.ttt.cinevibe.presentation.home.HomeScreen
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+
         setContent {
+            val navController = rememberNavController()
             CineVibeTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
@@ -39,6 +42,24 @@ class MainActivity : ComponentActivity() {
                 ) {
                     CineVibeApp()
                 }
+            }
+        }
+
+    }
+}
+
+@Composable
+fun CineVibeApp() {
+    val navController = rememberNavController()
+
+    CineVibeTheme {
+        // Optional: Scaffold nếu bạn cần TopBar/BottomBar
+        NavHost(
+            navController = navController,
+            startDestination = "auth_flow"
+        ) {
+            composable("auth_flow") {
+                AuthNavigation(navController = navController)
             }
         }
     }
