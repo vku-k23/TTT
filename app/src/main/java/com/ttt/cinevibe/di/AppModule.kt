@@ -3,9 +3,12 @@ package com.ttt.cinevibe.di
 import android.app.Application
 import com.ttt.cinevibe.data.manager.LocalUserManagerImpl
 import com.ttt.cinevibe.domain.manager.LocalUserManager
+import com.ttt.cinevibe.domain.repository.MovieRepository
 import com.ttt.cinevibe.domain.usecases.app_entry.AppEntryUseCases
 import com.ttt.cinevibe.domain.usecases.app_entry.ReadAppEntry
 import com.ttt.cinevibe.domain.usecases.app_entry.SaveAppEntry
+import com.ttt.cinevibe.domain.usecases.movies.GetPopularMoviesUseCase
+import com.ttt.cinevibe.domain.usecases.movies.SearchMoviesUseCase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -30,11 +33,19 @@ object AppModule {
         readAppEntry = ReadAppEntry(localUserManager)
     )
 
-    // Add more use cases here
+    @Provides
+    @Singleton
+    fun provideGetPopularMoviesUseCase(
+        movieRepository: MovieRepository
+    ): GetPopularMoviesUseCase {
+        return GetPopularMoviesUseCase(movieRepository)
+    }
 
-    //db
-
-    //usecase
-
-
+    @Provides
+    @Singleton
+    fun provideSearchMoviesUseCase(
+        movieRepository: MovieRepository
+    ): SearchMoviesUseCase {
+        return SearchMoviesUseCase(movieRepository)
+    }
 }

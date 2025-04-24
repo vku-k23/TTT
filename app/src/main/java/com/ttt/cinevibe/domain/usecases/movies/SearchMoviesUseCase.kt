@@ -8,7 +8,11 @@ import javax.inject.Inject
 class SearchMoviesUseCase @Inject constructor(
     private val movieRepository: MovieRepository
 ) {
-    operator fun invoke(query: String): Flow<List<Movie>> {
+    suspend operator fun invoke(query: String): Flow<List<Movie>> {
+        if (query.isBlank()) {
+            // If query is blank, return popular movies instead
+            return movieRepository.getPopularMovies()
+        }
         return movieRepository.searchMovies(query)
     }
 }
