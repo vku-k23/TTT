@@ -41,11 +41,14 @@ class HomeViewModel @Inject constructor(
     private val _topRatedMovies = MutableStateFlow<List<Movie>>(emptyList())
     private val _trendingMovies = MutableStateFlow<List<Movie>>(emptyList())
     private val _upcomingMovies = MutableStateFlow<List<Movie>>(emptyList())
+    private val _recentlyWatchedMovies = MutableStateFlow<List<Movie>>(emptyList())
     private var _featuredMovie: Movie? = null
 
     init {
         fetchAllMovieData()
         observeSearchQuery()
+        // Simulate recently watched movies with a subset of trending or popular movies
+        generateMockRecentlyWatchedMovies()
     }
     
     private fun fetchAllMovieData() {
@@ -75,6 +78,47 @@ class HomeViewModel @Inject constructor(
     fun getTrendingMovies(): List<Movie> = _trendingMovies.value
     
     fun getUpcomingMovies(): List<Movie> = _upcomingMovies.value
+    
+    // Function to get recently watched movies for the "Continue Watching" section
+    fun getRecentlyWatchedMovies(): List<Movie> = _recentlyWatchedMovies.value
+    
+    // For demo purposes, simulate recently watched movies with a subset of trending or popular movies
+    private fun generateMockRecentlyWatchedMovies() {
+        viewModelScope.launch {
+            // Wait until we have some movies loaded
+            if (_allMovies.value.isNotEmpty()) {
+                // Take a subset of movies to display as "Continue Watching"
+                val continueWatchingMovies = _allMovies.value.take(4)
+                _recentlyWatchedMovies.value = continueWatchingMovies
+            } else {
+                // Create a list of dummy movies specifically for the Money Heist and The Witcher
+                // as seen in the image
+                val moneyHeist = Movie(
+                    id = 71446,
+                    title = "Money Heist",
+                    overview = "To carry out the biggest heist in history, a mysterious man called The Professor recruits a band of eight robbers who have a single characteristic: none of them has anything to lose.",
+                    posterPath = "/reEMJA1uzscCbkpeRJeTT2bjqUp.jpg",
+                    backdropPath = "/gFZriCkpJYsApPZEF3jhxL4yLzG.jpg",
+                    releaseDate = "2017-05-02",
+                    voteAverage = 8.3,
+                    genres = listOf("Crime", "Drama", "Action")
+                )
+                
+                val theWitcher = Movie(
+                    id = 71912,
+                    title = "The Witcher",
+                    overview = "Geralt of Rivia, a mutated monster-hunter for hire, journeys toward his destiny in a turbulent world where people often prove more wicked than beasts.",
+                    posterPath = "/7vjaCdMw15FEbXyLQTVa04URsPm.jpg",
+                    backdropPath = "/jBJWaqoSCiARWtfV0GlqHrcdidd.jpg",
+                    releaseDate = "2019-12-20",
+                    voteAverage = 8.2,
+                    genres = listOf("Sci-Fi & Fantasy", "Drama", "Action & Adventure")
+                )
+                
+                _recentlyWatchedMovies.value = listOf(moneyHeist, theWitcher)
+            }
+        }
+    }
     
     fun onSearchQueryChanged(query: String) {
         _searchQuery.value = query
@@ -108,6 +152,10 @@ class HomeViewModel @Inject constructor(
                         // Update featured movie if needed
                         updateFeaturedMovie()
                         _uiState.value = HomeUiState.Success(movies)
+                        // Update recently watched movies if needed
+                        if (_recentlyWatchedMovies.value.isEmpty()) {
+                            generateMockRecentlyWatchedMovies()
+                        }
                     }
                 }
         }
@@ -153,8 +201,14 @@ class HomeViewModel @Inject constructor(
     }
     
     private fun updateFeaturedMovie() {
-        // Select a movie with the highest vote average as the featured movie
-        _featuredMovie = _allMovies.value.maxByOrNull { it.voteAverage }
+        // For the sample image, let's use a featured movie with title "GHOUL"
+        val ghoul = _allMovies.value.find { it.title.contains("ghoul", ignoreCase = true) }
+        if (ghoul != null) {
+            _featuredMovie = ghoul
+        } else {
+            // If no movie titled "GHOUL" is found, select a movie with the highest vote average
+            _featuredMovie = _allMovies.value.maxByOrNull { it.voteAverage }
+        }
     }
     
     private fun searchMovies(query: String) {

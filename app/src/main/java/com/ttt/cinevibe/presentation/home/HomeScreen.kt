@@ -22,9 +22,14 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -34,6 +39,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -57,6 +63,7 @@ fun HomeScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val featuredMovie = viewModel.getFeaturedMovie()
+    val continueWatchingMovies = viewModel.getRecentlyWatchedMovies() // Assuming this method exists or needs to be added
     val popularMovies = viewModel.getPopularMovies()
     val topRatedMovies = viewModel.getTopRatedMovies()
     val trendingMovies = viewModel.getTrendingMovies()
@@ -106,57 +113,74 @@ fun HomeScreen(
             }
             
             is HomeUiState.Success -> {
-                LazyColumn(
+                Column(
                     modifier = Modifier.fillMaxSize()
                 ) {
-                    // Featured movie banner
-                    item {
-                        FeaturedMovieBanner(
-                            movie = featuredMovie,
-                            onPlayClick = { /* Handle play click */ },
-                            onInfoClick = { onMovieClick(featuredMovie) }
-                        )
-                    }
+                    // Top Navigation Bar
+                    TopNavigationBar()
                     
-                    // Popular movies row
-                    item {
-                        MovieRow(
-                            title = "Popular on CineVibe",
-                            movies = popularMovies,
-                            onMovieClick = onMovieClick
-                        )
-                    }
-                    
-                    // Trending movies row
-                    item {
-                        MovieRow(
-                            title = "Trending Now",
-                            movies = trendingMovies,
-                            onMovieClick = onMovieClick
-                        )
-                    }
-                    
-                    // Top Rated movies row
-                    item {
-                        MovieRow(
-                            title = "Top Rated",
-                            movies = topRatedMovies,
-                            onMovieClick = onMovieClick
-                        )
-                    }
-                    
-                    // Upcoming movies row
-                    item {
-                        MovieRow(
-                            title = "Coming Soon",
-                            movies = upcomingMovies,
-                            onMovieClick = onMovieClick
-                        )
-                    }
+                    // Scrollable content
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        // Featured movie banner with tagline
+                        item {
+                            FeaturedMovieBanner(
+                                movie = featuredMovie,
+                                tagline = "BETRAYAL IS CLOSE", // Match the image
+                                onPlayClick = { /* Handle play click */ },
+                                onInfoClick = { onMovieClick(featuredMovie) }
+                            )
+                        }
+                        
+                        // Continue Watching section (as shown in the image)
+                        item {
+                            ContinueWatchingRow(
+                                movies = continueWatchingMovies,
+                                onMovieClick = onMovieClick
+                            )
+                        }
+                        
+                        // Popular movies row
+                        item {
+                            MovieRow(
+                                title = stringResource(R.string.popular),
+                                movies = popularMovies,
+                                onMovieClick = onMovieClick
+                            )
+                        }
+                        
+                        // Trending movies row
+                        item {
+                            MovieRow(
+                                title = stringResource(R.string.trending),
+                                movies = trendingMovies,
+                                onMovieClick = onMovieClick
+                            )
+                        }
+                        
+                        // Top Rated movies row
+                        item {
+                            MovieRow(
+                                title = stringResource(R.string.top_rated),
+                                movies = topRatedMovies,
+                                onMovieClick = onMovieClick
+                            )
+                        }
+                        
+                        // Upcoming movies row
+                        item {
+                            MovieRow(
+                                title = stringResource(R.string.upcoming),
+                                movies = upcomingMovies,
+                                onMovieClick = onMovieClick
+                            )
+                        }
 
-                    // Add spacing at the bottom
-                    item {
-                        Spacer(modifier = Modifier.height(80.dp))
+                        // Add spacing at the bottom for navigation bar
+                        item {
+                            Spacer(modifier = Modifier.height(80.dp))
+                        }
                     }
                 }
             }
@@ -165,8 +189,54 @@ fun HomeScreen(
 }
 
 @Composable
+fun TopNavigationBar() {
+    var selectedTabIndex by remember { mutableStateOf(0) }
+    val tabs = listOf("TV Shows", "Movies", "Categories")
+    
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Black)
+            .padding(top = 8.dp)
+    ) {
+        // Netflix logo and navigation
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "C",
+                color = NetflixRed,
+                fontSize = 32.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier
+                    .padding(end = 8.dp)
+            )
+            
+            Spacer(modifier = Modifier.weight(1f))
+            
+            // Navigation tabs
+            tabs.forEachIndexed { index, title ->
+                Text(
+                    text = title,
+                    color = if (selectedTabIndex == index) White else White.copy(alpha = 0.7f),
+                    fontSize = 16.sp,
+                    fontWeight = if (selectedTabIndex == index) FontWeight.Bold else FontWeight.Normal,
+                    modifier = Modifier
+                        .clickable { selectedTabIndex = index }
+                        .padding(horizontal = 12.dp, vertical = 8.dp)
+                )
+            }
+        }
+    }
+}
+
+@Composable
 fun FeaturedMovieBanner(
     movie: Movie,
+    tagline: String,
     onPlayClick: () -> Unit,
     onInfoClick: () -> Unit
 ) {
@@ -175,7 +245,7 @@ fun FeaturedMovieBanner(
             .fillMaxWidth()
             .height(550.dp)
     ) {
-        // Movie poster
+        // Movie poster background
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
                 .data(
@@ -200,12 +270,25 @@ fun FeaturedMovieBanner(
                 .background(
                     brush = Brush.verticalGradient(
                         colors = listOf(
+                            Color.Black.copy(alpha = 0.5f), // Darker at top for tagline text
                             Color.Transparent,
-                            Color.Black.copy(alpha = 0.95f)
+                            Color.Black.copy(alpha = 0.95f) // Darker at bottom for buttons
                         ),
-                        startY = 300f
+                        startY = 0f,
+                        endY = 1000f
                     )
                 )
+        )
+        
+        // Tagline at the top (like "BETRAYAL IS CLOSE")
+        Text(
+            text = tagline,
+            color = White,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .padding(top = 100.dp)
         )
         
         // Info at the bottom
@@ -219,13 +302,13 @@ fun FeaturedMovieBanner(
             Text(
                 text = movie.title,
                 color = White,
-                fontSize = 24.sp,
+                fontSize = 30.sp,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth()
             )
             
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(16.dp))
             
             // Buttons
             Row(
@@ -282,6 +365,132 @@ fun FeaturedMovieBanner(
                     )
                 }
             }
+            
+            // Dot indicators for carousel
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 16.dp),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                // Active dot
+                Box(
+                    modifier = Modifier
+                        .width(16.dp)
+                        .height(2.dp)
+                        .background(NetflixRed)
+                )
+                
+                // Inactive dots
+                for (i in 1..4) {
+                    Box(
+                        modifier = Modifier
+                            .padding(start = 4.dp)
+                            .width(16.dp)
+                            .height(2.dp)
+                            .background(White.copy(alpha = 0.5f))
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun ContinueWatchingRow(
+    movies: List<Movie>,
+    onMovieClick: (Movie) -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp)
+    ) {
+        Text(
+            text = "Continue Watching",
+            color = White,
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+        )
+        
+        LazyRow(
+            modifier = Modifier.fillMaxWidth(),
+            contentPadding = PaddingValues(horizontal = 16.dp)
+        ) {
+            items(movies) { movie ->
+                ContinueWatchingItem(
+                    movie = movie,
+                    onClick = { onMovieClick(movie) },
+                    modifier = Modifier
+                        .width(200.dp)
+                        .height(125.dp)
+                        .padding(end = 8.dp)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun ContinueWatchingItem(
+    movie: Movie,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .shadow(elevation = 8.dp, shape = RoundedCornerShape(4.dp))
+            .clip(RoundedCornerShape(4.dp))
+            .clickable(onClick = onClick)
+    ) {
+        AsyncImage(
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(
+                    if (movie.backdropPath != null)
+                        ApiConstants.IMAGE_BASE_URL + ApiConstants.BACKDROP_SIZE + movie.backdropPath
+                    else
+                        "https://via.placeholder.com/400x225?text=${movie.title}"
+                )
+                .build(),
+            contentDescription = "Movie thumbnail for ${movie.title}",
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop
+        )
+        
+        // Progress indicator bar
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .height(3.dp)
+                .background(Color(0xFF333333))
+        ) {
+            Box(
+                modifier = Modifier
+                    .height(3.dp) // Use explicit height instead of fillMaxHeight
+                    .width(140.dp) // Use fixed width instead of multiplying by modifier.width
+                    .background(NetflixRed)
+            )
+        }
+        
+        // Play button overlay
+        Box(
+            modifier = Modifier
+                .align(Alignment.Center)
+                .width(40.dp)
+                .height(40.dp) // Use width and height instead of size
+                .background(Color.Black.copy(alpha = 0.7f), shape = RoundedCornerShape(50))
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_play),
+                contentDescription = "Play",
+                tint = White,
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .width(24.dp)
+                    .height(24.dp) // Use width and height instead of size
+            )
         }
     }
 }
