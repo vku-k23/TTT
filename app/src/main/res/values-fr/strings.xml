@@ -24,6 +24,13 @@
     <string name="sign_in">Se connecter</string>
     <string name="sign_up_now">Inscrivez-vous maintenant</string>
     <string name="logout">Se déconnecter</string>
+    <string name="background_image">Image d\'arrière-plan</string>
+    <string name="forgot_password_instructions">Entrez votre adresse e-mail et nous vous enverrons un lien pour réinitialiser votre mot de passe.</string>
+    <string name="send_reset_link">Envoyer le lien de réinitialisation</string>
+    <string name="email_sent">E-mail envoyé !</string>
+    <string name="reset_link_sent_to_email">Un lien de réinitialisation du mot de passe a été envoyé à %1$s</string>
+    <string name="check_inbox_instructions">Veuillez vérifier votre boîte de réception et suivre les instructions pour réinitialiser votre mot de passe.</string>
+    <string name="back_to_login">Retour à la connexion</string>
     
     <!-- Profile -->
     <string name="account_information">Informations du compte</string>
