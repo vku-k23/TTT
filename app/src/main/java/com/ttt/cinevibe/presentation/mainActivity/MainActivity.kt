@@ -67,8 +67,14 @@ fun CineVibeApp() {
         composable(route = SPLASH_ROUTE) {
             SplashScreen(
                 onSplashFinished = {
-                    // Navigate to auth flow when splash is done
+                    // Navigate to auth flow when splash is done and user is NOT logged in
                     navController.navigate(AUTH_GRAPH_ROUTE) {
+                        popUpTo(SPLASH_ROUTE) { inclusive = true }
+                    }
+                },
+                onNavigateToHome = {
+                    // Navigate directly to main flow if user is already logged in
+                    navController.navigate(NavDestinations.MAIN_FLOW) {
                         popUpTo(SPLASH_ROUTE) { inclusive = true }
                     }
                 }

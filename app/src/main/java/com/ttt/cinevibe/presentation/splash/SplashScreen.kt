@@ -19,12 +19,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.ttt.cinevibe.presentation.auth.AuthViewModel
 import com.ttt.cinevibe.ui.theme.NetflixRed
 import kotlinx.coroutines.delay
 
 @Composable
 fun SplashScreen(
-    onSplashFinished: () -> Unit
+    onSplashFinished: () -> Unit,
+    onNavigateToHome: () -> Unit,
+    viewModel: AuthViewModel = hiltViewModel()
 ) {
     // Scale animation for the logo (Netflix-like effect)
     val scale = remember { Animatable(0.7f) }
@@ -61,8 +65,14 @@ fun SplashScreen(
             )
         )
         
-        // Navigate away from splash screen
-        onSplashFinished()
+        // Check if user is already logged in
+        if (viewModel.isUserLoggedIn()) {
+            // Navigate directly to home screen if logged in
+            onNavigateToHome()
+        } else {
+            // Navigate to auth flow if not logged in
+            onSplashFinished()
+        }
     }
     
     // Netflix-style splash screen with black background
