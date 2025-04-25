@@ -8,6 +8,7 @@ import androidx.navigation.navigation
 const val AUTH_GRAPH_ROUTE = "auth_graph"
 const val LOGIN_ROUTE = "login"
 const val REGISTER_ROUTE = "register"
+const val FORGOT_PASSWORD_ROUTE = "forgot_password"
 
 fun NavGraphBuilder.authNavGraph(
     navController: NavController,
@@ -25,6 +26,9 @@ fun NavGraphBuilder.authNavGraph(
                     navController.navigate(REGISTER_ROUTE) {
                         popUpTo(LOGIN_ROUTE) { inclusive = true }
                     }
+                },
+                onNavigateToForgotPassword = {
+                    navController.navigate(FORGOT_PASSWORD_ROUTE)
                 }
             )
         }
@@ -37,6 +41,15 @@ fun NavGraphBuilder.authNavGraph(
                     navController.navigate(LOGIN_ROUTE) {
                         popUpTo(REGISTER_ROUTE) { inclusive = true }
                     }
+                }
+            )
+        }
+        
+        composable(FORGOT_PASSWORD_ROUTE) {
+            ForgotPasswordScreen(
+                navController = navController,
+                onBackToLogin = {
+                    navController.popBackStack()
                 }
             )
         }

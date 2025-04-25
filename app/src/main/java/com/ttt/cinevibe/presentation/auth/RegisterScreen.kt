@@ -72,17 +72,23 @@ fun RegisterScreen(
     val registerState by viewModel.registerState.collectAsState()
     
     val snackbarHostState = remember { SnackbarHostState() }
+    
+    // Track if we've already performed the navigation
+    val hasNavigated = remember { mutableStateOf(false) }
 
     LaunchedEffect(key1 = registerState) {
         when (registerState) {
             is AuthState.Success -> {
-                // First, reset the auth states
-                viewModel.resetAuthStates()
-                
-                // Direct navigation using NavController instead of calling the callback
-                // This ensures we navigate to the login screen after successful registration
-                navController.navigate(LOGIN_ROUTE) {
-                    popUpTo(REGISTER_ROUTE) { inclusive = true }
+                // Only navigate if we haven't already
+                if (!hasNavigated.value) {
+                    hasNavigated.value = true
+                    
+                    // Reset state first
+                    viewModel.resetAuthStates()
+                    
+                    // Navigate using a slight delay to ensure state resets properly
+                    kotlinx.coroutines.delay(200)
+                    onRegisterSuccess()
                 }
             }
             is AuthState.Error -> {
@@ -90,6 +96,11 @@ fun RegisterScreen(
                     message = (registerState as AuthState.Error).message
                 )
                 viewModel.resetAuthStates()
+                hasNavigated.value = false
+            }
+            is AuthState.Idle -> {
+                // Reset navigation flag when state is idle
+                hasNavigated.value = false
             }
             else -> {}
         }

@@ -15,7 +15,8 @@ import com.ttt.cinevibe.presentation.downloads.DownloadsScreen
 import com.ttt.cinevibe.presentation.home.HomeScreen
 import com.ttt.cinevibe.presentation.newhot.NewHotScreen
 import com.ttt.cinevibe.presentation.newhot.NewHotViewModel
-import com.ttt.cinevibe.presentation.profile.ProfileScreen
+import com.ttt.cinevibe.presentation.profile.PROFILE_GRAPH_ROUTE
+import com.ttt.cinevibe.presentation.profile.profileNavGraph
 import com.ttt.cinevibe.presentation.search.SearchScreen
 
 @Composable
@@ -56,17 +57,17 @@ fun NavGraph(
             DownloadsScreen()
         }
         
-        composable(route = Screens.PROFILE_ROUTE) {
-            ProfileScreen(
-                onLogout = {
-                    // Use rootNavController instead of navController for navigating to auth flow
-                    rootNavController.navigate(AUTH_GRAPH_ROUTE) {
-                        // Clear the entire back stack so user can't navigate back to the main flow
-                        popUpTo(0) { inclusive = true }
-                    }
+        // Use the profile nav graph for profile-related screens
+        profileNavGraph(
+            navController = navController,
+            onLogout = {
+                // Use rootNavController instead of navController for navigating to auth flow
+                rootNavController.navigate(AUTH_GRAPH_ROUTE) {
+                    // Clear the entire back stack so user can't navigate back to the main flow
+                    popUpTo(0) { inclusive = true }
                 }
-            )
-        }
+            }
+        )
         
         // Detail screen with movie ID parameter
         composable(
