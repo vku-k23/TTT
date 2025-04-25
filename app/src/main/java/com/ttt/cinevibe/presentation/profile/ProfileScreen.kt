@@ -58,6 +58,13 @@ import com.ttt.cinevibe.ui.theme.White
 @Composable
 fun ProfileScreen(
     viewModel: AuthViewModel = hiltViewModel(),
+    onNavigateToAccountInfo: () -> Unit = {},
+    onNavigateToAppSettings: () -> Unit = {},
+    onNavigateToLanguageSettings: () -> Unit = {},
+    onNavigateToHelpSupport: () -> Unit = {},
+    onNavigateToEditProfile: () -> Unit = {},
+    onNavigateToPrivacyTerms: () -> Unit = {},
+    onNavigateToUserAgreement: () -> Unit = {},
     onLogout: () -> Unit
 ) {
     val email = viewModel.getCurrentUserEmail() ?: "User"
@@ -159,7 +166,7 @@ fun ProfileScreen(
                         tint = NetflixRed,
                         modifier = Modifier
                             .size(24.dp)
-                            .clickable { /* Handle edit */ }
+                            .clickable { onNavigateToEditProfile() }
                     )
                 }
             }
@@ -175,25 +182,25 @@ fun ProfileScreen(
                 ProfileMenuItem(
                     icon = Icons.Default.Person,
                     title = "Account Information",
-                    onClick = { /* Navigate to account details */ }
+                    onClick = onNavigateToAccountInfo
                 )
                 
                 ProfileMenuItem(
                     icon = Icons.Default.Settings,
                     title = "App Settings",
-                    onClick = { /* Navigate to app settings */ }
+                    onClick = onNavigateToAppSettings
                 )
                 
                 ProfileMenuItem(
                     icon = Icons.Default.Settings, // Using Settings icon as a replacement for Translate
                     title = "Change Language",
-                    onClick = { /* Show language options */ }
+                    onClick = onNavigateToLanguageSettings
                 )
                 
                 ProfileMenuItem(
                     icon = Icons.Default.Info,
-                    title = "Help",
-                    onClick = { /* Navigate to help section */ }
+                    title = "Help & Support",
+                    onClick = onNavigateToHelpSupport
                 )
             }
             
@@ -237,7 +244,7 @@ fun ProfileScreen(
                     fontSize = 14.sp,
                     modifier = Modifier
                         .padding(vertical = 4.dp)
-                        .clickable { /* Open privacy policy */ }
+                        .clickable { onNavigateToPrivacyTerms() }
                 )
                 
                 Text(
@@ -246,7 +253,7 @@ fun ProfileScreen(
                     fontSize = 14.sp,
                     modifier = Modifier
                         .padding(vertical = 4.dp)
-                        .clickable { /* Open user agreement */ }
+                        .clickable { onNavigateToUserAgreement() }
                 )
             }
             
