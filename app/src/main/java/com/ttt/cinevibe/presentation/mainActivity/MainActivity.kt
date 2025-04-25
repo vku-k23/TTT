@@ -9,6 +9,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.view.WindowCompat
@@ -27,6 +31,10 @@ import com.ttt.cinevibe.presentation.auth.authNavGraph
 import com.ttt.cinevibe.presentation.detail.MovieDetailScreen
 import com.ttt.cinevibe.presentation.home.HomeScreen
 import com.ttt.cinevibe.presentation.main.MainScreen
+import com.ttt.cinevibe.presentation.splash.SplashScreen
+
+// Define a constant for the splash route
+private const val SPLASH_ROUTE = "splash"
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -53,7 +61,26 @@ class MainActivity : ComponentActivity() {
 fun CineVibeApp() {
     val navController = rememberNavController()
     
-    NavHost(navController = navController, startDestination = AUTH_GRAPH_ROUTE) {
+    // Start with the splash screen route
+    NavHost(navController = navController, startDestination = SPLASH_ROUTE) {
+        // Splash screen
+        composable(route = SPLASH_ROUTE) {
+            SplashScreen(
+                onSplashFinished = {
+                    // Navigate to auth flow when splash is done and user is NOT logged in
+                    navController.navigate(AUTH_GRAPH_ROUTE) {
+                        popUpTo(SPLASH_ROUTE) { inclusive = true }
+                    }
+                },
+                onNavigateToHome = {
+                    // Navigate directly to main flow if user is already logged in
+                    navController.navigate(NavDestinations.MAIN_FLOW) {
+                        popUpTo(SPLASH_ROUTE) { inclusive = true }
+                    }
+                }
+            )
+        }
+        
         // Firebase Auth flow using our new components
         authNavGraph(
             navController = navController,
