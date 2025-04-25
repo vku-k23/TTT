@@ -34,7 +34,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -42,8 +47,10 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.Image
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.ttt.cinevibe.R
 import com.ttt.cinevibe.ui.theme.NetflixRed
 import com.ttt.cinevibe.ui.theme.Black
 import com.ttt.cinevibe.ui.theme.DarkGray
@@ -81,10 +88,33 @@ fun LoginScreen(
     }
 
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Black)
+        modifier = Modifier.fillMaxSize()
     ) {
+        // Background Image with Gradient Overlay
+        Image(
+            painter = painterResource(id = R.drawable.background_movie),
+            contentDescription = "Background Image",
+            contentScale = ContentScale.Crop,
+            modifier = Modifier
+                .fillMaxSize()
+                .drawWithContent {
+                    drawContent()
+                    drawRect(
+                        brush = Brush.verticalGradient(
+                            colors = listOf(
+                                Color.Transparent,
+                                Color.Black.copy(alpha = 0.6f),
+                                Color.Black.copy(alpha = 0.9f),
+                                Color.Black
+                            ),
+                            startY = 0f,
+                            endY = size.height
+                        ),
+                        blendMode = BlendMode.SrcAtop
+                    )
+                }
+        )
+        
         Scaffold(
             snackbarHost = { SnackbarHost(snackbarHostState) },
             containerColor = Color.Transparent
@@ -130,8 +160,8 @@ fun LoginScreen(
                         .fillMaxWidth()
                         .height(56.dp),
                     colors = TextFieldDefaults.colors(
-                        unfocusedContainerColor = DarkGray,
-                        focusedContainerColor = DarkGray,
+                        unfocusedContainerColor = DarkGray.copy(alpha = 0.7f),
+                        focusedContainerColor = DarkGray.copy(alpha = 0.7f),
                         unfocusedIndicatorColor = Color.Transparent,
                         focusedIndicatorColor = Color.Transparent,
                         unfocusedTextColor = White,
@@ -157,8 +187,8 @@ fun LoginScreen(
                         .height(56.dp),
                     visualTransformation = PasswordVisualTransformation(),
                     colors = TextFieldDefaults.colors(
-                        unfocusedContainerColor = DarkGray,
-                        focusedContainerColor = DarkGray,
+                        unfocusedContainerColor = DarkGray.copy(alpha = 0.7f),
+                        focusedContainerColor = DarkGray.copy(alpha = 0.7f),
                         unfocusedIndicatorColor = Color.Transparent,
                         focusedIndicatorColor = Color.Transparent,
                         unfocusedTextColor = White,
