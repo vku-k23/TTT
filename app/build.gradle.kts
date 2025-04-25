@@ -123,4 +123,7 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:32.8.0"))
     implementation("com.google.firebase:firebase-auth-ktx")
     implementation("com.google.firebase:firebase-firestore-ktx")
+    
+    // Icon Library - MaterialIcons (already included with Compose)
+    implementation("androidx.compose.material:material-icons-extended:1.7.6")
 }
