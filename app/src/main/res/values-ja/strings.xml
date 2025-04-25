@@ -24,6 +24,13 @@
     <string name="sign_in">サインイン</string>
     <string name="sign_up_now">今すぐ登録</string>
     <string name="logout">ログアウト</string>
+    <string name="background_image">背景画像</string>
+    <string name="forgot_password_instructions">メールアドレスを入力すると、パスワードをリセットするためのリンクをお送りします。</string>
+    <string name="send_reset_link">リセットリンクを送信</string>
+    <string name="email_sent">メールを送信しました！</string>
+    <string name="reset_link_sent_to_email">パスワードリセットリンクが %1$s に送信されました</string>
+    <string name="check_inbox_instructions">受信トレイを確認し、パスワードをリセットする手順に従ってください。</string>
+    <string name="back_to_login">ログイン画面に戻る</string>
     
     <!-- Profile -->
     <string name="account_information">アカウント情報</string>

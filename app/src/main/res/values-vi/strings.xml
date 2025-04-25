@@ -24,6 +24,13 @@
     <string name="sign_in">Đăng nhập</string>
     <string name="sign_up_now">Đăng ký ngay</string>
     <string name="logout">Đăng xuất</string>
+    <string name="background_image">Hình nền</string>
+    <string name="forgot_password_instructions">Nhập địa chỉ email của bạn và chúng tôi sẽ gửi cho bạn một liên kết để đặt lại mật khẩu.</string>
+    <string name="send_reset_link">Gửi liên kết đặt lại</string>
+    <string name="email_sent">Đã gửi email!</string>
+    <string name="reset_link_sent_to_email">Một liên kết đặt lại mật khẩu đã được gửi đến %1$s</string>
+    <string name="check_inbox_instructions">Vui lòng kiểm tra hộp thư đến của bạn và làm theo hướng dẫn để đặt lại mật khẩu.</string>
+    <string name="back_to_login">Quay lại đăng nhập</string>
     
     <!-- Profile -->
     <string name="account_information">Thông tin tài khoản</string>

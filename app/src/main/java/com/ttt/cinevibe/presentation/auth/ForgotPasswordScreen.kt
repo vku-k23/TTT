@@ -45,6 +45,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -93,7 +94,7 @@ fun ForgotPasswordScreen(
         // Background Image with Gradient Overlay
         Image(
             painter = painterResource(id = R.drawable.background_movie),
-            contentDescription = "Background Image",
+            contentDescription = stringResource(R.string.background_image),
             contentScale = ContentScale.Crop,
             modifier = Modifier
                 .fillMaxSize()
@@ -123,7 +124,7 @@ fun ForgotPasswordScreen(
                         IconButton(onClick = onBackToLogin) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "Back",
+                                contentDescription = stringResource(R.string.back),
                                 tint = White
                             )
                         }
@@ -147,7 +148,7 @@ fun ForgotPasswordScreen(
             ) {
                 // Logo and Header Section
                 Text(
-                    text = "CINEVIBE",
+                    text = stringResource(R.string.app_name),
                     fontWeight = FontWeight.Bold,
                     fontSize = 36.sp,
                     color = NetflixRed,
@@ -160,7 +161,7 @@ fun ForgotPasswordScreen(
                 if (!emailSent) {
                     // Forgot Password Form
                     Text(
-                        text = "Forgot Password",
+                        text = stringResource(R.string.forgot_password),
                         fontWeight = FontWeight.Bold,
                         fontSize = 24.sp,
                         color = White,
@@ -170,7 +171,7 @@ fun ForgotPasswordScreen(
                     Spacer(modifier = Modifier.height(16.dp))
 
                     Text(
-                        text = "We'll send you an email with instructions to reset your password.",
+                        text = stringResource(R.string.forgot_password_instructions),
                         color = LightGray,
                         fontSize = 14.sp,
                         modifier = Modifier.align(Alignment.Start)
@@ -182,7 +183,7 @@ fun ForgotPasswordScreen(
                     TextField(
                         value = email,
                         onValueChange = { email = it },
-                        placeholder = { Text("Email", color = LightGray) },
+                        placeholder = { Text(stringResource(R.string.email), color = LightGray) },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(56.dp),
@@ -220,7 +221,7 @@ fun ForgotPasswordScreen(
                         enabled = email.isNotEmpty() && forgotPasswordState !is AuthState.Loading
                     ) {
                         Text(
-                            "Send Reset Link",
+                            stringResource(R.string.send_reset_link),
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -233,7 +234,7 @@ fun ForgotPasswordScreen(
                         modifier = Modifier.padding(16.dp)
                     ) {
                         Text(
-                            text = "Email Sent!",
+                            text = stringResource(R.string.email_sent),
                             fontWeight = FontWeight.Bold,
                             fontSize = 24.sp,
                             color = White,
@@ -243,7 +244,7 @@ fun ForgotPasswordScreen(
                         Spacer(modifier = Modifier.height(16.dp))
 
                         Text(
-                            text = "We've sent a password reset link to $email",
+                            text = stringResource(R.string.reset_link_sent_to_email, email),
                             color = LightGray,
                             fontSize = 16.sp,
                             textAlign = TextAlign.Center
@@ -252,7 +253,7 @@ fun ForgotPasswordScreen(
                         Spacer(modifier = Modifier.height(16.dp))
 
                         Text(
-                            text = "Please check your inbox and follow the instructions to reset your password.",
+                            text = stringResource(R.string.check_inbox_instructions),
                             color = LightGray,
                             fontSize = 14.sp,
                             textAlign = TextAlign.Center
@@ -273,7 +274,7 @@ fun ForgotPasswordScreen(
                             shape = RoundedCornerShape(4.dp)
                         ) {
                             Text(
-                                "Back to Login",
+                                stringResource(R.string.back_to_login),
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold
                             )

@@ -24,6 +24,13 @@
     <string name="sign_in">Sign In</string>
     <string name="sign_up_now">Sign up now</string>
     <string name="logout">Logout</string>
+    <string name="background_image">Background Image</string>
+    <string name="forgot_password_instructions">Enter your email address and we\'ll send you a link to reset your password.</string>
+    <string name="send_reset_link">Send Reset Link</string>
+    <string name="email_sent">Email Sent!</string>
+    <string name="reset_link_sent_to_email">A password reset link has been sent to %1$s</string>
+    <string name="check_inbox_instructions">Please check your inbox and follow the instructions to reset your password.</string>
+    <string name="back_to_login">Back to Login</string>
     
     <!-- Profile -->
     <string name="account_information">Account Information</string>
