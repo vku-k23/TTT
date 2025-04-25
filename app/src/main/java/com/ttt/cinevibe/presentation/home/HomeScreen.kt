@@ -43,6 +43,14 @@ import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Bookmark
+import androidx.compose.material.icons.filled.BookmarkBorder
+import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.PlayCircle
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.PlayCircle
+import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -487,15 +495,17 @@ fun FeaturedMovieCarousel(
                                 .height(40.dp)
                         ) {
                             Icon(
-                                painter = painterResource(id = R.drawable.ic_play),
+                                imageVector = Icons.Filled.PlayArrow,
                                 contentDescription = "Play",
-                                tint = Black
+                                tint = Black,
+                                modifier = Modifier.size(20.dp)
                             )
-                            Spacer(modifier = Modifier.width(4.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
                             Text(
                                 text = "Play",
                                 color = Black,
-                                fontWeight = FontWeight.Bold
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 16.sp
                             )
                         }
                         
@@ -953,7 +963,7 @@ fun MovieDetailsDialog(
                                     .align(Alignment.TopEnd)
                             ) {
                                 Icon(
-                                    imageVector = Icons.Default.Close,
+                                    imageVector = Icons.Rounded.Close,
                                     contentDescription = "Close",
                                     tint = White,
                                     modifier = Modifier.size(24.dp)
@@ -971,13 +981,35 @@ fun MovieDetailsDialog(
                             overflow = TextOverflow.Ellipsis
                         )
                         
-                        // Release year
-                        Text(
-                            text = movie.releaseDate?.split("-")?.firstOrNull() ?: "2025",
-                            color = LightGray,
-                            fontSize = 16.sp,
+                        // Release year and rating
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier.padding(vertical = 4.dp)
-                        )
+                        ) {
+                            // Release year
+                            Text(
+                                text = movie.releaseDate?.split("-")?.firstOrNull() ?: "2025",
+                                color = LightGray,
+                                fontSize = 16.sp
+                            )
+                            
+                            // Rating with star icon
+                            if (movie.voteAverage > 0) {
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Icon(
+                                    imageVector = Icons.Filled.Star,
+                                    contentDescription = "Rating",
+                                    tint = Color(0xFFFFD700), // Gold color
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = String.format("%.1f", movie.voteAverage),
+                                    color = LightGray,
+                                    fontSize = 16.sp
+                                )
+                            }
+                        }
                         
                         // Movie overview/description
                         Text(
@@ -1010,10 +1042,10 @@ fun MovieDetailsDialog(
                             .height(48.dp)
                     ) {
                         Icon(
-                            imageVector = Icons.Default.PlayArrow,
+                            imageVector = Icons.Filled.PlayArrow,
                             contentDescription = "Play",
                             tint = Black,
-                            modifier = Modifier.size(24.dp)
+                            modifier = Modifier.size(20.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
@@ -1044,9 +1076,10 @@ fun MovieDetailsDialog(
                                 .height(48.dp)
                         ) {
                             Icon(
-                                imageVector = Icons.Default.ArrowDropDown,
+                                imageVector = Icons.Filled.Download,
                                 contentDescription = "Download",
-                                tint = White
+                                tint = White,
+                                modifier = Modifier.size(18.dp)
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
@@ -1057,7 +1090,7 @@ fun MovieDetailsDialog(
                         
                         Spacer(modifier = Modifier.width(16.dp))
                         
-                        // Preview button
+                        // Preview button with new Play Circle icon
                         Button(
                             onClick = { /* Handle preview */ },
                             colors = ButtonDefaults.buttonColors(
@@ -1070,9 +1103,10 @@ fun MovieDetailsDialog(
                                 .height(48.dp)
                         ) {
                             Icon(
-                                imageVector = Icons.Default.PlayArrow,
+                                imageVector = Icons.Outlined.PlayCircle,
                                 contentDescription = "Preview",
-                                tint = White
+                                tint = White,
+                                modifier = Modifier.size(18.dp)
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
@@ -1096,10 +1130,10 @@ fun MovieDetailsDialog(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Info,
+                            imageVector = Icons.Filled.Info,
                             contentDescription = "Info",
                             tint = White,
-                            modifier = Modifier.size(24.dp)
+                            modifier = Modifier.size(20.dp)
                         )
                         
                         Spacer(modifier = Modifier.width(8.dp))
@@ -1112,10 +1146,61 @@ fun MovieDetailsDialog(
                     }
                     
                     Icon(
-                        imageVector = Icons.Default.KeyboardArrowRight,
+                        imageVector = Icons.Filled.ArrowDropDown,
                         contentDescription = "View Details",
-                        tint = White
+                        tint = White,
+                        modifier = Modifier.size(18.dp)
                     )
+                }
+                
+                // Share and Save buttons
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    // Share button
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier
+                            .weight(1f)
+                            .clickable { /* Handle share */ }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Share,
+                            contentDescription = "Share",
+                            tint = White,
+                            modifier = Modifier.size(22.dp)
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "Share",
+                            color = White,
+                            fontSize = 12.sp
+                        )
+                    }
+                    
+                    // Save button
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier
+                            .weight(1f)
+                            .clickable { /* Handle save */ }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.BookmarkBorder,
+                            contentDescription = "Save",
+                            tint = White,
+                            modifier = Modifier.size(22.dp)
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "Add to List",
+                            color = White,
+                            fontSize = 12.sp
+                        )
+                    }
                 }
             }
         }

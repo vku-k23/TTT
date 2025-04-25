@@ -25,6 +25,20 @@ import com.ttt.cinevibe.R
 import com.ttt.cinevibe.presentation.navigation.BottomNavItem
 import com.ttt.cinevibe.presentation.navigation.NavGraph
 import com.ttt.cinevibe.presentation.navigation.Screens
+import androidx.compose.ui.graphics.Color
+
+// Material Icons
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.filled.Tv
+import androidx.compose.material.icons.outlined.Tv
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.outlined.Download
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.outlined.Person
 
 @Composable
 fun MainScreen(
@@ -35,31 +49,42 @@ fun MainScreen(
     val bottomNavItems = listOf(
         BottomNavItem(
             route = Screens.HOME_ROUTE,
-            selectedIcon = R.drawable.ic_home_filled,
-            unselectedIcon = R.drawable.ic_home_outlined
+            title = "Home",
+            selectedImageVector = Icons.Filled.Home,
+            unselectedImageVector = Icons.Outlined.Home,
+            useImageVector = true
         ),
         BottomNavItem(
             route = Screens.NEW_HOT_ROUTE,
-            selectedIcon = R.drawable.ic_new_hot_filled,
-            unselectedIcon = R.drawable.ic_new_hot_outlined
+            title = "New & Hot",
+            selectedImageVector = Icons.Filled.Tv,
+            unselectedImageVector = Icons.Outlined.Tv,
+            useImageVector = true
         ),
         BottomNavItem(
             route = Screens.SEARCH_ROUTE,
-            selectedIcon = R.drawable.ic_search_filled,
-            unselectedIcon = R.drawable.ic_search_outlined
+            title = "Search",
+            selectedImageVector = Icons.Filled.Search,
+            unselectedImageVector = Icons.Outlined.Search,
+            useImageVector = true
         ),
         BottomNavItem(
             route = Screens.DOWNLOADS_ROUTE,
-            selectedIcon = R.drawable.ic_downloads_filled,
-            unselectedIcon = R.drawable.ic_downloads_outlined
+            title = "Downloads",
+            selectedImageVector = Icons.Filled.Download,
+            unselectedImageVector = Icons.Outlined.Download,
+            useImageVector = true
         ),
         BottomNavItem(
             route = Screens.PROFILE_ROUTE,
-            selectedIcon = R.drawable.ic_profile_filled,
-            unselectedIcon = R.drawable.ic_profile_outlined
+            title = "Profile",
+            selectedImageVector = Icons.Filled.Person,
+            unselectedImageVector = Icons.Outlined.Person,
+            useImageVector = true
         )
     )
 
+    // Rest of the function is unchanged
     Scaffold(
         bottomBar = {
             BottomNavigationBar(
@@ -90,26 +115,35 @@ fun BottomNavigationBar(
 
     if (isMainScreen) {
         NavigationBar(
-            containerColor = androidx.compose.ui.graphics.Color.Black,
+            containerColor = Color.Black,
         ) {
             items.forEach { item ->
                 val selected = currentDestination?.hierarchy?.any { it.route == item.route } == true
                 NavigationBarItem(
                     icon = {
-                        Icon(
-                            painter = painterResource(id = if (selected) item.selectedIcon else item.unselectedIcon),
-                            contentDescription = item.title,
-                            tint = androidx.compose.ui.graphics.Color.White,
-                            modifier = Modifier.size(if (selected) 32.dp else 28.dp) // Make selected icon larger
-                        )
+                        if (item.useImageVector && item.selectedImageVector != null && item.unselectedImageVector != null) {
+                            Icon(
+                                imageVector = if (selected) item.selectedImageVector else item.unselectedImageVector,
+                                contentDescription = item.title,
+                                tint = Color.White,
+                                modifier = Modifier.size(if (selected) 24.dp else 22.dp)
+                            )
+                        } else {
+                            Icon(
+                                painter = painterResource(id = if (selected) item.selectedIcon else item.unselectedIcon),
+                                contentDescription = item.title,
+                                tint = Color.White,
+                                modifier = Modifier.size(if (selected) 32.dp else 28.dp)
+                            )
+                        }
                     },
                     selected = selected,
                     colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = androidx.compose.ui.graphics.Color.White,
-                        selectedTextColor = androidx.compose.ui.graphics.Color.White,
-                        unselectedIconColor = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.6f),
-                        unselectedTextColor = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.6f),
-                        indicatorColor = androidx.compose.ui.graphics.Color.Transparent // Hide the indicator background
+                        selectedIconColor = Color.White,
+                        selectedTextColor = Color.White,
+                        unselectedIconColor = Color.White.copy(alpha = 0.6f),
+                        unselectedTextColor = Color.White.copy(alpha = 0.6f),
+                        indicatorColor = Color.Transparent // Hide the indicator background
                     ),
                     onClick = {
                         navController.navigate(item.route) {
