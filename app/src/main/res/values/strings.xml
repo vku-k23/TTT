@@ -39,6 +39,12 @@
     <string name="save_changes">Save Changes</string>
     <string name="privacy_terms">Privacy &amp; Terms</string>
     <string name="user_agreement">User Agreement</string>
+    <string name="account_id">Account ID</string>
+    <string name="subscription_information">Subscription Information</string>
+    <string name="account_type">Account Type</string>
+    <string name="subscription_date">Subscription Date</string>
+    <string name="next_billing_date">Next Billing Date</string>
+    <string name="payment_method">Payment Method</string>
     
     <!-- Privacy & Terms -->
     <string name="privacy_policy">Privacy Policy</string>

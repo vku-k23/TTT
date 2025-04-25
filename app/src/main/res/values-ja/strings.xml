@@ -39,6 +39,12 @@
     <string name="save_changes">変更を保存</string>
     <string name="privacy_terms">プライバシーと利用規約</string>
     <string name="user_agreement">ユーザー同意書</string>
+    <string name="account_id">アカウントID</string>
+    <string name="subscription_information">サブスクリプション情報</string>
+    <string name="account_type">アカウント種類</string>
+    <string name="subscription_date">契約日</string>
+    <string name="next_billing_date">次回請求日</string>
+    <string name="payment_method">お支払い方法</string>
     
     <!-- Privacy & Terms -->
     <string name="privacy_policy">プライバシーポリシー</string>

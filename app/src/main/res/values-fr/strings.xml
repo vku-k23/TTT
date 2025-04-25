@@ -39,6 +39,12 @@
     <string name="save_changes">Enregistrer les modifications</string>
     <string name="privacy_terms">Confidentialité et Conditions</string>
     <string name="user_agreement">Accord de l\'Utilisateur</string>
+    <string name="account_id">ID du compte</string>
+    <string name="subscription_information">Informations d\'abonnement</string>
+    <string name="account_type">Type de compte</string>
+    <string name="subscription_date">Date d\'abonnement</string>
+    <string name="next_billing_date">Prochaine date de facturation</string>
+    <string name="payment_method">Mode de paiement</string>
     
     <!-- Privacy & Terms -->
     <string name="privacy_policy">Politique de Confidentialité</string>

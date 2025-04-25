@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Divider
@@ -192,7 +193,7 @@ fun ProfileScreen(
                 )
                 
                 ProfileMenuItem(
-                    icon = Icons.Default.Settings, // Using Settings icon as a replacement for Translate
+                    icon = Icons.Default.LocationOn,
                     title = stringResource(R.string.change_language),
                     onClick = onNavigateToLanguageSettings
                 )
