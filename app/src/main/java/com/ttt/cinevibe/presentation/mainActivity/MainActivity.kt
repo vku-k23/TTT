@@ -71,7 +71,7 @@ fun CineVibeApp() {
             route = NavDestinations.MAIN_FLOW
         ) {
             composable(NavDestinations.HOME_ROUTE) {
-                MainScreen()
+                MainScreen(rootNavController = navController)
             }
             
             composable(
