@@ -1,0 +1,159 @@
+<resources>
+    <!-- App name -->
+    <string name="app_name">CineVibe</string>
+    
+    <!-- Navigation -->
+    <string name="home">الرئيسية</string>
+    <string name="new_and_hot">جديد وشائع</string>
+    <string name="search">بحث</string>
+    <string name="profile">الملف الشخصي</string>
+    <string name="back">رجوع</string>
+    
+    <!-- Authentication -->
+    <string name="login">تسجيل الدخول</string>
+    <string name="register">تسجيل</string>
+    <string name="forgot_password">نسيت كلمة المرور</string>
+    <string name="email">البريد الإلكتروني</string>
+    <string name="password">كلمة المرور</string>
+    <string name="confirm_password">تأكيد كلمة المرور</string>
+    <string name="reset_password">إعادة تعيين كلمة المرور</string>
+    <string name="login_with_google">تسجيل الدخول باستخدام جوجل</string>
+    <string name="dont_have_account">ليس لديك حساب؟</string>
+    <string name="already_have_account">لديك حساب بالفعل؟</string>
+    <string name="sign_up">تسجيل</string>
+    <string name="sign_in">تسجيل الدخول</string>
+    <string name="logout">تسجيل الخروج</string>
+    
+    <!-- Profile -->
+    <string name="account_information">معلومات الحساب</string>
+    <string name="app_settings">إعدادات التطبيق</string>
+    <string name="change_language">تغيير اللغة</string>
+    <string name="help_support">المساعدة والدعم</string>
+    <string name="edit_profile">تعديل الملف الشخصي</string>
+    <string name="language_settings">إعدادات اللغة</string>
+    <string name="select_app_language">اختر لغة التطبيق</string>
+    <string name="full_name">الاسم الكامل</string>
+    <string name="username">اسم المستخدم</string>
+    <string name="phone_number">رقم الهاتف (اختياري)</string>
+    <string name="save_changes">حفظ التغييرات</string>
+    <string name="privacy_terms">الخصوصية والشروط</string>
+    <string name="user_agreement">اتفاقية المستخدم</string>
+    
+    <!-- Privacy & Terms -->
+    <string name="privacy_policy">سياسة الخصوصية</string>
+    <string name="privacy_last_updated">آخر تحديث: 15 أبريل 2025</string>
+    <string name="terms_of_service">شروط الخدمة</string>
+    <string name="terms_effective_date">تاريخ السريان: 20 أبريل 2025</string>
+    
+    <!-- Privacy Policy Sections -->
+    <string name="privacy_section_info_collect_title">المعلومات التي نجمعها</string>
+    <string name="privacy_section_info_collect_content">نقوم بجمع المعلومات التي تقدمها لنا مباشرة، مثل عندما تقوم بإنشاء أو تعديل حسابك، أو طلب دعم العملاء، أو التواصل معنا بأي شكل آخر. قد تتضمن هذه المعلومات اسمك، وبريدك الإلكتروني، وكلمة المرور، وعنوانك البريدي، ورقم هاتفك، وطريقة الدفع، وأي معلومات أخرى تختار تقديمها.</string>
+    
+    <string name="privacy_section_info_use_title">كيف نستخدم المعلومات</string>
+    <string name="privacy_section_info_use_content">نستخدم المعلومات التي نجمعها لتوفير خدماتنا وتخصيصها وتحسينها، ومعالجة معاملاتك، والتواصل معك بشأن التحديثات والعروض الترويجية، وحمايتك من الأنشطة الاحتيالية أو غير القانونية، ولأغراض أخرى موضحة في سياسة الخصوصية هذه.</string>
+    
+    <string name="privacy_section_info_share_title">مشاركة معلوماتك</string>
+    <string name="privacy_section_info_share_content">قد نشارك المعلومات التي نجمعها مع أطراف ثالثة تقدم خدمات نيابة عنا، مثل معالجة الدفعات، وتحليل البيانات، وتسليم البريد الإلكتروني، وخدمات الاستضافة، وخدمة العملاء. قد نشارك أيضًا معلومات مع شركائنا التجاريين، أو الشركات التابعة لنا، أو فيما يتعلق بمعاملة شركة كبيرة.</string>
+    
+    <string name="privacy_section_choices_title">خياراتك</string>
+    <string name="privacy_section_choices_content">يمكنك تعديل معلومات حسابك، أو تحديث تفضيلات الاتصال الخاصة بك، أو حذف حسابك في أي وقت. يمكنك أيضًا إلغاء الاشتراك في ممارسات جمع البيانات المعينة عن طريق تعديل إعدادات جهازك.</string>
+    
+    <string name="privacy_section_security_title">الأمان</string>
+    <string name="privacy_section_security_content">نتخذ تدابير معقولة للمساعدة في حماية المعلومات التي نجمعها من الفقدان والسرقة وسوء الاستخدام والوصول غير المصرح به والإفصاح والتغيير والتدمير.</string>
+    
+    <string name="privacy_section_contact_title">اتصل بنا</string>
+    <string name="privacy_section_contact_content">إذا كانت لديك أي أسئلة حول سياسة الخصوصية هذه، يرجى الاتصال بنا على privacy@cinevibe.com.</string>
+    
+    <!-- User Agreement Sections -->
+    <string name="agreement_section_acceptance_title">1. قبول الشروط</string>
+    <string name="agreement_section_acceptance_content">من خلال الوصول إلى خدمات CineVibe أو استخدامها، فإنك توافق على الالتزام بشروط الخدمة هذه. إذا كنت لا توافق على هذه الشروط، فالرجاء عدم استخدام خدمتنا.</string>
+    
+    <string name="agreement_section_changes_title">2. تغييرات في الشروط</string>
+    <string name="agreement_section_changes_content">قد تقوم CineVibe بتعديل هذه الشروط في أي وقت. سنقوم بإخطارك بأي تغييرات عن طريق نشر الشروط المحدثة على موقعنا الإلكتروني أو تطبيقنا. استمرار استخدامك لخدماتنا بعد أي تغييرات يشير إلى قبولك للشروط المعدلة.</string>
+    
+    <string name="agreement_section_using_title">3. استخدام خدمتنا</string>
+    <string name="agreement_section_using_content">يجب أن يكون عمرك 13 عامًا على الأقل أو الحد الأدنى للعمر المطلوب في بلدك لاستخدام خدمتنا. أنت توافق على تقديم معلومات دقيقة عند التسجيل والحفاظ على تحديث هذه المعلومات. أنت مسؤول عن جميع الأنشطة التي تحدث تحت حسابك.</string>
+    
+    <string name="agreement_section_subscription_title">4. الاشتراك والفوترة</string>
+    <string name="agreement_section_subscription_content">تتطلب بعض جوانب خدمتنا دفع رسوم. سيتم تحصيل الرسوم منك بشكل متكرر وفقًا لخطة اشتراكك. جميع الرسوم غير قابلة للاسترداد باستثناء ما يقتضيه القانون أو كما هو منصوص عليه تحديدًا في هذه الشروط.</string>
+    
+    <string name="agreement_section_content_title">5. المحتوى والتراخيص</string>
+    <string name="agreement_section_content_content">جميع المحتويات المتاحة من خلال خدمتنا هي ملك لـ CineVibe أو مرخصيها ومحمية بحقوق الملكية الفكرية. أنت توافق على عدم إعادة إنتاج أو توزيع أو تعديل أو عرض أو استخدام المحتوى بأي طريقة غير مصرح بها صراحة من قبل CineVibe.</string>
+    
+    <string name="agreement_section_disclaimers_title">6. إخلاء المسؤولية وحدود المسؤولية</string>
+    <string name="agreement_section_disclaimers_content">يتم توفير الخدمة وجميع المحتويات "كما هي" دون أي ضمان من أي نوع. إلى الحد الأقصى الذي يسمح به القانون المعمول به، لن تكون CineVibe مسؤولة عن أي أضرار غير مباشرة أو عرضية أو خاصة أو تبعية أو عقابية.</string>
+    
+    <string name="agreement_section_law_title">7. القانون الحاكم</string>
+    <string name="agreement_section_law_content">تخضع هذه الشروط لقوانين الولاية القضائية التي تقيم فيها، بغض النظر عن أحكام تعارض القوانين الخاصة بها.</string>
+    
+    <!-- Settings -->
+    <string name="notifications">الإشعارات</string>
+    <string name="push_notifications">إشعارات الدفع</string>
+    <string name="push_notifications_description">الحصول على إشعارات حول الإصدارات الجديدة والتوصيات</string>
+    <string name="downloads">التنزيلات</string>
+    <string name="download_wifi_only">التنزيل عبر Wi-Fi فقط</string>
+    <string name="download_wifi_description">توفير بيانات الهاتف المحمول عن طريق التنزيل فقط عبر Wi-Fi</string>
+    <string name="playback">التشغيل</string>
+    <string name="autoplay_next_episode">تشغيل الحلقة التالية تلقائيًا</string>
+    <string name="autoplay_description">تشغيل الحلقة التالية في المسلسل تلقائيًا</string>
+    <string name="subtitles">الترجمات</string>
+    <string name="subtitles_description">عرض الترجمات أثناء التشغيل</string>
+    <string name="app_information">معلومات التطبيق</string>
+    <string name="app_version">إصدار التطبيق</string>
+    <string name="build_number">رقم الإصدار</string>
+    
+    <!-- Movies -->
+    <string name="popular">شائع</string>
+    <string name="top_rated">الأعلى تقييمًا</string>
+    <string name="now_playing">يعرض الآن</string>
+    <string name="upcoming">قادم</string>
+    <string name="similar">أفلام مشابهة</string>
+    <string name="recommendations">التوصيات</string>
+    <string name="trending">الرائج</string>
+    <string name="watch_now">شاهد الآن</string>
+    <string name="add_to_list">إضافة إلى القائمة</string>
+    <string name="share">مشاركة</string>
+    <string name="genres">الأنواع</string>
+    <string name="cast">طاقم التمثيل</string>
+    <string name="director">المخرج</string>
+    <string name="release_date">تاريخ الإصدار</string>
+    <string name="runtime">مدة العرض</string>
+    <string name="overview">نظرة عامة</string>
+    
+    <!-- Search -->
+    <string name="search_hint">ابحث عن أفلام أو برامج تلفزيونية</string>
+    <string name="no_results">لم يتم العثور على نتائج</string>
+    <string name="search_results">نتائج البحث</string>
+    
+    <!-- Help & Support -->
+    <string name="common_issues">المشاكل الشائعة</string>
+    <string name="streaming_quality_problems">مشاكل البث أو جودة الفيديو</string>
+    <string name="account_billing_questions">أسئلة حول الحساب والفواتير</string>
+    <string name="app_not_working">التطبيق لا يعمل بشكل صحيح</string>
+    <string name="content_availability">توافر المحتوى</string>
+    <string name="playback_issues">مشاكل التشغيل</string>
+    <string name="contact_us">اتصل بنا</string>
+    <string name="live_chat_support">دعم الدردشة المباشرة</string>
+    <string name="email_support">دعم البريد الإلكتروني</string>
+    <string name="call_center">مركز الاتصال</string>
+    <string name="submit_feedback">إرسال ملاحظات</string>
+    <string name="faq">الأسئلة الشائعة</string>
+    <string name="account_management">إدارة الحساب</string>
+    <string name="subscription_billing">الاشتراك والفواتير</string>
+    <string name="device_compatibility">توافق الأجهزة</string>
+    <string name="content_questions">أسئلة حول المحتوى</string>
+    <string name="network_requirements">متطلبات الشبكة</string>
+    
+    <!-- General -->
+    <string name="loading">جار التحميل…</string>
+    <string name="error">خطأ</string>
+    <string name="retry">إعادة المحاولة</string>
+    <string name="cancel">إلغاء</string>
+    <string name="ok">موافق</string>
+    <string name="yes">نعم</string>
+    <string name="no">لا</string>
+    <string name="changing_language_to">تغيير اللغة إلى %1$s…</string>
+    <string name="error_passwords_dont_match">كلمات المرور غير متطابقة</string>
+    <string name="view">عرض</string>
+    <string name="navigate">تصفح</string>
+</resources>

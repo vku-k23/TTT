@@ -1,0 +1,87 @@
+<resources>
+    <!-- App name -->
+    <string name="app_name">CineVibe</string>
+    
+    <!-- Navigation -->
+    <string name="home">首页</string>
+    <string name="new_and_hot">新片 &amp; 热门</string>
+    <string name="search">搜索</string>
+    <string name="profile">个人资料</string>
+    <string name="back">返回</string>
+    
+    <!-- Authentication -->
+    <string name="login">登录</string>
+    <string name="register">注册</string>
+    <string name="forgot_password">忘记密码</string>
+    <string name="email">电子邮箱</string>
+    <string name="password">密码</string>
+    <string name="confirm_password">确认密码</string>
+    <string name="reset_password">重置密码</string>
+    <string name="login_with_google">使用谷歌账号登录</string>
+    <string name="dont_have_account">还没有账号？</string>
+    <string name="already_have_account">已有账号？</string>
+    <string name="sign_up">注册</string>
+    <string name="sign_in">登录</string>
+    <string name="logout">退出登录</string>
+    
+    <!-- Profile -->
+    <string name="account_information">账户信息</string>
+    <string name="app_settings">应用设置</string>
+    <string name="change_language">更改语言</string>
+    <string name="help_support">帮助 &amp; 支持</string>
+    <string name="edit_profile">编辑个人资料</string>
+    <string name="language_settings">语言设置</string>
+    <string name="select_app_language">选择应用语言</string>
+    <string name="full_name">全名</string>
+    <string name="username">用户名</string>
+    <string name="phone_number">电话号码（可选）</string>
+    <string name="save_changes">保存更改</string>
+    
+    <!-- Settings -->
+    <string name="notifications">通知</string>
+    <string name="push_notifications">推送通知</string>
+    <string name="push_notifications_description">接收新片发布和推荐的通知</string>
+    <string name="downloads">下载</string>
+    <string name="download_wifi_only">仅在WiFi下下载</string>
+    <string name="download_wifi_description">仅在WiFi连接时下载，节省移动数据</string>
+    <string name="playback">播放</string>
+    <string name="autoplay_next_episode">自动播放下一集</string>
+    <string name="autoplay_description">自动播放系列剧的下一集</string>
+    <string name="subtitles">字幕</string>
+    <string name="subtitles_description">播放时显示字幕</string>
+    <string name="app_information">应用信息</string>
+    <string name="app_version">应用版本</string>
+    <string name="build_number">构建号</string>
+    
+    <!-- Movies -->
+    <string name="popular">热门</string>
+    <string name="top_rated">评分最高</string>
+    <string name="now_playing">正在上映</string>
+    <string name="upcoming">即将上映</string>
+    <string name="similar">相似电影</string>
+    <string name="recommendations">推荐</string>
+    <string name="trending">趋势</string>
+    <string name="watch_now">立即观看</string>
+    <string name="add_to_list">添加到列表</string>
+    <string name="share">分享</string>
+    <string name="genres">类型</string>
+    <string name="cast">演员阵容</string>
+    <string name="director">导演</string>
+    <string name="release_date">上映日期</string>
+    <string name="runtime">片长</string>
+    <string name="overview">概述</string>
+    
+    <!-- Search -->
+    <string name="search_hint">搜索电影或电视节目</string>
+    <string name="no_results">未找到结果</string>
+    <string name="search_results">搜索结果</string>
+    
+    <!-- General -->
+    <string name="loading">加载中…</string>
+    <string name="error">错误</string>
+    <string name="retry">重试</string>
+    <string name="cancel">取消</string>
+    <string name="ok">确定</string>
+    <string name="yes">是</string>
+    <string name="no">否</string>
+</resources>

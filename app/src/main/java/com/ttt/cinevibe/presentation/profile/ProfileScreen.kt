@@ -40,7 +40,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -92,7 +92,7 @@ fun ProfileScreen(
             TopAppBar(
                 title = { 
                     Text(
-                        text = "Profile", 
+                        text = stringResource(R.string.profile), 
                         color = White,
                         fontSize = 22.sp,
                         fontWeight = FontWeight.Bold
@@ -162,7 +162,7 @@ fun ProfileScreen(
                     // Edit Icon
                     Icon(
                         imageVector = Icons.Default.Edit,
-                        contentDescription = "Edit Profile",
+                        contentDescription = stringResource(R.string.edit_profile),
                         tint = NetflixRed,
                         modifier = Modifier
                             .size(24.dp)
@@ -181,25 +181,25 @@ fun ProfileScreen(
             ) {
                 ProfileMenuItem(
                     icon = Icons.Default.Person,
-                    title = "Account Information",
+                    title = stringResource(R.string.account_information),
                     onClick = onNavigateToAccountInfo
                 )
                 
                 ProfileMenuItem(
                     icon = Icons.Default.Settings,
-                    title = "App Settings",
+                    title = stringResource(R.string.app_settings),
                     onClick = onNavigateToAppSettings
                 )
                 
                 ProfileMenuItem(
                     icon = Icons.Default.Settings, // Using Settings icon as a replacement for Translate
-                    title = "Change Language",
+                    title = stringResource(R.string.change_language),
                     onClick = onNavigateToLanguageSettings
                 )
                 
                 ProfileMenuItem(
                     icon = Icons.Default.Info,
-                    title = "Help & Support",
+                    title = stringResource(R.string.help_support),
                     onClick = onNavigateToHelpSupport
                 )
             }
@@ -223,9 +223,10 @@ fun ProfileScreen(
                 enabled = logoutState !is AuthState.Loading
             ) {
                 Text(
-                    text = "Sign Out",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold
+                    text = stringResource(R.string.logout),
+                    color = White,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp
                 )
             }
             
@@ -239,7 +240,7 @@ fun ProfileScreen(
                 horizontalAlignment = Alignment.Start
             ) {
                 Text(
-                    text = "Privacy & Terms",
+                    text = stringResource(R.string.privacy_terms),
                     color = LightGray,
                     fontSize = 14.sp,
                     modifier = Modifier
@@ -248,7 +249,7 @@ fun ProfileScreen(
                 )
                 
                 Text(
-                    text = "User Agreement",
+                    text = stringResource(R.string.user_agreement),
                     color = LightGray,
                     fontSize = 14.sp,
                     modifier = Modifier
@@ -302,7 +303,7 @@ fun ProfileMenuItem(
         
         Icon(
             imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-            contentDescription = "Navigate",
+            contentDescription = stringResource(R.string.navigate),
             tint = LightGray,
             modifier = Modifier.size(24.dp)
         )

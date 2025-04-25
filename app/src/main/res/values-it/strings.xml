@@ -1,0 +1,161 @@
+<resources>
+    <!-- App name -->
+    <string name="app_name">CineVibe</string>
+    
+    <!-- Navigation -->
+    <string name="home">Home</string>
+    <string name="new_and_hot">Nuovi e popolari</string>
+    <string name="search">Cerca</string>
+    <string name="profile">Profilo</string>
+    <string name="back">Indietro</string>
+    
+    <!-- Authentication -->
+    <string name="login">Accedi</string>
+    <string name="register">Registrati</string>
+    <string name="forgot_password">Password dimenticata</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="confirm_password">Conferma password</string>
+    <string name="reset_password">Reimposta password</string>
+    <string name="login_with_google">Accedi con Google</string>
+    <string name="dont_have_account">Non hai un account?</string>
+    <string name="already_have_account">Hai già un account?</string>
+    <string name="sign_up">Iscriviti</string>
+    <string name="sign_in">Accedi</string>
+    <string name="logout">Esci</string>
+    
+    <!-- Profile -->
+    <string name="account_information">Informazioni account</string>
+    <string name="app_settings">Impostazioni app</string>
+    <string name="change_language">Cambia lingua</string>
+    <string name="help_support">Aiuto e supporto</string>
+    <string name="edit_profile">Modifica profilo</string>
+    <string name="language_settings">Impostazioni lingua</string>
+    <string name="select_app_language">Seleziona lingua app</string>
+    <string name="full_name">Nome completo</string>
+    <string name="username">Nome utente</string>
+    <string name="phone_number">Numero di telefono (Opzionale)</string>
+    <string name="save_changes">Salva modifiche</string>
+    
+    <!-- Settings -->
+    <string name="notifications">Notifiche</string>
+    <string name="push_notifications">Notifiche push</string>
+    <string name="push_notifications_description">Ricevi notifiche su nuove uscite e consigli</string>
+    <string name="downloads">Download</string>
+    <string name="download_wifi_only">Scarica solo con Wi-Fi</string>
+    <string name="download_wifi_description">Risparmia dati mobili scaricando solo con Wi-Fi</string>
+    <string name="playback">Riproduzione</string>
+    <string name="autoplay_next_episode">Riproduci automaticamente prossimo episodio</string>
+    <string name="autoplay_description">Riproduci automaticamente il prossimo episodio di una serie</string>
+    <string name="subtitles">Sottotitoli</string>
+    <string name="subtitles_description">Mostra sottotitoli durante la riproduzione</string>
+    <string name="app_information">Informazioni app</string>
+    <string name="app_version">Versione app</string>
+    <string name="build_number">Numero build</string>
+    
+    <!-- Movies -->
+    <string name="popular">Popolari</string>
+    <string name="top_rated">Più votati</string>
+    <string name="now_playing">In sala</string>
+    <string name="upcoming">In arrivo</string>
+    <string name="similar">Film simili</string>
+    <string name="recommendations">Consigli</string>
+    <string name="trending">Di tendenza</string>
+    <string name="watch_now">Guarda ora</string>
+    <string name="add_to_list">Aggiungi alla lista</string>
+    <string name="share">Condividi</string>
+    <string name="genres">Generi</string>
+    <string name="cast">Cast</string>
+    <string name="director">Regista</string>
+    <string name="release_date">Data di uscita</string>
+    <string name="runtime">Durata</string>
+    <string name="overview">Panoramica</string>
+    
+    <!-- Search -->
+    <string name="search_hint">Cerca film o serie TV</string>
+    <string name="no_results">Nessun risultato trovato</string>
+    <string name="search_results">Risultati ricerca</string>
+    
+    <!-- General -->
+    <string name="loading">Caricamento…</string>
+    <string name="error">Errore</string>
+    <string name="retry">Riprova</string>
+    <string name="cancel">Annulla</string>
+    <string name="ok">OK</string>
+    <string name="yes">Sì</string>
+    <string name="no">No</string>
+    <string name="privacy_terms">Privacy e Termini</string>
+    <string name="user_agreement">Accordo utente</string>
+    
+    <!-- Privacy & Terms -->
+    <string name="privacy_policy">Informativa sulla privacy</string>
+    <string name="privacy_last_updated">Ultimo aggiornamento: 15 aprile 2025</string>
+    <string name="terms_of_service">Termini di servizio</string>
+    <string name="terms_effective_date">Data di entrata in vigore: 20 aprile 2025</string>
+    
+    <!-- Privacy Policy Sections -->
+    <string name="privacy_section_info_collect_title">Informazioni che raccogliamo</string>
+    <string name="privacy_section_info_collect_content">Raccogliamo informazioni che ci fornisci direttamente, come quando crei o modifichi il tuo account, richiedi assistenza clienti o ci contatti. Queste informazioni possono includere nome, email, password, indirizzo, numero di telefono, metodo di pagamento e altre informazioni che desideri fornirci.</string>
+    
+    <string name="privacy_section_info_use_title">Come utilizziamo le informazioni</string>
+    <string name="privacy_section_info_use_content">Utilizziamo le informazioni raccolte per fornire, personalizzare e migliorare i nostri servizi, elaborare le tue transazioni, comunicare con te riguardo aggiornamenti e offerte, proteggerti da attività fraudolente o illegali e per altri scopi descritti in questa Informativa sulla privacy.</string>
+    
+    <string name="privacy_section_info_share_title">Condivisione delle tue informazioni</string>
+    <string name="privacy_section_info_share_content">Potremmo condividere le informazioni raccolte con terze parti che forniscono servizi per nostro conto, come l\'elaborazione dei pagamenti, l\'analisi dei dati, la consegna di email, i servizi di hosting e l\'assistenza clienti. Potremmo anche condividere informazioni con partner commerciali, società affiliate o in relazione a transazioni aziendali sostanziali.</string>
+    
+    <string name="privacy_section_choices_title">Le tue scelte</string>
+    <string name="privacy_section_choices_content">Puoi modificare le informazioni del tuo account, aggiornare le preferenze di comunicazione o eliminare il tuo account in qualsiasi momento. Puoi anche scegliere di non partecipare a determinate attività di raccolta dati regolando le impostazioni del tuo dispositivo.</string>
+    
+    <string name="privacy_section_security_title">Sicurezza</string>
+    <string name="privacy_section_security_content">Adottiamo misure ragionevoli per proteggere le informazioni raccolte da perdita, furto, uso improprio e accesso, divulgazione, alterazione e distruzione non autorizzati.</string>
+    
+    <string name="privacy_section_contact_title">Contattaci</string>
+    <string name="privacy_section_contact_content">Se hai domande su questa Informativa sulla privacy, contattaci all\'indirizzo privacy@cinevibe.com.</string>
+    
+    <!-- User Agreement Sections -->
+    <string name="agreement_section_acceptance_title">1. Accettazione dei termini</string>
+    <string name="agreement_section_acceptance_content">Accedendo o utilizzando i servizi di CineVibe, accetti di essere vincolato da questi Termini di servizio. Se non sei d\'accordo con questi termini, per favore non utilizzare i nostri servizi.</string>
+    
+    <string name="agreement_section_changes_title">2. Modifiche ai termini</string>
+    <string name="agreement_section_changes_content">CineVibe può modificare questi termini in qualsiasi momento. Ti informeremo delle modifiche pubblicando i termini aggiornati sul nostro sito web o app. Il tuo uso continuato dei nostri servizi dopo tali modifiche significa che accetti i termini modificati.</string>
+    
+    <string name="agreement_section_using_title">3. Utilizzo dei nostri servizi</string>
+    <string name="agreement_section_using_content">Devi avere almeno 13 anni o l\'età minima richiesta nel tuo paese per utilizzare i nostri servizi. Accetti di fornire informazioni accurate quando ti registri e di mantenere queste informazioni aggiornate. Sei responsabile per tutte le attività che si verificano sotto il tuo account.</string>
+    
+    <string name="agreement_section_subscription_title">4. Abbonamenti e pagamenti</string>
+    <string name="agreement_section_subscription_content">Alcuni aspetti dei nostri servizi richiedono il pagamento di commissioni. Ti verranno addebitati regolarmente in base al tuo piano di abbonamento. Tutte le commissioni non sono rimborsabili, a meno che non sia richiesto dalla legge o specificamente previsto in questi termini.</string>
+    
+    <string name="agreement_section_content_title">5. Contenuti e licenze</string>
+    <string name="agreement_section_content_content">Tutti i contenuti disponibili attraverso i nostri servizi sono di proprietà di CineVibe o dei suoi licenzianti e sono protetti da diritti di proprietà intellettuale. Accetti di non copiare, distribuire, modificare, visualizzare o utilizzare i contenuti in qualsiasi modo non espressamente autorizzato da CineVibe.</string>
+    
+    <string name="agreement_section_disclaimers_title">6. Esclusioni di garanzia e limitazioni di responsabilità</string>
+    <string name="agreement_section_disclaimers_content">I SERVIZI E TUTTI I CONTENUTI SONO FORNITI \"COSÌ COME SONO\" SENZA GARANZIE DI ALCUN TIPO. NELLA MISURA MASSIMA CONSENTITA DALLA LEGGE, CINEVIBE NON È RESPONSABILE PER DANNI INDIRETTI, INCIDENTALI, SPECIALI, CONSEQUENZIALI O PUNITIVI.</string>
+    
+    <string name="agreement_section_law_title">7. Legge applicabile</string>
+    <string name="agreement_section_law_content">Questi termini sono regolati dalle leggi della giurisdizione in cui risiedi, indipendentemente dai suoi conflitti di principi legali.</string>
+    
+    <!-- Help & Support -->
+    <string name="common_issues">Problemi comuni</string>
+    <string name="streaming_quality_problems">Problemi di streaming o qualità video</string>
+    <string name="account_billing_questions">Domande su account e fatturazione</string>
+    <string name="app_not_working">L\'app non funziona correttamente</string>
+    <string name="content_availability">Disponibilità contenuti</string>
+    <string name="playback_issues">Problemi di riproduzione</string>
+    <string name="contact_us">Contattaci</string>
+    <string name="live_chat_support">Supporto chat dal vivo</string>
+    <string name="email_support">Supporto email</string>
+    <string name="call_center">Centro chiamate</string>
+    <string name="submit_feedback">Invia feedback</string>
+    <string name="faq">Domande frequenti</string>
+    <string name="account_management">Gestione account</string>
+    <string name="subscription_billing">Abbonamento e fatturazione</string>
+    <string name="device_compatibility">Compatibilità dispositivo</string>
+    <string name="content_questions">Domande sui contenuti</string>
+    <string name="network_requirements">Requisiti di rete</string>
+    
+    <!-- Additional General Strings -->
+    <string name="changing_language_to">Cambiando lingua in %1$s…</string>
+    <string name="error_passwords_dont_match">Le password non corrispondono</string>
+    <string name="view">Visualizza</string>
+    <string name="navigate">Naviga</string>
+</resources>

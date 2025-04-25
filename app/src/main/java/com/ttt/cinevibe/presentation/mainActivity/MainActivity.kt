@@ -1,6 +1,7 @@
 package com.ttt.cinevibe.presentation.mainActivity
 
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -113,9 +114,20 @@ class MainActivity : ComponentActivity() {
         
         lifecycleScope.launch {
             languageManager.getAppLanguage().collectLatest { locale ->
+                // Only trigger recreation if we've previously set a language and it's changing
                 if (currentLanguage.isNotEmpty() && currentLanguage != locale.language) {
-                    // Language has changed, recreate the activity
-                    recreate()
+                    // Critical: Use a delay to ensure preferences are saved before recreation
+                    kotlinx.coroutines.delay(100)
+                    
+                    // Force activity recreation with proper flags
+                    val intent = intent.apply { 
+                        addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                    }
+                    finish()
+                    startActivity(intent)
+                    overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
                 }
                 currentLanguage = locale.language
             }

@@ -1,0 +1,87 @@
+<resources>
+    <!-- App name -->
+    <string name="app_name">CineVibe</string>
+    
+    <!-- Navigation -->
+    <string name="home">होम</string>
+    <string name="new_and_hot">नया &amp; लोकप्रिय</string>
+    <string name="search">खोज</string>
+    <string name="profile">प्रोफाइल</string>
+    <string name="back">वापस</string>
+    
+    <!-- Authentication -->
+    <string name="login">लॉगिन</string>
+    <string name="register">पंजीकरण</string>
+    <string name="forgot_password">पासवर्ड भूल गए</string>
+    <string name="email">ईमेल</string>
+    <string name="password">पासवर्ड</string>
+    <string name="confirm_password">पासवर्ड की पुष्टि करें</string>
+    <string name="reset_password">पासवर्ड रीसेट करें</string>
+    <string name="login_with_google">Google से लॉगिन करें</string>
+    <string name="dont_have_account">खाता नहीं है?</string>
+    <string name="already_have_account">पहले से खाता है?</string>
+    <string name="sign_up">साइन अप करें</string>
+    <string name="sign_in">साइन इन करें</string>
+    <string name="logout">लॉग आउट</string>
+    
+    <!-- Profile -->
+    <string name="account_information">खाता जानकारी</string>
+    <string name="app_settings">ऐप सेटिंग्स</string>
+    <string name="change_language">भाषा बदलें</string>
+    <string name="help_support">सहायता &amp; समर्थन</string>
+    <string name="edit_profile">प्रोफाइल संपादित करें</string>
+    <string name="language_settings">भाषा सेटिंग्स</string>
+    <string name="select_app_language">ऐप की भाषा चुनें</string>
+    <string name="full_name">पूरा नाम</string>
+    <string name="username">उपयोगकर्ता नाम</string>
+    <string name="phone_number">फोन नंबर (वैकल्पिक)</string>
+    <string name="save_changes">परिवर्तन सहेजें</string>
+    
+    <!-- Settings -->
+    <string name="notifications">सूचनाएं</string>
+    <string name="push_notifications">पुश सूचनाएं</string>
+    <string name="push_notifications_description">नई रिलीज और सिफारिशों के बारे में सूचित किया जाए</string>
+    <string name="downloads">डाउनलोड</string>
+    <string name="download_wifi_only">केवल वाई-फाई पर डाउनलोड करें</string>
+    <string name="download_wifi_description">केवल वाई-फाई पर डाउनलोड करके मोबाइल डेटा बचाएं</string>
+    <string name="playback">प्लेबैक</string>
+    <string name="autoplay_next_episode">अगला एपिसोड ऑटोप्ले करें</string>
+    <string name="autoplay_description">किसी श्रृंखला का अगला एपिसोड स्वचालित रूप से चलाएं</string>
+    <string name="subtitles">उपशीर्षक</string>
+    <string name="subtitles_description">प्लेबैक के दौरान उपशीर्षक दिखाएं</string>
+    <string name="app_information">ऐप जानकारी</string>
+    <string name="app_version">ऐप वर्शन</string>
+    <string name="build_number">बिल्ड नंबर</string>
+    
+    <!-- Movies -->
+    <string name="popular">लोकप्रिय</string>
+    <string name="top_rated">शीर्ष रेटेड</string>
+    <string name="now_playing">अब चल रही</string>
+    <string name="upcoming">आने वाली</string>
+    <string name="similar">समान फिल्में</string>
+    <string name="recommendations">सिफारिशें</string>
+    <string name="trending">ट्रेंडिंग</string>
+    <string name="watch_now">अभी देखें</string>
+    <string name="add_to_list">सूची में जोड़ें</string>
+    <string name="share">शेयर करें</string>
+    <string name="genres">शैलियां</string>
+    <string name="cast">कलाकार</string>
+    <string name="director">निर्देशक</string>
+    <string name="release_date">रिलीज़ की तारीख</string>
+    <string name="runtime">अवधि</string>
+    <string name="overview">अवलोकन</string>
+    
+    <!-- Search -->
+    <string name="search_hint">फिल्में या टीवी शो खोजें</string>
+    <string name="no_results">कोई परिणाम नहीं मिला</string>
+    <string name="search_results">खोज परिणाम</string>
+    
+    <!-- General -->
+    <string name="loading">लोड हो रहा है…</string>
+    <string name="error">त्रुटि</string>
+    <string name="retry">पुनः प्रयास करें</string>
+    <string name="cancel">रद्द करें</string>
+    <string name="ok">ठीक है</string>
+    <string name="yes">हां</string>
+    <string name="no">नहीं</string>
+</resources>

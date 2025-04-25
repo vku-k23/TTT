@@ -1,0 +1,159 @@
+<resources>
+    <!-- App name -->
+    <string name="app_name">CineVibe</string>
+    
+    <!-- Navigation -->
+    <string name="home">홈</string>
+    <string name="new_and_hot">신규 &amp; 인기</string>
+    <string name="search">검색</string>
+    <string name="profile">프로필</string>
+    <string name="back">뒤로</string>
+    
+    <!-- Authentication -->
+    <string name="login">로그인</string>
+    <string name="register">회원가입</string>
+    <string name="forgot_password">비밀번호 찾기</string>
+    <string name="email">이메일</string>
+    <string name="password">비밀번호</string>
+    <string name="confirm_password">비밀번호 확인</string>
+    <string name="reset_password">비밀번호 재설정</string>
+    <string name="login_with_google">Google로 로그인</string>
+    <string name="dont_have_account">계정이 없으신가요?</string>
+    <string name="already_have_account">이미 계정이 있으신가요?</string>
+    <string name="sign_up">가입하기</string>
+    <string name="sign_in">로그인</string>
+    <string name="logout">로그아웃</string>
+    
+    <!-- Profile -->
+    <string name="account_information">계정 정보</string>
+    <string name="app_settings">앱 설정</string>
+    <string name="change_language">언어 변경</string>
+    <string name="help_support">도움말 &amp; 지원</string>
+    <string name="edit_profile">프로필 편집</string>
+    <string name="language_settings">언어 설정</string>
+    <string name="select_app_language">앱 언어 선택</string>
+    <string name="full_name">이름</string>
+    <string name="username">사용자 이름</string>
+    <string name="phone_number">전화번호 (선택사항)</string>
+    <string name="save_changes">변경사항 저장</string>
+    <string name="privacy_terms">개인정보 보호 및 이용약관</string>
+    <string name="user_agreement">사용자 동의</string>
+    
+    <!-- Privacy & Terms -->
+    <string name="privacy_policy">개인정보 보호정책</string>
+    <string name="privacy_last_updated">최종 업데이트: 2025년 4월 15일</string>
+    <string name="terms_of_service">서비스 이용약관</string>
+    <string name="terms_effective_date">시행일: 2025년 4월 20일</string>
+    
+    <!-- Privacy Policy Sections -->
+    <string name="privacy_section_info_collect_title">수집하는 정보</string>
+    <string name="privacy_section_info_collect_content">당사는 귀하가 계정을 생성하거나 수정하거나, 고객 서비스 요청을 제출하거나, 다른 방식으로 당사와 소통할 때 귀하가 직접 제공하는 정보를 수집합니다. 이 정보에는 귀하의 이름, 이메일 주소, 비밀번호, 우편 주소, 전화번호, 결제 방법 및 귀하가 제공하기로 선택한 기타 정보가 포함될 수 있습니다.</string>
+    
+    <string name="privacy_section_info_use_title">정보 사용 방법</string>
+    <string name="privacy_section_info_use_content">당사는 서비스 제공, 맞춤화 및 개선, 거래 처리, 업데이트 및 프로모션에 대한 커뮤니케이션, 사기 또는 불법 활동으로부터의 보호, 그리고 본 개인정보 보호정책에 설명된 기타 목적을 위해 수집한 정보를 사용합니다.</string>
+    
+    <string name="privacy_section_info_share_title">정보 공유</string>
+    <string name="privacy_section_info_share_content">당사는 결제 처리, 데이터 분석, 이메일 전송, 호스팅 서비스, 고객 서비스와 같은 서비스를 당사를 대신하여 제공하는 제3자와 수집한 정보를 공유할 수 있습니다. 또한 비즈니스 파트너, 계열사 또는 중요한 기업 거래와 관련하여 정보를 공유할 수 있습니다.</string>
+    
+    <string name="privacy_section_choices_title">귀하의 선택권</string>
+    <string name="privacy_section_choices_content">귀하는 계정 정보를 수정하고, 커뮤니케이션 기본 설정을 업데이트하거나, 언제든지 계정을 삭제할 수 있습니다. 또한 기기 설정을 조정하여 특정 데이터 수집 관행을 선택 해제할 수 있습니다.</string>
+    
+    <string name="privacy_section_security_title">보안</string>
+    <string name="privacy_section_security_content">당사는 수집한 정보를 분실, 도난, 오용, 무단 접근, 공개, 변경 또는 파기로부터 보호하기 위해 합당한 조치를 취하고 있습니다.</string>
+    
+    <string name="privacy_section_contact_title">문의하기</string>
+    <string name="privacy_section_contact_content">본 개인정보 보호정책에 관한 질문이 있으시면 privacy@cinevibe.com으로 문의해 주십시오.</string>
+    
+    <!-- User Agreement Sections -->
+    <string name="agreement_section_acceptance_title">1. 이용약관 수락</string>
+    <string name="agreement_section_acceptance_content">CineVibe의 서비스에 접근하거나 이용함으로써, 귀하는 이 이용약관에 동의하게 됩니다. 이 조건에 동의하지 않으시면 서비스를 이용하지 마십시오.</string>
+    
+    <string name="agreement_section_changes_title">2. 이용약관 변경</string>
+    <string name="agreement_section_changes_content">CineVibe는 언제든지 이 조건을 수정할 수 있습니다. 당사는 웹사이트나 앱에 업데이트된 조건을 게시함으로써 변경 사항을 알려드립니다. 그러한 변경 후에도 당사의 서비스를 계속 사용하는 것은 수정된 조건에 동의한다는 의미입니다.</string>
+    
+    <string name="agreement_section_using_title">3. 서비스 이용</string>
+    <string name="agreement_section_using_content">당사의 서비스를 이용하려면 13세 이상이거나 거주 국가에서 요구하는 최소 연령에 해당해야 합니다. 귀하는 등록 시 정확한 정보를 제공하고 해당 정보를 최신 상태로 유지하는 데 동의합니다. 귀하는 계정에서 발생하는 모든 활동에 대해 책임이 있습니다.</string>
+    
+    <string name="agreement_section_subscription_title">4. 구독 및 결제</string>
+    <string name="agreement_section_subscription_content">당사의 서비스 일부 측면에는 요금 지불이 필요할 수 있습니다. 구독 플랜에 따라 정기적으로 요금이 부과됩니다. 모든 요금은 법률에 의해 요구되거나 이 조건에서 명시적으로 규정된 경우를 제외하고는 환불되지 않습니다.</string>
+    
+    <string name="agreement_section_content_title">5. 콘텐츠 및 라이선스</string>
+    <string name="agreement_section_content_content">당사의 서비스를 통해 이용 가능한 모든 콘텐츠는 CineVibe 또는 해당 라이선스 소유자의 재산이며 지적 재산권에 의해 보호됩니다. 귀하는 CineVibe에서 명시적으로 승인하지 않은 방식으로 콘텐츠를 복제, 배포, 수정, 표시 또는 사용하지 않을 것에 동의합니다.</string>
+    
+    <string name="agreement_section_disclaimers_title">6. 면책 조항 및 책임 제한</string>
+    <string name="agreement_section_disclaimers_content">서비스 및 모든 콘텐츠는 어떠한 종류의 보증 없이 "있는 그대로" 제공됩니다. 관련 법률에서 허용하는 최대 범위 내에서, CINEVIBE는 간접적, 우발적, 특별한, 결과적 또는 징벌적 손해에 대해 책임을 지지 않습니다.</string>
+    
+    <string name="agreement_section_law_title">7. 준거법</string>
+    <string name="agreement_section_law_content">이 조건은 법률 충돌 규정에 관계없이 귀하가 거주하는 관할권의 법률에 따라 규제됩니다.</string>
+    
+    <!-- Settings -->
+    <string name="notifications">알림</string>
+    <string name="push_notifications">푸시 알림</string>
+    <string name="push_notifications_description">신규 출시작과 추천 콘텐츠에 대한 알림 받기</string>
+    <string name="downloads">다운로드</string>
+    <string name="download_wifi_only">Wi-Fi에서만 다운로드</string>
+    <string name="download_wifi_description">모바일 데이터 절약을 위해 Wi-Fi를 통해서만 다운로드</string>
+    <string name="playback">재생</string>
+    <string name="autoplay_next_episode">다음 에피소드 자동 재생</string>
+    <string name="autoplay_description">시리즈의 다음 에피소드를 자동으로 재생</string>
+    <string name="subtitles">자막</string>
+    <string name="subtitles_description">재생 중 자막 표시</string>
+    <string name="app_information">앱 정보</string>
+    <string name="app_version">앱 버전</string>
+    <string name="build_number">빌드 번호</string>
+    
+    <!-- Movies -->
+    <string name="popular">인기</string>
+    <string name="top_rated">최고 평점</string>
+    <string name="now_playing">현재 상영작</string>
+    <string name="upcoming">개봉 예정작</string>
+    <string name="similar">유사한 영화</string>
+    <string name="recommendations">추천작</string>
+    <string name="trending">트렌딩</string>
+    <string name="watch_now">지금 보기</string>
+    <string name="add_to_list">내 리스트에 추가</string>
+    <string name="share">공유하기</string>
+    <string name="genres">장르</string>
+    <string name="cast">출연진</string>
+    <string name="director">감독</string>
+    <string name="release_date">개봉일</string>
+    <string name="runtime">상영 시간</string>
+    <string name="overview">줄거리</string>
+    
+    <!-- Search -->
+    <string name="search_hint">영화 또는 TV 프로그램 검색</string>
+    <string name="no_results">검색 결과 없음</string>
+    <string name="search_results">검색 결과</string>
+    
+    <!-- Help & Support -->
+    <string name="common_issues">일반적인 문제</string>
+    <string name="streaming_quality_problems">스트리밍 또는 비디오 품질 문제</string>
+    <string name="account_billing_questions">계정 및 결제 문의</string>
+    <string name="app_not_working">앱이 제대로 작동하지 않음</string>
+    <string name="content_availability">콘텐츠 이용 가능 여부</string>
+    <string name="playback_issues">재생 문제</string>
+    <string name="contact_us">문의하기</string>
+    <string name="live_chat_support">실시간 채팅 지원</string>
+    <string name="email_support">이메일 지원</string>
+    <string name="call_center">고객 센터</string>
+    <string name="submit_feedback">피드백 제출</string>
+    <string name="faq">자주 묻는 질문</string>
+    <string name="account_management">계정 관리</string>
+    <string name="subscription_billing">구독 및 결제</string>
+    <string name="device_compatibility">기기 호환성</string>
+    <string name="content_questions">콘텐츠 관련 질문</string>
+    <string name="network_requirements">네트워크 요구 사항</string>
+    
+    <!-- General -->
+    <string name="loading">로딩 중...</string>
+    <string name="error">오류</string>
+    <string name="retry">다시 시도</string>
+    <string name="cancel">취소</string>
+    <string name="ok">확인</string>
+    <string name="yes">예</string>
+    <string name="no">아니오</string>
+    <string name="changing_language_to">언어를 %1$s(으)로 변경 중...</string>
+    <string name="error_passwords_dont_match">비밀번호가 일치하지 않습니다</string>
+    <string name="view">보기</string>
+    <string name="navigate">이동</string>
+</resources>
