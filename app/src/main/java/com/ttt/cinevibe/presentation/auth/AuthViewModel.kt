@@ -3,6 +3,7 @@ package com.ttt.cinevibe.presentation.auth
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ttt.cinevibe.domain.model.Resource
+import com.ttt.cinevibe.domain.usecase.auth.ForgotPasswordUseCase
 import com.ttt.cinevibe.domain.usecase.auth.GetAuthStatusUseCase
 import com.ttt.cinevibe.domain.usecase.auth.LoginUseCase
 import com.ttt.cinevibe.domain.usecase.auth.LogoutUseCase
@@ -22,6 +23,7 @@ class AuthViewModel @Inject constructor(
     private val loginUseCase: LoginUseCase,
     private val registerUseCase: RegisterUseCase,
     private val logoutUseCase: LogoutUseCase,
+    private val forgotPasswordUseCase: ForgotPasswordUseCase,
     private val getAuthStatusUseCase: GetAuthStatusUseCase
 ) : ViewModel() {
 
@@ -33,6 +35,33 @@ class AuthViewModel @Inject constructor(
     
     private val _logoutState = MutableStateFlow<AuthState>(AuthState.Idle)
     val logoutState: StateFlow<AuthState> = _logoutState.asStateFlow()
+    
+    private val _forgotPasswordState = MutableStateFlow<AuthState>(AuthState.Idle)
+    val forgotPasswordState: StateFlow<AuthState> = _forgotPasswordState.asStateFlow()
+
+    fun forgotPassword(email: String) {
+        viewModelScope.launch {
+            _forgotPasswordState.value = AuthState.Loading
+            forgotPasswordUseCase(email)
+                .catch { e ->
+                    if (e is CancellationException) throw e
+                    _forgotPasswordState.value = AuthState.Error(e.message ?: "Password reset failed")
+                }
+                .collect { result ->
+                    when (result) {
+                        is Resource.Success -> {
+                            _forgotPasswordState.value = AuthState.Success
+                        }
+                        is Resource.Error -> {
+                            _forgotPasswordState.value = AuthState.Error(result.message ?: "Password reset failed")
+                        }
+                        is Resource.Loading -> {
+                            _forgotPasswordState.value = AuthState.Loading
+                        }
+                    }
+                }
+        }
+    }
 
     fun login(email: String, password: String) {
         viewModelScope.launch {
@@ -125,6 +154,7 @@ class AuthViewModel @Inject constructor(
         _loginState.value = AuthState.Idle
         _registerState.value = AuthState.Idle
         _logoutState.value = AuthState.Idle
+        _forgotPasswordState.value = AuthState.Idle
     }
 
     fun isUserLoggedIn(): Boolean {

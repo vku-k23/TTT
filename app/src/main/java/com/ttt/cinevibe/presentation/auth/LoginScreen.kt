@@ -63,7 +63,8 @@ fun LoginScreen(
     navController: NavController,
     viewModel: AuthViewModel = hiltViewModel(),
     onLoginSuccess: () -> Unit,
-    onNavigateToRegister: () -> Unit
+    onNavigateToRegister: () -> Unit,
+    onNavigateToForgotPassword: () -> Unit
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -228,13 +229,28 @@ fun LoginScreen(
                 
                 Spacer(modifier = Modifier.height(16.dp))
                 
-                // Need Help Text
-                Text(
-                    "Need help?",
-                    color = LightGray,
-                    fontSize = 14.sp,
-                    modifier = Modifier.align(Alignment.End)
-                )
+                // Need Help & Forgot Password Row
+                Box(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    TextButton(
+                        onClick = onNavigateToForgotPassword,
+                        modifier = Modifier.align(Alignment.CenterStart)
+                    ) {
+                        Text(
+                            "Forgot Password?",
+                            color = LightGray,
+                            fontSize = 14.sp
+                        )
+                    }
+                    
+                    Text(
+                        "Need help?",
+                        color = LightGray,
+                        fontSize = 14.sp,
+                        modifier = Modifier.align(Alignment.CenterEnd)
+                    )
+                }
                 
                 Spacer(modifier = Modifier.height(32.dp))
                 

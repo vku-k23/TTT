@@ -7,6 +7,7 @@ interface AuthRepository {
     fun loginUser(email: String, password: String): Flow<Resource<Boolean>>
     fun registerUser(email: String, password: String, username: String): Flow<Resource<Boolean>>
     fun logoutUser(): Flow<Resource<Boolean>>
+    fun forgotPassword(email: String): Flow<Resource<Boolean>>
     fun isUserLoggedIn(): Boolean
     fun getCurrentUserId(): String?
     fun getCurrentUserEmail(): String?

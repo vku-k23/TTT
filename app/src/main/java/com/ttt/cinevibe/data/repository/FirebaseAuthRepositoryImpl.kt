@@ -16,6 +16,16 @@ class FirebaseAuthRepositoryImpl @Inject constructor(
     private val firestore: FirebaseFirestore
 ) : AuthRepository {
 
+    override fun forgotPassword(email: String): Flow<Resource<Boolean>> = flow {
+        try {
+            emit(Resource.Loading())
+            firebaseAuth.sendPasswordResetEmail(email).await()
+            emit(Resource.Success(true))
+        } catch (e: Exception) {
+            emit(Resource.Error(e.message ?: "Failed to send password reset email"))
+        }
+    }
+
     override fun loginUser(email: String, password: String): Flow<Resource<Boolean>> = flow {
         try {
             emit(Resource.Loading())
