@@ -27,6 +27,9 @@ class AuthViewModel @Inject constructor(
 
     private val _registerState = MutableStateFlow<AuthState>(AuthState.Idle)
     val registerState: StateFlow<AuthState> = _registerState.asStateFlow()
+    
+    private val _logoutState = MutableStateFlow<AuthState>(AuthState.Idle)
+    val logoutState: StateFlow<AuthState> = _logoutState.asStateFlow()
 
     fun login(email: String, password: String) {
         viewModelScope.launch {
@@ -68,8 +71,19 @@ class AuthViewModel @Inject constructor(
 
     fun logout() {
         viewModelScope.launch {
+            _logoutState.value = AuthState.Loading
             logoutUseCase().collect { result ->
-                // Handle logout result if needed
+                when (result) {
+                    is Resource.Success -> {
+                        _logoutState.value = AuthState.Success
+                    }
+                    is Resource.Error -> {
+                        _logoutState.value = AuthState.Error(result.message ?: "Logout failed")
+                    }
+                    is Resource.Loading -> {
+                        _logoutState.value = AuthState.Loading
+                    }
+                }
             }
         }
     }
@@ -77,6 +91,7 @@ class AuthViewModel @Inject constructor(
     fun resetAuthStates() {
         _loginState.value = AuthState.Idle
         _registerState.value = AuthState.Idle
+        _logoutState.value = AuthState.Idle
     }
 
     fun isUserLoggedIn(): Boolean {

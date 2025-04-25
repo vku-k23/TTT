@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
+import android.util.Log
 import com.ttt.cinevibe.R
 import com.ttt.cinevibe.data.remote.ApiConstants
 import com.ttt.cinevibe.domain.model.Movie
@@ -61,6 +62,12 @@ fun HomeScreen(
     val trendingMovies = viewModel.getTrendingMovies()
     val upcomingMovies = viewModel.getUpcomingMovies()
 
+    // For debugging - log movie counts
+    Log.d("HomeScreen", "Popular movies: ${popularMovies.size}")
+    Log.d("HomeScreen", "Top rated movies: ${topRatedMovies.size}")
+    Log.d("HomeScreen", "Trending movies: ${trendingMovies.size}")
+    Log.d("HomeScreen", "Upcoming movies: ${upcomingMovies.size}")
+    
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -172,10 +179,13 @@ fun FeaturedMovieBanner(
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
                 .data(
-                    if (movie.posterPath != null)
+                    // Properly construct the URL for backdrop images
+                    if (movie.backdropPath != null)
                         ApiConstants.IMAGE_BASE_URL + ApiConstants.BACKDROP_SIZE + movie.backdropPath
+                    else if (movie.posterPath != null)
+                        ApiConstants.IMAGE_BASE_URL + ApiConstants.POSTER_SIZE + movie.posterPath
                     else
-                        "https://via.placeholder.com/500x750?text=${movie.title}"
+                        "https://via.placeholder.com/1280x720?text=${movie.title}"
                 )
                 .build(),
             contentDescription = "Featured movie poster",
@@ -328,6 +338,7 @@ fun MoviePoster(
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
                 .data(
+                    // Properly construct the URL for poster images
                     if (movie.posterPath != null)
                         ApiConstants.IMAGE_BASE_URL + ApiConstants.POSTER_SIZE + movie.posterPath
                     else

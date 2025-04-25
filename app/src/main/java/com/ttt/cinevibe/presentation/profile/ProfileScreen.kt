@@ -18,6 +18,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -28,6 +29,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.ttt.cinevibe.presentation.auth.AuthState
 import com.ttt.cinevibe.presentation.auth.AuthViewModel
 import com.ttt.cinevibe.ui.theme.NetflixRed
 
@@ -38,6 +40,24 @@ fun ProfileScreen(
     onLogout: () -> Unit
 ) {
     val email = viewModel.getCurrentUserEmail() ?: "User"
+    val logoutState by viewModel.logoutState.collectAsState()
+    
+    // Effect to handle logout state
+    LaunchedEffect(key1 = logoutState) {
+        when (logoutState) {
+            is AuthState.Success -> {
+                // Reset states and navigate back to login
+                viewModel.resetAuthStates()
+                onLogout()
+            }
+            is AuthState.Error -> {
+                // Handle logout error if needed
+                // Could show a snackbar or toast here
+                viewModel.resetAuthStates()
+            }
+            else -> {}
+        }
+    }
     
     Scaffold(
         topBar = {
@@ -119,14 +139,24 @@ fun ProfileScreen(
             Button(
                 onClick = {
                     viewModel.logout()
-                    onLogout()
+                    // Don't call onLogout() here - we'll call it in LaunchedEffect when logout succeeds
                 },
                 modifier = Modifier.fillMaxWidth(),
                 colors = androidx.compose.material3.ButtonDefaults.buttonColors(
                     containerColor = NetflixRed
-                )
+                ),
+                enabled = logoutState !is AuthState.Loading
             ) {
                 Text("Logout", fontSize = 16.sp)
+            }
+            
+            // Show loading indicator if logout is in progress
+            if (logoutState is AuthState.Loading) {
+                Spacer(modifier = Modifier.height(8.dp))
+                androidx.compose.material3.LinearProgressIndicator(
+                    modifier = Modifier.fillMaxWidth(),
+                    color = NetflixRed
+                )
             }
             
             Spacer(modifier = Modifier.height(16.dp))

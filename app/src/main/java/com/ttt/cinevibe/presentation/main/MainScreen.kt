@@ -25,7 +25,9 @@ import com.ttt.cinevibe.presentation.navigation.NavGraph
 import com.ttt.cinevibe.presentation.navigation.Screens
 
 @Composable
-fun MainScreen() {
+fun MainScreen(
+    rootNavController: NavHostController // Add this parameter for the top-level navigation
+) {
     val navController = rememberNavController()
 
     val bottomNavItems = listOf(
@@ -70,7 +72,10 @@ fun MainScreen() {
         }
     ) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding)) {
-            NavGraph(navController = navController)
+            NavGraph(
+                navController = navController,
+                rootNavController = rootNavController // Pass the root NavController to NavGraph
+            )
         }
     }
 }

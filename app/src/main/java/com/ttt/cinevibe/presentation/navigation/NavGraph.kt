@@ -9,6 +9,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.ttt.cinevibe.domain.model.Movie
+import com.ttt.cinevibe.presentation.auth.AUTH_GRAPH_ROUTE
 import com.ttt.cinevibe.presentation.detail.MovieDetailScreen
 import com.ttt.cinevibe.presentation.downloads.DownloadsScreen
 import com.ttt.cinevibe.presentation.home.HomeScreen
@@ -18,7 +19,10 @@ import com.ttt.cinevibe.presentation.profile.ProfileScreen
 import com.ttt.cinevibe.presentation.search.SearchScreen
 
 @Composable
-fun NavGraph(navController: NavHostController) {
+fun NavGraph(
+    navController: NavHostController,
+    rootNavController: NavHostController
+) {
     NavHost(
         navController = navController,
         startDestination = Screens.HOME_ROUTE
@@ -55,8 +59,9 @@ fun NavGraph(navController: NavHostController) {
         composable(route = Screens.PROFILE_ROUTE) {
             ProfileScreen(
                 onLogout = {
-                    // Navigate back to auth flow when user logs out
-                    navController.navigate("auth_graph") {
+                    // Use rootNavController instead of navController for navigating to auth flow
+                    rootNavController.navigate(AUTH_GRAPH_ROUTE) {
+                        // Clear the entire back stack so user can't navigate back to the main flow
                         popUpTo(0) { inclusive = true }
                     }
                 }
