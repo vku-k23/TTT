@@ -1,0 +1,166 @@
+<resources>
+    <!-- App name -->
+    <string name="app_name">CineVibe</string>
+    
+    <!-- Navigation -->
+    <string name="home">Trang chủ</string>
+    <string name="new_and_hot">Mới &amp; Hot</string>
+    <string name="search">Tìm kiếm</string>
+    <string name="profile">Hồ sơ</string>
+    <string name="back">Quay lại</string>
+    
+    <!-- Authentication -->
+    <string name="login">Đăng nhập</string>
+    <string name="register">Đăng ký</string>
+    <string name="forgot_password">Quên mật khẩu</string>
+    <string name="email">Email</string>
+    <string name="password">Mật khẩu</string>
+    <string name="confirm_password">Xác nhận mật khẩu</string>
+    <string name="reset_password">Đặt lại mật khẩu</string>
+    <string name="login_with_google">Đăng nhập với Google</string>
+    <string name="dont_have_account">Chưa có tài khoản?</string>
+    <string name="already_have_account">Đã có tài khoản?</string>
+    <string name="sign_up">Đăng ký</string>
+    <string name="sign_in">Đăng nhập</string>
+    <string name="sign_up_now">Đăng ký ngay</string>
+    <string name="logout">Đăng xuất</string>
+    
+    <!-- Profile -->
+    <string name="account_information">Thông tin tài khoản</string>
+    <string name="app_settings">Cài đặt ứng dụng</string>
+    <string name="change_language">Thay đổi ngôn ngữ</string>
+    <string name="help_support">Trợ giúp &amp; Hỗ trợ</string>
+    <string name="edit_profile">Chỉnh sửa hồ sơ</string>
+    <string name="language_settings">Cài đặt ngôn ngữ</string>
+    <string name="select_app_language">Chọn ngôn ngữ ứng dụng</string>
+    <string name="full_name">Họ và tên</string>
+    <string name="username">Tên người dùng</string>
+    <string name="phone_number">Số điện thoại (Tùy chọn)</string>
+    <string name="save_changes">Lưu thay đổi</string>
+    <string name="privacy_terms">Quyền riêng tư &amp; Điều khoản</string>
+    <string name="user_agreement">Thỏa thuận người dùng</string>
+    <string name="account_id">ID Tài khoản</string>
+    <string name="subscription_information">Thông tin đăng ký</string>
+    <string name="account_type">Loại tài khoản</string>
+    <string name="subscription_date">Ngày đăng ký</string>
+    <string name="next_billing_date">Ngày thanh toán tiếp theo</string>
+    <string name="payment_method">Phương thức thanh toán</string>
+    
+    <!-- Privacy & Terms -->
+    <string name="privacy_policy">Chính sách quyền riêng tư</string>
+    <string name="privacy_last_updated">Cập nhật lần cuối: Ngày 15 tháng 4 năm 2025</string>
+    <string name="terms_of_service">Điều khoản dịch vụ</string>
+    <string name="terms_effective_date">Ngày có hiệu lực: Ngày 20 tháng 4 năm 2025</string>
+    
+    <!-- Privacy Policy Sections -->
+    <string name="privacy_section_info_collect_title">Thông tin chúng tôi thu thập</string>
+    <string name="privacy_section_info_collect_content">Chúng tôi thu thập thông tin bạn trực tiếp cung cấp cho chúng tôi, như khi bạn tạo hoặc sửa đổi tài khoản, yêu cầu hỗ trợ khách hàng, hoặc liên lạc với chúng tôi. Thông tin này có thể bao gồm tên, email, mật khẩu, địa chỉ bưu điện, số điện thoại, phương thức thanh toán, và các thông tin khác mà bạn chọn cung cấp.</string>
+    
+    <string name="privacy_section_info_use_title">Cách chúng tôi sử dụng thông tin</string>
+    <string name="privacy_section_info_use_content">Chúng tôi sử dụng thông tin thu thập được để cung cấp, cá nhân hóa và cải thiện dịch vụ của chúng tôi, xử lý các giao dịch của bạn, liên lạc với bạn về cập nhật và khuyến mãi, bảo vệ chống lại hoạt động gian lận hoặc bất hợp pháp, và cho các mục đích khác được mô tả trong chính sách quyền riêng tư này.</string>
+    
+    <string name="privacy_section_info_share_title">Chia sẻ thông tin của bạn</string>
+    <string name="privacy_section_info_share_content">Chúng tôi có thể chia sẻ thông tin thu thập được với bên thứ ba cung cấp dịch vụ thay mặt chúng tôi, như xử lý thanh toán, phân tích dữ liệu, gửi email, dịch vụ lưu trữ và dịch vụ khách hàng. Chúng tôi cũng có thể chia sẻ thông tin với đối tác kinh doanh, công ty liên kết của chúng tôi, hoặc liên quan đến giao dịch công ty lớn.</string>
+    
+    <string name="privacy_section_choices_title">Lựa chọn của bạn</string>
+    <string name="privacy_section_choices_content">Bạn có thể sửa đổi thông tin tài khoản, cập nhật tùy chọn liên lạc, hoặc xóa tài khoản của mình bất cứ lúc nào. Bạn cũng có thể từ chối một số phương thức thu thập dữ liệu bằng cách điều chỉnh cài đặt thiết bị của mình.</string>
+    
+    <string name="privacy_section_security_title">Bảo mật</string>
+    <string name="privacy_section_security_content">Chúng tôi áp dụng các biện pháp hợp lý để giúp bảo vệ thông tin chúng tôi thu thập khỏi mất mát, trộm cắp, sử dụng sai mục đích, và truy cập, tiết lộ, thay đổi và phá hủy trái phép.</string>
+    
+    <string name="privacy_section_contact_title">Liên hệ với chúng tôi</string>
+    <string name="privacy_section_contact_content">Nếu bạn có bất kỳ câu hỏi nào về chính sách quyền riêng tư này, vui lòng liên hệ với chúng tôi qua privacy@cinevibe.com.</string>
+    
+    <!-- User Agreement Sections -->
+    <string name="agreement_section_acceptance_title">1. Chấp nhận điều khoản</string>
+    <string name="agreement_section_acceptance_content">Bằng việc truy cập hoặc sử dụng dịch vụ của CineVibe, bạn đồng ý bị ràng buộc bởi các Điều khoản dịch vụ này. Nếu bạn không đồng ý với các điều khoản này, vui lòng không sử dụng dịch vụ của chúng tôi.</string>
+    
+    <string name="agreement_section_changes_title">2. Thay đổi điều khoản</string>
+    <string name="agreement_section_changes_content">CineVibe có thể sửa đổi các điều khoản này bất cứ lúc nào. Chúng tôi sẽ thông báo cho bạn về mọi thay đổi bằng cách đăng các điều khoản đã cập nhật trên trang web hoặc ứng dụng của chúng tôi. Việc bạn tiếp tục sử dụng dịch vụ của chúng tôi sau bất kỳ thay đổi nào cho thấy bạn chấp nhận các điều khoản đã được sửa đổi.</string>
+    
+    <string name="agreement_section_using_title">3. Sử dụng dịch vụ của chúng tôi</string>
+    <string name="agreement_section_using_content">Bạn phải ít nhất 13 tuổi hoặc đạt tuổi tối thiểu theo yêu cầu ở quốc gia của bạn để sử dụng dịch vụ của chúng tôi. Bạn đồng ý cung cấp thông tin chính xác khi đăng ký và cập nhật thông tin này. Bạn chịu trách nhiệm cho tất cả hoạt động xảy ra dưới tài khoản của mình.</string>
+    
+    <string name="agreement_section_subscription_title">4. Đăng ký và thanh toán</string>
+    <string name="agreement_section_subscription_content">Một số khía cạnh của dịch vụ chúng tôi yêu cầu thanh toán phí. Bạn sẽ bị tính phí theo định kỳ dựa trên gói đăng ký của bạn. Tất cả các khoản phí đều không hoàn lại trừ khi được yêu cầu bởi luật pháp hoặc được quy định cụ thể trong các điều khoản này.</string>
+    
+    <string name="agreement_section_content_title">5. Nội dung và giấy phép</string>
+    <string name="agreement_section_content_content">Tất cả nội dung có sẵn thông qua dịch vụ của chúng tôi thuộc sở hữu của CineVibe hoặc người cấp phép và được bảo vệ bởi quyền sở hữu trí tuệ. Bạn đồng ý không sao chép, phân phối, sửa đổi, hiển thị, hoặc sử dụng nội dung theo bất kỳ cách nào không được CineVibe cho phép rõ ràng.</string>
+    
+    <string name="agreement_section_disclaimers_title">6. Tuyên bố từ chối và giới hạn trách nhiệm</string>
+    <string name="agreement_section_disclaimers_content">DỊCH VỤ VÀ TẤT CẢ NỘI DUNG ĐƯỢC CUNG CẤP "NGUYÊN TRẠNG" MÀ KHÔNG CÓ BẤT KỲ BẢO ĐẢM NÀO. TRONG PHẠM VI TỐI ĐA ĐƯỢC PHÁP LUẬT CHO PHÉP, CINEVIBE KHÔNG CHỊU TRÁCH NHIỆM CHO BẤT KỲ THIỆT HẠI GIÁN TIẾP, NGẪU NHIÊN, ĐẶC BIỆT, DO HẬU QUẢ HAY MANG TÍNH TRỪNG PHẠT NÀO.</string>
+    
+    <string name="agreement_section_law_title">7. Luật điều chỉnh</string>
+    <string name="agreement_section_law_content">Các điều khoản này sẽ được điều chỉnh bởi luật pháp của khu vực tài phán nơi bạn cư trú, không phụ thuộc vào các quy định về xung đột pháp luật.</string>
+    
+    <!-- Settings -->
+    <string name="notifications">Thông báo</string>
+    <string name="push_notifications">Thông báo đẩy</string>
+    <string name="push_notifications_description">Nhận thông báo về phim mới và gợi ý</string>
+    <string name="downloads">Tải xuống</string>
+    <string name="download_wifi_only">Chỉ tải xuống khi dùng Wi-Fi</string>
+    <string name="download_wifi_description">Tiết kiệm dữ liệu di động bằng cách chỉ tải xuống qua Wi-Fi</string>
+    <string name="playback">Phát lại</string>
+    <string name="autoplay_next_episode">Tự động phát tập tiếp theo</string>
+    <string name="autoplay_description">Tự động phát tập tiếp theo trong một loạt phim</string>
+    <string name="subtitles">Phụ đề</string>
+    <string name="subtitles_description">Hiển thị phụ đề trong khi phát</string>
+    <string name="app_information">Thông tin ứng dụng</string>
+    <string name="app_version">Phiên bản ứng dụng</string>
+    <string name="build_number">Số bản dựng</string>
+    
+    <!-- Movies -->
+    <string name="popular">Phổ biến</string>
+    <string name="top_rated">Đánh giá cao</string>
+    <string name="now_playing">Đang chiếu</string>
+    <string name="upcoming">Sắp chiếu</string>
+    <string name="similar">Phim tương tự</string>
+    <string name="recommendations">Đề xuất</string>
+    <string name="trending">Xu hướng</string>
+    <string name="watch_now">Xem ngay</string>
+    <string name="add_to_list">Thêm vào danh sách</string>
+    <string name="share">Chia sẻ</string>
+    <string name="genres">Thể loại</string>
+    <string name="cast">Diễn viên</string>
+    <string name="director">Đạo diễn</string>
+    <string name="release_date">Ngày phát hành</string>
+    <string name="runtime">Thời lượng</string>
+    <string name="overview">Tổng quan</string>
+    
+    <!-- Search -->
+    <string name="search_hint">Tìm kiếm phim hoặc chương trình TV</string>
+    <string name="no_results">Không tìm thấy kết quả</string>
+    <string name="search_results">Kết quả tìm kiếm</string>
+    
+    <!-- Help & Support -->
+    <string name="common_issues">Vấn đề thường gặp</string>
+    <string name="streaming_quality_problems">Vấn đề về phát trực tuyến hoặc chất lượng video</string>
+    <string name="account_billing_questions">Câu hỏi về tài khoản &amp; thanh toán</string>
+    <string name="app_not_working">Ứng dụng không hoạt động đúng</string>
+    <string name="content_availability">Tính khả dụng của nội dung</string>
+    <string name="playback_issues">Vấn đề khi phát lại</string>
+    <string name="contact_us">Liên hệ với chúng tôi</string>
+    <string name="live_chat_support">Hỗ trợ trò chuyện trực tiếp</string>
+    <string name="email_support">Hỗ trợ qua email</string>
+    <string name="call_center">Trung tâm cuộc gọi</string>
+    <string name="submit_feedback">Gửi phản hồi</string>
+    <string name="faq">Câu hỏi thường gặp</string>
+    <string name="account_management">Quản lý tài khoản</string>
+    <string name="subscription_billing">Đăng ký &amp; thanh toán</string>
+    <string name="device_compatibility">Tương thích thiết bị</string>
+    <string name="content_questions">Câu hỏi về nội dung</string>
+    <string name="network_requirements">Yêu cầu mạng</string>
+    
+    <!-- General -->
+    <string name="loading">Đang tải…</string>
+    <string name="error">Lỗi</string>
+    <string name="retry">Thử lại</string>
+    <string name="cancel">Hủy</string>
+    <string name="ok">OK</string>
+    <string name="yes">Có</string>
+    <string name="no">Không</string>
+    <string name="changing_language_to">Đang thay đổi ngôn ngữ thành %1$s…</string>
+    <string name="error_passwords_dont_match">Mật khẩu không khớp</string>
+    <string name="view">Xem</string>
+    <string name="navigate">Điều hướng</string>
+</resources>

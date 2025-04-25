@@ -21,9 +21,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.ttt.cinevibe.R
 import com.ttt.cinevibe.ui.theme.Black
 import com.ttt.cinevibe.ui.theme.DarkGray
 import com.ttt.cinevibe.ui.theme.LightGray
@@ -40,7 +42,7 @@ fun HelpSupportScreen(
         containerColor = Black,
         topBar = {
             ProfileTopBar(
-                title = "Help & Support",
+                title = stringResource(R.string.help_support),
                 onBackPressed = onBackPressed
             )
         }
@@ -52,37 +54,37 @@ fun HelpSupportScreen(
                 .padding(paddingValues)
                 .verticalScroll(scrollState)
         ) {
-            SectionHeader(title = "Common Issues")
+            SectionHeader(title = stringResource(R.string.common_issues))
             
             SettingsCard {
-                SupportItem(title = "Streaming or Video Quality Problems")
-                SupportItem(title = "Account & Billing Questions")
-                SupportItem(title = "App Not Working Properly")
-                SupportItem(title = "Content Availability")
-                SupportItem(title = "Playback Issues")
+                SupportItem(title = stringResource(R.string.streaming_quality_problems))
+                SupportItem(title = stringResource(R.string.account_billing_questions))
+                SupportItem(title = stringResource(R.string.app_not_working))
+                SupportItem(title = stringResource(R.string.content_availability))
+                SupportItem(title = stringResource(R.string.playback_issues))
             }
             
             Spacer(modifier = Modifier.height(16.dp))
             
-            SectionHeader(title = "Contact Us")
+            SectionHeader(title = stringResource(R.string.contact_us))
             
             SettingsCard {
-                SupportItem(title = "Live Chat Support")
-                SupportItem(title = "Email Support")
-                SupportItem(title = "Call Center")
-                SupportItem(title = "Submit Feedback", isLastItem = true)
+                SupportItem(title = stringResource(R.string.live_chat_support))
+                SupportItem(title = stringResource(R.string.email_support))
+                SupportItem(title = stringResource(R.string.call_center))
+                SupportItem(title = stringResource(R.string.submit_feedback), isLastItem = true)
             }
             
             Spacer(modifier = Modifier.height(16.dp))
             
-            SectionHeader(title = "FAQ")
+            SectionHeader(title = stringResource(R.string.faq))
             
             SettingsCard {
-                SupportItem(title = "Account Management")
-                SupportItem(title = "Subscription & Billing")
-                SupportItem(title = "Device Compatibility")
-                SupportItem(title = "Content Questions")
-                SupportItem(title = "Network Requirements", isLastItem = true)
+                SupportItem(title = stringResource(R.string.account_management))
+                SupportItem(title = stringResource(R.string.subscription_billing))
+                SupportItem(title = stringResource(R.string.device_compatibility))
+                SupportItem(title = stringResource(R.string.content_questions))
+                SupportItem(title = stringResource(R.string.network_requirements), isLastItem = true)
             }
         }
     }
@@ -109,7 +111,7 @@ fun SupportItem(
         
         Icon(
             imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-            contentDescription = "View",
+            contentDescription = stringResource(R.string.view),
             tint = LightGray
         )
     }

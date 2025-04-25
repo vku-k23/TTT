@@ -13,12 +13,14 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ttt.cinevibe.ui.theme.Black
 import com.ttt.cinevibe.ui.theme.LightGray
 import com.ttt.cinevibe.ui.theme.White
+import com.ttt.cinevibe.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -31,7 +33,7 @@ fun PrivacyTermsScreen(
         containerColor = Black,
         topBar = {
             ProfileTopBar(
-                title = "Privacy & Terms",
+                title = stringResource(R.string.privacy_terms),
                 onBackPressed = onBackPressed
             )
         }
@@ -45,7 +47,7 @@ fun PrivacyTermsScreen(
                 .padding(16.dp)
         ) {
             Text(
-                text = "Privacy Policy",
+                text = stringResource(R.string.privacy_policy),
                 color = White,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
@@ -54,7 +56,7 @@ fun PrivacyTermsScreen(
             Spacer(modifier = Modifier.height(16.dp))
             
             Text(
-                text = "Last Updated: April 15, 2025",
+                text = stringResource(R.string.privacy_last_updated),
                 color = LightGray,
                 fontSize = 14.sp
             )
@@ -62,33 +64,33 @@ fun PrivacyTermsScreen(
             Spacer(modifier = Modifier.height(16.dp))
             
             PolicySection(
-                title = "Information We Collect",
-                content = "We collect information you provide directly to us, such as when you create or modify your account, request customer support, or otherwise communicate with us. This information may include your name, email, password, postal address, phone number, payment method, and other information you choose to provide."
+                title = stringResource(R.string.privacy_section_info_collect_title),
+                content = stringResource(R.string.privacy_section_info_collect_content)
             )
             
             PolicySection(
-                title = "How We Use Information",
-                content = "We use the information we collect to provide, personalize, and improve our services, process your transactions, communicate with you about updates and promotions, protect against fraudulent or illegal activity, and for other purposes described in this privacy policy."
+                title = stringResource(R.string.privacy_section_info_use_title),
+                content = stringResource(R.string.privacy_section_info_use_content)
             )
             
             PolicySection(
-                title = "Sharing Your Information",
-                content = "We may share the information we collect with third parties who provide services on our behalf, such as payment processing, data analysis, email delivery, hosting services, and customer service. We may also share information with our business partners, affiliates, or in connection with a substantial corporate transaction."
+                title = stringResource(R.string.privacy_section_info_share_title),
+                content = stringResource(R.string.privacy_section_info_share_content)
             )
             
             PolicySection(
-                title = "Your Choices",
-                content = "You can modify your account information, update your communication preferences, or delete your account at any time. You may also opt-out of certain data collection practices by adjusting your device settings."
+                title = stringResource(R.string.privacy_section_choices_title),
+                content = stringResource(R.string.privacy_section_choices_content)
             )
             
             PolicySection(
-                title = "Security",
-                content = "We take reasonable measures to help protect the information we collect from loss, theft, misuse, and unauthorized access, disclosure, alteration, and destruction."
+                title = stringResource(R.string.privacy_section_security_title),
+                content = stringResource(R.string.privacy_section_security_content)
             )
             
             PolicySection(
-                title = "Contact Us",
-                content = "If you have any questions about this privacy policy, please contact us at privacy@cinevibe.com."
+                title = stringResource(R.string.privacy_section_contact_title),
+                content = stringResource(R.string.privacy_section_contact_content)
             )
         }
     }

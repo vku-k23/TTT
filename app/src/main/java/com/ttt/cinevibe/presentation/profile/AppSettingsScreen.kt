@@ -14,8 +14,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.ttt.cinevibe.R
 import com.ttt.cinevibe.ui.theme.Black
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -35,7 +37,7 @@ fun AppSettingsScreen(
         containerColor = Black,
         topBar = {
             ProfileTopBar(
-                title = "App Settings",
+                title = stringResource(R.string.app_settings),
                 onBackPressed = onBackPressed
             )
         }
@@ -47,12 +49,12 @@ fun AppSettingsScreen(
                 .padding(paddingValues)
                 .verticalScroll(scrollState)
         ) {
-            SectionHeader(title = "Notifications")
+            SectionHeader(title = stringResource(R.string.notifications))
             
             SettingsCard {
                 SettingsSwitch(
-                    title = "Push Notifications",
-                    subtitle = "Get notified about new releases and recommendations",
+                    title = stringResource(R.string.push_notifications),
+                    subtitle = stringResource(R.string.push_notifications_description),
                     checked = notificationsEnabled,
                     onCheckedChange = viewModel::toggleNotifications
                 )
@@ -60,12 +62,12 @@ fun AppSettingsScreen(
             
             Spacer(modifier = Modifier.height(16.dp))
             
-            SectionHeader(title = "Downloads")
+            SectionHeader(title = stringResource(R.string.downloads))
             
             SettingsCard {
                 SettingsSwitch(
-                    title = "Download on Wi-Fi Only",
-                    subtitle = "Save mobile data by downloading only on Wi-Fi",
+                    title = stringResource(R.string.download_wifi_only),
+                    subtitle = stringResource(R.string.download_wifi_description),
                     checked = downloadOnWifiOnly,
                     onCheckedChange = viewModel::toggleDownloadOnWifiOnly
                 )
@@ -73,19 +75,19 @@ fun AppSettingsScreen(
             
             Spacer(modifier = Modifier.height(16.dp))
             
-            SectionHeader(title = "Playback")
+            SectionHeader(title = stringResource(R.string.playback))
             
             SettingsCard {
                 SettingsSwitch(
-                    title = "Autoplay Next Episode",
-                    subtitle = "Automatically play the next episode in a series",
+                    title = stringResource(R.string.autoplay_next_episode),
+                    subtitle = stringResource(R.string.autoplay_description),
                     checked = autoplayEnabled,
                     onCheckedChange = viewModel::toggleAutoplay
                 )
                 
                 SettingsSwitch(
-                    title = "Subtitles",
-                    subtitle = "Show subtitles during playback",
+                    title = stringResource(R.string.subtitles),
+                    subtitle = stringResource(R.string.subtitles_description),
                     checked = subtitlesEnabled,
                     onCheckedChange = viewModel::toggleSubtitles
                 )
@@ -93,16 +95,16 @@ fun AppSettingsScreen(
             
             Spacer(modifier = Modifier.height(16.dp))
             
-            SectionHeader(title = "App Information")
+            SectionHeader(title = stringResource(R.string.app_information))
             
             SettingsCard {
                 ProfileInfoItem(
-                    label = "App Version",
+                    label = stringResource(R.string.app_version),
                     value = "1.0.0"
                 )
                 
                 ProfileInfoItem(
-                    label = "Build Number",
+                    label = stringResource(R.string.build_number),
                     value = "2025.04.25.1"
                 )
             }

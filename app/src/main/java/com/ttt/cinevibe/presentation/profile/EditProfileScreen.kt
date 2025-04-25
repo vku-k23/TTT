@@ -34,12 +34,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.ttt.cinevibe.R
 import com.ttt.cinevibe.presentation.auth.AuthViewModel
 import com.ttt.cinevibe.ui.theme.Black
 import com.ttt.cinevibe.ui.theme.DarkGray
@@ -68,7 +70,7 @@ fun EditProfileScreen(
         containerColor = Black,
         topBar = {
             ProfileTopBar(
-                title = "Edit Profile",
+                title = stringResource(R.string.edit_profile),
                 onBackPressed = onBackPressed
             )
         }
@@ -106,7 +108,7 @@ fun EditProfileScreen(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Edit,
-                        contentDescription = "Change Photo",
+                        contentDescription = stringResource(R.string.edit_profile),
                         tint = White,
                         modifier = Modifier.size(32.dp)
                     )
@@ -127,7 +129,7 @@ fun EditProfileScreen(
             ProfileTextField(
                 value = username,
                 onValueChange = { username = it },
-                label = "Username",
+                label = stringResource(R.string.username),
                 keyboardType = KeyboardType.Text
             )
             
@@ -136,7 +138,7 @@ fun EditProfileScreen(
             ProfileTextField(
                 value = fullName,
                 onValueChange = { fullName = it },
-                label = "Full Name",
+                label = stringResource(R.string.full_name),
                 keyboardType = KeyboardType.Text
             )
             
@@ -145,7 +147,7 @@ fun EditProfileScreen(
             ProfileTextField(
                 value = phoneNumber,
                 onValueChange = { phoneNumber = it },
-                label = "Phone Number (Optional)",
+                label = stringResource(R.string.phone_number),
                 keyboardType = KeyboardType.Phone
             )
             
@@ -164,7 +166,7 @@ fun EditProfileScreen(
                 shape = RoundedCornerShape(4.dp)
             ) {
                 Text(
-                    text = "Save Changes",
+                    text = stringResource(R.string.save_changes),
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold
                 )

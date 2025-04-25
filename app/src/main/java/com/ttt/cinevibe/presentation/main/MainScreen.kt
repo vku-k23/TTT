@@ -2,6 +2,7 @@ package com.ttt.cinevibe.presentation.main
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -14,6 +15,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
@@ -33,31 +35,26 @@ fun MainScreen(
     val bottomNavItems = listOf(
         BottomNavItem(
             route = Screens.HOME_ROUTE,
-            title = "Home",
             selectedIcon = R.drawable.ic_home_filled,
             unselectedIcon = R.drawable.ic_home_outlined
         ),
         BottomNavItem(
             route = Screens.NEW_HOT_ROUTE,
-            title = "New & Hot",
             selectedIcon = R.drawable.ic_new_hot_filled,
             unselectedIcon = R.drawable.ic_new_hot_outlined
         ),
         BottomNavItem(
             route = Screens.SEARCH_ROUTE,
-            title = "Search",
             selectedIcon = R.drawable.ic_search_filled,
             unselectedIcon = R.drawable.ic_search_outlined
         ),
         BottomNavItem(
             route = Screens.DOWNLOADS_ROUTE,
-            title = "Downloads",
             selectedIcon = R.drawable.ic_downloads_filled,
             unselectedIcon = R.drawable.ic_downloads_outlined
         ),
         BottomNavItem(
             route = Screens.PROFILE_ROUTE,
-            title = "Profile",
             selectedIcon = R.drawable.ic_profile_filled,
             unselectedIcon = R.drawable.ic_profile_outlined
         )
@@ -93,7 +90,7 @@ fun BottomNavigationBar(
 
     if (isMainScreen) {
         NavigationBar(
-            containerColor = MaterialTheme.colorScheme.surface,
+            containerColor = androidx.compose.ui.graphics.Color.Black,
         ) {
             items.forEach { item ->
                 val selected = currentDestination?.hierarchy?.any { it.route == item.route } == true
@@ -101,16 +98,18 @@ fun BottomNavigationBar(
                     icon = {
                         Icon(
                             painter = painterResource(id = if (selected) item.selectedIcon else item.unselectedIcon),
-                            contentDescription = item.title
+                            contentDescription = item.title,
+                            tint = androidx.compose.ui.graphics.Color.White,
+                            modifier = Modifier.size(if (selected) 32.dp else 28.dp) // Make selected icon larger
                         )
                     },
-                    label = { Text(text = item.title) },
                     selected = selected,
                     colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = MaterialTheme.colorScheme.primary,
-                        selectedTextColor = MaterialTheme.colorScheme.primary,
-                        unselectedIconColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                        unselectedTextColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                        selectedIconColor = androidx.compose.ui.graphics.Color.White,
+                        selectedTextColor = androidx.compose.ui.graphics.Color.White,
+                        unselectedIconColor = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.6f),
+                        unselectedTextColor = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.6f),
+                        indicatorColor = androidx.compose.ui.graphics.Color.Transparent // Hide the indicator background
                     ),
                     onClick = {
                         navController.navigate(item.route) {

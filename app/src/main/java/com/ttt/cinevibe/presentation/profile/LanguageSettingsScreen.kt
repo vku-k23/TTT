@@ -8,12 +8,22 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.ttt.cinevibe.R
 import com.ttt.cinevibe.ui.theme.Black
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -24,12 +34,16 @@ fun LanguageSettingsScreen(
     val scrollState = rememberScrollState()
     val selectedLanguage by viewModel.selectedLanguage.collectAsState()
     val languages = viewModel.getAvailableLanguages()
+    val context = LocalContext.current
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
     
     Scaffold(
         containerColor = Black,
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             ProfileTopBar(
-                title = "Language Settings",
+                title = stringResource(R.string.language_settings),
                 onBackPressed = onBackPressed
             )
         }
@@ -41,14 +55,23 @@ fun LanguageSettingsScreen(
                 .padding(paddingValues)
                 .verticalScroll(scrollState)
         ) {
-            SectionHeader(title = "Select App Language")
+            SectionHeader(title = stringResource(R.string.select_app_language))
             
             SettingsCard {
                 languages.forEach { language ->
+                    val isSelected = language == selectedLanguage
                     LanguageOption(
                         language = language,
-                        isSelected = language == selectedLanguage,
-                        onClick = { viewModel.setSelectedLanguage(language) }
+                        isSelected = isSelected,
+                        onClick = { 
+                            if (!isSelected) {
+                                viewModel.setSelectedLanguage(language)
+                                // Show feedback to user
+                                scope.launch {
+                                    snackbarHostState.showSnackbar(context.getString(R.string.changing_language_to, language))
+                                }
+                            }
+                        }
                     )
                 }
             }
