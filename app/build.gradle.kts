@@ -6,6 +6,7 @@ plugins {
     id("com.google.dagger.hilt.android")
     id("kotlin-parcelize")
     id("com.google.gms.google-services")  // Add Google services plugin
+    id("org.jetbrains.kotlin.plugin.serialization") // Add Kotlin serialization plugin
 }
 
 android {
