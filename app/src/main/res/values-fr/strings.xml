@@ -150,6 +150,8 @@
     <string name="trailers_and_more">Bandes-annonces et plus</string>
     <string name="overview">Synopsis</string>
     <string name="rate">Évaluer</string>
+    <string name="read_more">Lire plus</string>
+    <string name="no_synopsis_available">Pas de synopsis disponible pour ce film</string>
     
     <!-- Search -->
     <string name="search_hint">Rechercher des films ou des émissions TV</string>

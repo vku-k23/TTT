@@ -11,10 +11,10 @@ import javax.inject.Inject
 class GetMovieByIdUseCase @Inject constructor(
     private val movieRepository: MovieRepository
 ) {
-    operator fun invoke(movieId: Int): Flow<Movie> = flow {
+    operator fun invoke(movieId: Int, language: String? = null): Flow<Movie> = flow {
         try {
-            // Properly collect from the repository flow
-            movieRepository.getMovieById(movieId).collect { movie ->
+            // Properly collect from the repository flow, passing the language parameter
+            movieRepository.getMovieById(movieId, language).collect { movie ->
                 emit(movie)
             }
         } catch (e: Exception) {

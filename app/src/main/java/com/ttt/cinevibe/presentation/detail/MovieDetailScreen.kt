@@ -396,16 +396,53 @@ fun MovieDetailContent(
                     .padding(horizontal = 16.dp)
                     .padding(top = 16.dp)
             ) {
-                // Movie description/overview
+                // Section title
                 Text(
-                    text = movie.overview,
+                    text = stringResource(R.string.synopsis),
                     color = White,
-                    fontSize = 15.sp,
-                    lineHeight = 22.sp,
-                    maxLines = if (isOverviewExpanded) Int.MAX_VALUE else 4,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.clickable { isOverviewExpanded = !isOverviewExpanded }
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(bottom = 8.dp)
                 )
+                
+                // Movie description/overview
+                if (!movie.overview.isNullOrEmpty()) {
+                    Text(
+                        text = movie.overview,
+                        color = White,
+                        fontSize = 15.sp,
+                        lineHeight = 22.sp,
+                        maxLines = if (isOverviewExpanded) Int.MAX_VALUE else 4,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier
+                            .clickable { isOverviewExpanded = !isOverviewExpanded }
+                            .background(DarkGray.copy(alpha = 0.3f), RoundedCornerShape(8.dp))
+                            .padding(12.dp)
+                    )
+                    
+                    if (!isOverviewExpanded && movie.overview.length > 150) {
+                        Text(
+                            text = stringResource(R.string.read_more),
+                            color = NetflixRed,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier
+                                .padding(top = 8.dp)
+                                .clickable { isOverviewExpanded = true }
+                        )
+                    }
+                } else {
+                    // No overview available
+                    Text(
+                        text = stringResource(R.string.no_synopsis_available),
+                        color = LightGray,
+                        fontSize = 15.sp,
+                        modifier = Modifier
+                            .background(DarkGray.copy(alpha = 0.3f), RoundedCornerShape(8.dp))
+                            .padding(12.dp)
+                            .fillMaxWidth()
+                    )
+                }
                 
                 // Action buttons row
                 Row(

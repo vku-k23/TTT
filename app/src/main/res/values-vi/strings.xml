@@ -142,6 +142,9 @@
     <string name="release_date">Ngày phát hành</string>
     <string name="runtime">Thời lượng</string>
     <string name="overview">Tổng quan</string>
+    <string name="synopsis">Tóm tắt nội dung</string>
+    <string name="read_more">Xem thêm</string>
+    <string name="no_synopsis_available">Không có tóm tắt nội dung cho phim này</string>
 
     <!-- Movie detail dialog -->
     <string name="play">Phát</string>

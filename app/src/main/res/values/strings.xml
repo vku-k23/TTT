@@ -142,6 +142,9 @@
     <string name="release_date">Release Date</string>
     <string name="runtime">Runtime</string>
     <string name="overview">Overview</string>
+    <string name="synopsis">Synopsis</string>
+    <string name="read_more">Read more</string>
+    <string name="no_synopsis_available">No synopsis available for this movie</string>
     
     <!-- Movie detail dialog -->
     <string name="play">Play</string>

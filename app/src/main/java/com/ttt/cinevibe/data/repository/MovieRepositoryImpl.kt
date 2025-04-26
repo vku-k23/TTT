@@ -105,18 +105,26 @@ class MovieRepositoryImpl @Inject constructor(
         }
     }
     
-    override suspend fun getMovieById(movieId: Int): Flow<Movie> = flow {
+    override suspend fun getMovieById(movieId: Int, language: String?): Flow<Movie> = flow {
         try {
             if (genresCache.isEmpty()) {
                 loadGenres()
             }
             
-            val movieDetails = movieApiService.getMovieDetails(movieId)
-            Log.d("MovieRepository", "Movie details fetched for ID: $movieId")
+            // Use the provided language parameter if available
+            val languageToUse = language ?: "en-US"
             
-            // Fetch videos (trailers) for the movie
+            // Log the language being requested from API
+            Log.d("MovieRepository", "Requesting movie details from API with language: $languageToUse for movieId: $movieId")
+            
+            val movieDetails = movieApiService.getMovieDetails(movieId, language = languageToUse)
+            Log.d("MovieRepository", "Movie details fetched for ID: $movieId with language: $languageToUse")
+            Log.d("MovieRepository", "API Response: title=${movieDetails.title}, overview length=${movieDetails.overview?.length ?: 0}")
+            Log.d("MovieRepository", "First 100 chars of overview: ${movieDetails.overview?.take(100)}")
+            
+            // Fetch videos (trailers) for the movie with the same language
             val videosResponse = try {
-                movieApiService.getMovieVideos(movieId)
+                movieApiService.getMovieVideos(movieId, language = languageToUse)
             } catch (e: Exception) {
                 Log.e("MovieRepository", "Error fetching videos for movie ID: $movieId", e)
                 null
@@ -143,6 +151,10 @@ class MovieRepositoryImpl @Inject constructor(
                 genres = genreNames,
                 trailerVideoKey = trailerKey
             )
+            
+            // Log the domain model being emitted
+            Log.d("MovieRepository", "Emitting movie domain model with title: ${movie.title}")
+            Log.d("MovieRepository", "Domain model overview length: ${movie.overview?.length ?: 0}")
             
             emit(movie)
         } catch (e: Exception) {

@@ -142,6 +142,9 @@
     <string name="release_date">公開日</string>
     <string name="runtime">上映時間</string>
     <string name="overview">概要</string>
+    <string name="synopsis">あらすじ</string>
+    <string name="read_more">もっと読む</string>
+    <string name="no_synopsis_available">この映画のあらすじはありません</string>
     
     <!-- Movie detail dialog -->
     <string name="play">再生</string>

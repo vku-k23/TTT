@@ -2,6 +2,7 @@ package com.ttt.cinevibe.presentation.detail
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ttt.cinevibe.data.manager.LanguageManager
 import com.ttt.cinevibe.domain.model.Movie
 import com.ttt.cinevibe.domain.usecases.movies.GetMovieByIdUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -9,12 +10,15 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class MovieDetailViewModel @Inject constructor(
-    private val getMovieByIdUseCase: GetMovieByIdUseCase
+    private val getMovieByIdUseCase: GetMovieByIdUseCase,
+    private val languageManager: LanguageManager
 ) : ViewModel() {
 
     private val _movieState = MutableStateFlow(MovieDetailState(isLoading = false))
@@ -44,14 +48,26 @@ class MovieDetailViewModel @Inject constructor(
         _movieState.value = MovieDetailState(isLoading = true)
         
         currentFetchJob = viewModelScope.launch {
-            getMovieByIdUseCase(movieId)
+            // Use the user's selected language from LanguageManager
+            val userLocale = languageManager.getAppLanguage().first()
+            // Create language code in format "en-US" from locale
+            val languageCode = "${userLocale.language}-${userLocale.country.ifEmpty { userLocale.language.uppercase() }}"
+            
+            // Log the language being used
+            android.util.Log.d("MovieDetailViewModel", "Fetching movie details using language: $languageCode")
+            
+            getMovieByIdUseCase(movieId, languageCode)
                 .catch { e ->
+                    android.util.Log.e("MovieDetailViewModel", "Error loading movie details: ${e.message}")
                     _movieState.value = MovieDetailState(
                         isLoading = false,
                         error = e.message ?: "Failed to load movie details"
                     )
                 }
                 .collect { movie ->
+                    // Log the received movie details to check if overview is available
+                    android.util.Log.d("MovieDetailViewModel", "Received movie: title=${movie.title}, has overview: ${movie.overview?.isNotEmpty() == true}, overview length: ${movie.overview?.length ?: 0}")
+                    
                     _movieState.value = MovieDetailState(
                         movie = movie,
                         isLoading = false,
