@@ -146,6 +146,7 @@
     <!-- Movie detail dialog -->
     <string name="play">Phát</string>
     <string name="play_trailer">Phát trailer</string>
+    <string name="stop_trailer">Dừng trailer</string>
     <string name="preview">Xem thử</string>
     <string name="details_and_more">Chi tiết</string>
     <string name="more_info">Xem chi tiết</string>

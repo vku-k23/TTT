@@ -25,6 +25,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -130,18 +131,9 @@ fun MovieDetailScreen(
                 movie = movieState.movie!!,
                 trailerState = trailerState,
                 onBackClick = onBackClick,
-                onPlayTrailerClick = { viewModel.showTrailer() },
-                onCloseTrailerClick = { viewModel.hideTrailer() }
+                onPlayTrailerClick = { viewModel.playTrailerInPlace() },
+                onCloseTrailerClick = { viewModel.stopTrailerInPlace() }
             )
-            
-            // Full screen trailer dialog
-            if (trailerState.isVisible && trailerState.videoKey != null) {
-                FullScreenTrailerDialog(
-                    videoKey = trailerState.videoKey!!,
-                    isPlaying = trailerState.isPlaying,
-                    onDismiss = { viewModel.hideTrailer() }
-                )
-            }
         }
     }
 }
@@ -172,135 +164,166 @@ fun MovieDetailContent(
                 .fillMaxSize()
                 .verticalScroll(scrollState)
         ) {
-            // Hero header image
+            // Hero header image or video player
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(450.dp)
                     .zIndex(1f)
             ) {
-                // Movie backdrop image
-                AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(
-                            if (movie.backdropPath != null)
-                                ApiConstants.IMAGE_BASE_URL + ApiConstants.BACKDROP_SIZE + movie.backdropPath
-                            else if (movie.posterPath != null)
-                                ApiConstants.IMAGE_BASE_URL + ApiConstants.POSTER_SIZE + movie.posterPath
-                            else
-                                "https://via.placeholder.com/1280x720?text=${movie.title}"
+                // If trailer is playing in-place, show the YouTube player
+                if (trailerState.isPlayingInPlace && trailerState.videoKey != null) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        // In-place YouTube video player
+                        YoutubePlayer(
+                            videoId = trailerState.videoKey!!,
+                            playing = true,
+                            modifier = Modifier.fillMaxSize()
                         )
-                        .build(),
-                    contentDescription = "Movie backdrop",
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize()
-                )
-                
-                // Gradient overlay to make bottom text readable
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(
-                            brush = Brush.verticalGradient(
-                                colors = listOf(
-                                    Color.Transparent,
-                                    Color.Black.copy(alpha = 0.3f),
-                                    Color.Black.copy(alpha = 0.7f),
-                                    Color.Black
-                                ),
-                                startY = 150f,
-                                endY = 450f
+                        
+                        // Close button for the video
+                        IconButton(
+                            onClick = onCloseTrailerClick,
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .padding(8.dp)
+                                .size(40.dp)
+                                .background(Color.Black.copy(alpha = 0.6f), CircleShape)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Close,
+                                contentDescription = "Close Video",
+                                tint = White
                             )
-                        )
-                )
-                
-                // Play button overlay
-                Box(
-                    modifier = Modifier
-                        .size(64.dp)
-                        .align(Alignment.Center)
-                        .clip(CircleShape)
-                        .background(Color.Black.copy(alpha = 0.5f))
-                        .clickable { onPlayTrailerClick() },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.PlayArrow,
-                        contentDescription = "Play",
-                        tint = White,
-                        modifier = Modifier.size(40.dp)
-                    )
-                }
-                
-                // Title and info at the bottom of hero
-                Column(
-                    modifier = Modifier
-                        .align(Alignment.BottomStart)
-                        .padding(horizontal = 16.dp)
-                        .padding(bottom = 16.dp)
-                ) {
-                    // Movie title
-                    Text(
-                        text = movie.title,
-                        color = White,
-                        fontSize = 28.sp,
-                        fontWeight = FontWeight.Bold,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
+                        }
+                    }
+                } else {
+                    // Regular movie backdrop image when not playing video
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(
+                                if (movie.backdropPath != null)
+                                    ApiConstants.IMAGE_BASE_URL + ApiConstants.BACKDROP_SIZE + movie.backdropPath
+                                else if (movie.posterPath != null)
+                                    ApiConstants.IMAGE_BASE_URL + ApiConstants.POSTER_SIZE + movie.posterPath
+                                else
+                                    "https://via.placeholder.com/1280x720?text=${movie.title}"
+                            )
+                            .build(),
+                        contentDescription = "Movie backdrop",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
                     )
                     
-                    // Movie metadata row
-                    Row(
+                    // Gradient overlay to make bottom text readable
+                    Box(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        // Year
-                        Text(
-                            text = movie.releaseDate?.split("-")?.firstOrNull() ?: "2025",
-                            color = LightGray,
-                            fontSize = 14.sp
-                        )
-                        
-                        // Quality badge (HD)
-                        Text(
-                            text = "HD",
-                            color = LightGray,
-                            fontSize = 14.sp,
-                            modifier = Modifier
-                                .padding(horizontal = 8.dp)
-                                .border(
-                                    width = 1.dp,
-                                    color = LightGray,
-                                    shape = RoundedCornerShape(2.dp)
+                            .fillMaxSize()
+                            .background(
+                                brush = Brush.verticalGradient(
+                                    colors = listOf(
+                                        Color.Transparent,
+                                        Color.Black.copy(alpha = 0.1f),
+                                        Color.Black.copy(alpha = 0.5f),
+                                        Color.Black
+                                    ),
+                                    startY = 380f,
+                                    endY = 850f
                                 )
-                                .padding(horizontal = 4.dp, vertical = 1.dp)
+                            )
+                    )
+                    
+                    // Play button overlay
+                    Box(
+                        modifier = Modifier
+                            .size(64.dp)
+                            .align(Alignment.Center)
+                            .clip(CircleShape)
+                            .background(Color.Black.copy(alpha = 0.5f))
+                            .clickable { onPlayTrailerClick() },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.PlayArrow,
+                            contentDescription = "Play",
+                            tint = White,
+                            modifier = Modifier.size(40.dp)
                         )
-                        
-                        // Duration
+                    }
+                    
+                    // Title and info at the bottom of hero
+                    Column(
+                        modifier = Modifier
+                            .align(Alignment.BottomStart)
+                            .padding(horizontal = 16.dp)
+                            .padding(bottom = 16.dp)
+                    ) {
+                        // Movie title
                         Text(
-                            text = "1h 42m",
-                            color = LightGray,
-                            fontSize = 14.sp
+                            text = movie.title,
+                            color = White,
+                            fontSize = 28.sp,
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis
                         )
                         
-                        // Rating with star
-                        if (movie.voteAverage > 0) {
-                            Spacer(modifier = Modifier.width(16.dp))
-                            Icon(
-                                imageVector = Icons.Default.Star,
-                                contentDescription = "Rating",
-                                tint = Color(0xFFFFD700), // Gold
-                                modifier = Modifier.size(16.dp)
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
+                        // Movie metadata row
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            // Year
                             Text(
-                                text = String.format("%.1f", movie.voteAverage),
-                                color = Color(0xFFFFD700), // Gold
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Bold
+                                text = movie.releaseDate?.split("-")?.firstOrNull() ?: "2025",
+                                color = LightGray,
+                                fontSize = 14.sp
                             )
+                            
+                            // Quality badge (HD)
+                            Text(
+                                text = "HD",
+                                color = LightGray,
+                                fontSize = 14.sp,
+                                modifier = Modifier
+                                    .padding(horizontal = 8.dp)
+                                    .border(
+                                        width = 1.dp,
+                                        color = LightGray,
+                                        shape = RoundedCornerShape(2.dp)
+                                    )
+                                    .padding(horizontal = 4.dp, vertical = 1.dp)
+                            )
+                            
+                            // Duration
+                            Text(
+                                text = "1h 42m",
+                                color = LightGray,
+                                fontSize = 14.sp
+                            )
+                            
+                            // Rating with star
+                            if (movie.voteAverage > 0) {
+                                Spacer(modifier = Modifier.width(16.dp))
+                                Icon(
+                                    imageVector = Icons.Filled.Star,
+                                    contentDescription = "Rating",
+                                    tint = Color(0xFFFFD700), // Gold
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = String.format("%.1f", movie.voteAverage),
+                                    color = Color(0xFFFFD700), // Gold
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
                         }
                     }
                 }
@@ -310,7 +333,7 @@ fun MovieDetailContent(
             Button(
                 onClick = { onPlayTrailerClick() },
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = White
+                    containerColor = if (trailerState.isPlayingInPlace) NetflixRed else White
                 ),
                 shape = RoundedCornerShape(4.dp),
                 modifier = Modifier
@@ -319,15 +342,20 @@ fun MovieDetailContent(
                     .padding(horizontal = 16.dp)
             ) {
                 Icon(
-                    imageVector = Icons.Default.PlayArrow,
-                    contentDescription = "Play",
-                    tint = Black,
+                    imageVector = if (trailerState.isPlayingInPlace) Icons.Filled.Close else Icons.Filled.PlayArrow,
+                    contentDescription = if (trailerState.isPlayingInPlace) "Stop Trailer" else "Play",
+                    tint = if (trailerState.isPlayingInPlace) White else Black,
                     modifier = Modifier.size(24.dp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = if (trailerState.isAvailable) stringResource(R.string.play_trailer) else stringResource(R.string.play),
-                    color = Black,
+                    text = if (trailerState.isPlayingInPlace) 
+                              stringResource(R.string.stop_trailer) 
+                           else if (trailerState.isAvailable) 
+                              stringResource(R.string.play_trailer) 
+                           else 
+                              stringResource(R.string.play),
+                    color = if (trailerState.isPlayingInPlace) White else Black,
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp
                 )
@@ -347,7 +375,7 @@ fun MovieDetailContent(
                     .padding(top = 8.dp)
             ) {
                 Icon(
-                    imageVector = Icons.Default.PlayArrow,
+                    imageVector = Icons.Filled.Download,
                     contentDescription = "Download",
                     tint = White,
                     modifier = Modifier.size(24.dp)
@@ -392,7 +420,7 @@ fun MovieDetailContent(
                         modifier = Modifier.clickable { /* Add to list */ }
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Add,
+                            imageVector = Icons.Filled.Add,
                             contentDescription = "Add to My List",
                             tint = White,
                             modifier = Modifier.size(24.dp)
@@ -411,7 +439,7 @@ fun MovieDetailContent(
                         modifier = Modifier.clickable { /* Rate */ }
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Star,
+                            imageVector = Icons.Filled.Star,
                             contentDescription = "Rate",
                             tint = White,
                             modifier = Modifier.size(24.dp)
@@ -430,7 +458,7 @@ fun MovieDetailContent(
                         modifier = Modifier.clickable { /* Share */ }
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Share,
+                            imageVector = Icons.Filled.Share,
                             contentDescription = "Share",
                             tint = White,
                             modifier = Modifier.size(24.dp)
@@ -543,7 +571,7 @@ fun MovieDetailContent(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
-                                    imageVector = Icons.Default.PlayArrow,
+                                    imageVector = Icons.Filled.PlayArrow,
                                     contentDescription = "Play Trailer",
                                     tint = White,
                                     modifier = Modifier.size(40.dp)
@@ -559,7 +587,7 @@ fun MovieDetailContent(
                                         brush = Brush.verticalGradient(
                                             colors = listOf(
                                                 Color.Transparent,
-                                                Color.Black.copy(alpha = 0.8f)
+                                                Color.Black.copy(alpha = 0.6f)
                                             ),
                                             startY = 0f,
                                             endY = 100f
@@ -681,7 +709,7 @@ fun FullScreenTrailerDialog(
                     .background(Color.Black.copy(alpha = 0.5f), CircleShape)
             ) {
                 Icon(
-                    imageVector = Icons.Default.Close,
+                    imageVector = Icons.Filled.Close,
                     contentDescription = "Close",
                     tint = White,
                     modifier = Modifier.size(28.dp)

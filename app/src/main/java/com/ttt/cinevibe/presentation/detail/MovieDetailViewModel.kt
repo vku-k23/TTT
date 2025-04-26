@@ -80,6 +80,20 @@ class MovieDetailViewModel @Inject constructor(
         )
     }
     
+    fun playTrailerInPlace() {
+        _trailerState.value = _trailerState.value.copy(
+            isPlayingInPlace = true,
+            isPlaying = true
+        )
+    }
+    
+    fun stopTrailerInPlace() {
+        _trailerState.value = _trailerState.value.copy(
+            isPlayingInPlace = false,
+            isPlaying = false
+        )
+    }
+    
     fun showTrailer() {
         _trailerState.value = _trailerState.value.copy(
             isVisible = true,
@@ -98,7 +112,8 @@ class MovieDetailViewModel @Inject constructor(
 // State for trailer playback
 data class TrailerState(
     val isAvailable: Boolean = false,
-    val isVisible: Boolean = false,
+    val videoKey: String? = null,
     val isPlaying: Boolean = false,
-    val videoKey: String? = null
+    val isVisible: Boolean = false,
+    val isPlayingInPlace: Boolean = false
 )
