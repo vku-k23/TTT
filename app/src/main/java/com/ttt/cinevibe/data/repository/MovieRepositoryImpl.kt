@@ -105,6 +105,37 @@ class MovieRepositoryImpl @Inject constructor(
         }
     }
     
+    override suspend fun getMovieById(movieId: Int): Flow<Movie> = flow {
+        try {
+            if (genresCache.isEmpty()) {
+                loadGenres()
+            }
+            
+            val movieDetails = movieApiService.getMovieDetails(movieId)
+            Log.d("MovieRepository", "Movie details fetched for ID: $movieId")
+            
+            // Convert to domain model - handle the genre objects from the detail endpoint
+            val genreNames = movieDetails.genres?.map { it.name } ?: emptyList()
+            
+            val movie = Movie(
+                id = movieDetails.id,
+                title = movieDetails.title,
+                overview = movieDetails.overview,
+                posterPath = movieDetails.posterPath,
+                backdropPath = movieDetails.backdropPath,
+                releaseDate = movieDetails.releaseDate,
+                voteAverage = movieDetails.voteAverage,
+                genres = genreNames
+            )
+            
+            emit(movie)
+        } catch (e: Exception) {
+            Log.e("MovieRepository", "Error fetching movie details for ID: $movieId", e)
+            // In a real app, you might want to emit a more specific error or handle this differently
+            throw e
+        }
+    }
+    
     private suspend fun loadGenres() {
         try {
             val genreResponse = movieApiService.getGenres()

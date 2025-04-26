@@ -1,8 +1,10 @@
 package com.ttt.cinevibe.data.remote.api
 
 import com.ttt.cinevibe.data.remote.models.GenreResponse
+import com.ttt.cinevibe.data.remote.models.MovieDetailResponse
 import com.ttt.cinevibe.data.remote.models.MovieListResponse
 import retrofit2.http.GET
+import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface MovieApiService {
@@ -41,4 +43,10 @@ interface MovieApiService {
     suspend fun getGenres(
         @Query("language") language: String = "en-US"
     ): GenreResponse
+    
+    @GET("movie/{movieId}")
+    suspend fun getMovieDetails(
+        @Path("movieId") movieId: Int,
+        @Query("language") language: String = "en-US"
+    ): MovieDetailResponse
 }

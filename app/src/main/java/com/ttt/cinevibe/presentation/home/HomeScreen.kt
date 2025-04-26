@@ -112,7 +112,8 @@ import kotlinx.coroutines.launch
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel(),
-    onMovieClick: (Movie) -> Unit = {}
+    onMovieClick: (Movie) -> Unit = {},
+    onNavigateToDetails: (Movie) -> Unit = {} // New parameter for details screen navigation
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val featuredMovies by viewModel.featuredMovies.collectAsState()
@@ -276,9 +277,13 @@ fun HomeScreen(
                 if (isMovieDetailsVisible && selectedMovie != null) {
                     MovieDetailsDialog(
                         movie = selectedMovie!!,
-                        isVisible = isMovieDetailsVisible,
                         onDismiss = { viewModel.closeMovieDetails() },
-                        onPlayClick = { /* Handle play click */ }
+                        onPlayClick = { /* Handle play click */ },
+                        isVisible = isMovieDetailsVisible,
+                        onDetailsClick = { movie -> 
+                            viewModel.closeMovieDetails() // Close dialog first
+                            onNavigateToDetails(movie) // Navigate to dedicated details screen
+                        }
                     )
                 }
             }
@@ -908,7 +913,8 @@ fun MovieDetailsDialog(
     movie: Movie,
     isVisible: Boolean, // Add parameter to control visibility
     onDismiss: () -> Unit = {},
-    onPlayClick: () -> Unit = {}
+    onPlayClick: () -> Unit = {},
+    onDetailsClick: (Movie) -> Unit = {} // New parameter for navigation
 ) {
     // Log visibility state for debugging
     LaunchedEffect(isVisible) {
@@ -1187,7 +1193,7 @@ fun MovieDetailsDialog(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 8.dp, horizontal = 16.dp)
-                            .clickable { /* Handle details click */ },
+                            .clickable {  onDetailsClick(movie) },
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
