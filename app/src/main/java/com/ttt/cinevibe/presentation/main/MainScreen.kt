@@ -126,7 +126,7 @@ fun BottomNavigationBar(
                                 imageVector = if (selected) item.selectedImageVector else item.unselectedImageVector,
                                 contentDescription = item.title,
                                 tint = Color.White,
-                                modifier = Modifier.size(if (selected) 24.dp else 22.dp)
+                                modifier = Modifier.size(if (selected) 32.dp else 28.dp)
                             )
                         } else {
                             Icon(

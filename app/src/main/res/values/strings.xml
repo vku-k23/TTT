@@ -104,6 +104,7 @@
     <string name="notifications">Notifications</string>
     <string name="push_notifications">Push Notifications</string>
     <string name="push_notifications_description">Get notified about new releases and recommendations</string>
+    <string name="download">Download</string>
     <string name="downloads">Downloads</string>
     <string name="download_wifi_only">Download on Wi-Fi Only</string>
     <string name="download_wifi_description">Save mobile data by downloading only on Wi-Fi</string>
@@ -117,6 +118,10 @@
     <string name="build_number">Build Number</string>
     
     <!-- Movies -->
+    <string name="movies">Moives</string>
+    <string name="tv_shows">TV Shows</string>
+    <string name="my_list">My List</string>
+    <string name="continue_watching">Continue watching</string>
     <string name="popular">Popular</string>
     <string name="top_rated">Top Rated</string>
     <string name="now_playing">Now Playing</string>
@@ -134,6 +139,12 @@
     <string name="runtime">Runtime</string>
     <string name="overview">Overview</string>
     
+    <!-- Movie detail dialog -->
+    <string name="play">Play</string>
+    <string name="preview">Preview</string>
+    <string name="details_and_more">Details &amp; More</string>
+    <string name="more_info">More Info</string>
+
     <!-- Search -->
     <string name="search_hint">Search for movies or TV shows</string>
     <string name="no_results">No results found</string>

@@ -104,6 +104,7 @@
     <string name="notifications">Thông báo</string>
     <string name="push_notifications">Thông báo đẩy</string>
     <string name="push_notifications_description">Nhận thông báo về phim mới và gợi ý</string>
+    <string name="download">Tải xuống</string>
     <string name="downloads">Tải xuống</string>
     <string name="download_wifi_only">Chỉ tải xuống khi dùng Wi-Fi</string>
     <string name="download_wifi_description">Tiết kiệm dữ liệu di động bằng cách chỉ tải xuống qua Wi-Fi</string>
@@ -117,6 +118,10 @@
     <string name="build_number">Số bản dựng</string>
     
     <!-- Movies -->
+    <string name="movies">Phim</string>
+    <string name="tv_shows">Truyền hình</string>
+    <string name="my_list">Danh sách của tôi</string>
+    <string name="continue_watching">Tiếp tục xem</string>
     <string name="popular">Phổ biến</string>
     <string name="top_rated">Đánh giá cao</string>
     <string name="now_playing">Đang chiếu</string>
@@ -133,7 +138,13 @@
     <string name="release_date">Ngày phát hành</string>
     <string name="runtime">Thời lượng</string>
     <string name="overview">Tổng quan</string>
-    
+
+    <!-- Movie detail dialog -->
+    <string name="play">Phát</string>
+    <string name="preview">Xem thử</string>
+    <string name="details_and_more">Chi tiết</string>
+    <string name="more_info">Xem chi tiết</string>
+
     <!-- Search -->
     <string name="search_hint">Tìm kiếm phim hoặc chương trình TV</string>
     <string name="no_results">Không tìm thấy kết quả</string>

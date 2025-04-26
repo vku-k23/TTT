@@ -104,6 +104,7 @@
     <string name="notifications">Notifications</string>
     <string name="push_notifications">Notifications push</string>
     <string name="push_notifications_description">Recevoir des notifications sur les nouvelles sorties et recommandations</string>
+    <string name="download">Télécharger</string>
     <string name="downloads">Téléchargements</string>
     <string name="download_wifi_only">Télécharger uniquement en Wi-Fi</string>
     <string name="download_wifi_description">Économiser les données mobiles en téléchargeant uniquement via Wi-Fi</string>
@@ -117,6 +118,10 @@
     <string name="build_number">Numéro de build</string>
     
     <!-- Movies -->
+    <string name="movies">Films</string>
+    <string name="tv_shows">Émissions de télévision</string>
+    <string name="my_list">Ma liste</string>
+    <string name="continue_watching">Continuer à regarder</string>
     <string name="popular">Populaires</string>
     <string name="top_rated">Les mieux notés</string>
     <string name="now_playing">À l\'affiche</string>
@@ -133,6 +138,12 @@
     <string name="release_date">Date de sortie</string>
     <string name="runtime">Durée</string>
     <string name="overview">Synopsis</string>
+
+    <!-- Movie detail dialog -->
+    <string name="play">Synopsis</string>
+    <string name="preview">Synopsis</string>
+    <string name="details_and_more">Synopsis</string>
+    <string name="more_info">Plus d\'informations</string>
     
     <!-- Search -->
     <string name="search_hint">Rechercher des films ou des émissions TV</string>
