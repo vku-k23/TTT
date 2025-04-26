@@ -13,9 +13,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -274,6 +276,7 @@ fun HomeScreen(
                 if (isMovieDetailsVisible && selectedMovie != null) {
                     MovieDetailsDialog(
                         movie = selectedMovie!!,
+                        isVisible = isMovieDetailsVisible,
                         onDismiss = { viewModel.closeMovieDetails() },
                         onPlayClick = { /* Handle play click */ }
                     )
@@ -903,342 +906,363 @@ fun MoviePoster(
 @Composable
 fun MovieDetailsDialog(
     movie: Movie,
+    isVisible: Boolean, // Add parameter to control visibility
     onDismiss: () -> Unit = {},
     onPlayClick: () -> Unit = {}
 ) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Black.copy(alpha = 0.8f))
-            .clickable(onClick = onDismiss)
+    // Log visibility state for debugging
+    LaunchedEffect(isVisible) {
+        Log.d("MovieDetailsDialog", "isVisible: $isVisible")
+    }
+
+    // Full-screen semi-transparent overlay for dimming the background
+    AnimatedVisibility(
+        visible = isVisible,
+        enter = slideInVertically(
+            initialOffsetY = { fullHeight -> fullHeight }, // Slide in from bottom
+            animationSpec = tween(
+                durationMillis = 400,
+                easing = FastOutSlowInEasing
+            )
+        ) + fadeIn(
+            animationSpec = tween(
+                durationMillis = 350,
+                delayMillis = 50
+            )
+        ),
+        exit = slideOutVertically(
+            targetOffsetY = { fullHeight -> fullHeight }, // Slide out downward
+            animationSpec = tween(
+                durationMillis = 300,
+                easing = FastOutSlowInEasing
+            )
+        ) + fadeOut(
+            animationSpec = tween(
+                durationMillis = 250
+            )
+        )
     ) {
-        // Movie details content in a bottom sheet style with slide-up animation
-        AnimatedVisibility(
-            visible = true,
-            enter = slideInVertically(
-                initialOffsetY = { it }, // Start from bottom of the screen 
-                animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing)
-            ) + fadeIn(animationSpec = tween(durationMillis = 300)),
-            exit = slideOutVertically(
-                targetOffsetY = { it }, // Exit to bottom of the screen
-                animationSpec = tween(durationMillis = 250)
-            ) + fadeOut(animationSpec = tween(durationMillis = 250))
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.8f))
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null
+                ) { onDismiss() } // Dismiss when clicking outside
         ) {
-            Column(
+            // Movie details content in a bottom sheet style
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .fillMaxHeight(0.7f) // Set to 70% of screen height for better visibility
                     .align(Alignment.BottomCenter)
-                    .background(
-                        color = Black,
-                        shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
-                    )
-                    .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
-                    .pointerInput(Unit) {
-                        detectTapGestures { /* Prevent click from propagating to parent */ }
-                    }
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null
+                    ) { /* Consume clicks to prevent dismissal */ }
             ) {
-                // Small drag handle at the top
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 12.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .width(40.dp)
-                            .height(4.dp)
-                            .background(
-                                color = LightGray.copy(alpha = 0.5f),
-                                shape = RoundedCornerShape(2.dp)
-                            )
-                    )
-                }
-                
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
-                    verticalAlignment = Alignment.Top
-                ) {
-                    // Movie poster (left side)
-                    Box(
-                        modifier = Modifier
-                            .width(120.dp)
-                            .height(180.dp)
-                    ) {
-                        AsyncImage(
-                            model = ImageRequest.Builder(LocalContext.current)
-                                .data(
-                                    if (movie.posterPath != null)
-                                        ApiConstants.IMAGE_BASE_URL + ApiConstants.POSTER_SIZE + movie.posterPath
-                                    else
-                                        "https://via.placeholder.com/500x750?text=${movie.title}"
-                                )
-                                .build(),
-                            contentDescription = "Movie poster for ${movie.title}",
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Crop
-                        )
-                    }
-                    
-                    // Movie details (right side)
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(start = 16.dp)
-                    ) {
-                        // Close button (X) in the top right corner
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                        ) {
-                            IconButton(
-                                onClick = onDismiss,
-                                modifier = Modifier
-                                    .size(36.dp)
-                                    .align(Alignment.TopEnd)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Rounded.Close,
-                                    contentDescription = "Close",
-                                    tint = White,
-                                    modifier = Modifier.size(24.dp)
-                                )
-                            }
-                        }
-                        
-                        // Movie title
-                        Text(
-                            text = movie.title,
-                            color = White,
-                            fontSize = 24.sp,
-                            fontWeight = FontWeight.Bold,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                        
-                        // Release year and rating
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(vertical = 4.dp)
-                        ) {
-                            // Release year
-                            Text(
-                                text = movie.releaseDate?.split("-")?.firstOrNull() ?: "2025",
-                                color = LightGray,
-                                fontSize = 16.sp
-                            )
-                            
-                            // Rating with star icon
-                            if (movie.voteAverage > 0) {
-                                Spacer(modifier = Modifier.width(12.dp))
-                                Icon(
-                                    imageVector = Icons.Filled.Star,
-                                    contentDescription = "Rating",
-                                    tint = Color(0xFFFFD700), // Gold color
-                                    modifier = Modifier.size(16.dp)
-                                )
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text(
-                                    text = String.format("%.1f", movie.voteAverage),
-                                    color = LightGray,
-                                    fontSize = 16.sp
-                                )
-                            }
-                        }
-                        
-                        // Movie overview/description
-                        Text(
-                            text = movie.overview,
-                            color = White,
-                            fontSize = 14.sp,
-                            lineHeight = 18.sp,
-                            maxLines = 4,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.padding(top = 8.dp)
-                        )
-                    }
-                }
-                
-                // Action buttons (Play, Download, Preview)
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .background(
+                            color = Color(0xFF121212),
+                            shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
+                        )
+                        .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
                 ) {
-                    // Play button
-                    Button(
-                        onClick = onPlayClick,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = White
-                        ),
-                        shape = RoundedCornerShape(4.dp),
+                    // Small drag handle at the top
+                    Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(48.dp)
+                            .padding(vertical = 12.dp),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Icon(
-                            imageVector = Icons.Filled.PlayArrow,
-                            contentDescription = "Play",
-                            tint = Black,
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = stringResource(R.string.play),
-                            color = Black,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 16.sp
+                        Box(
+                            modifier = Modifier
+                                .width(40.dp)
+                                .height(4.dp)
+                                .background(
+                                    color = LightGray.copy(alpha = 0.5f),
+                                    shape = RoundedCornerShape(2.dp)
+                                )
                         )
                     }
-                    
-                    // Row with Download and Preview buttons
+
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(top = 8.dp),
+                            .padding(horizontal = 16.dp),
+                        verticalAlignment = Alignment.Top
+                    ) {
+                        // Movie poster (left side)
+                        Box(
+                            modifier = Modifier
+                                .width(120.dp)
+                                .height(180.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                        ) {
+                            AsyncImage(
+                                model = ImageRequest.Builder(LocalContext.current)
+                                    .data(
+                                        if (movie.posterPath != null)
+                                            ApiConstants.IMAGE_BASE_URL + ApiConstants.POSTER_SIZE + movie.posterPath
+                                        else
+                                            "https://via.placeholder.com/500x750?text=${movie.title}"
+                                    )
+                                    .build(),
+                                contentDescription = "Movie poster for ${movie.title}",
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Crop
+                            )
+                        }
+
+                        // Movie details (right side)
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(start = 16.dp)
+                        ) {
+                            // Close button (X) in the top right corner
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                            ) {
+                                IconButton(
+                                    onClick = onDismiss,
+                                    modifier = Modifier
+                                        .size(36.dp)
+                                        .align(Alignment.TopEnd)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Rounded.Close,
+                                        contentDescription = "Close",
+                                        tint = White,
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                }
+                            }
+
+                            // Movie title
+                            Text(
+                                text = movie.title,
+                                color = White,
+                                fontSize = 24.sp,
+                                fontWeight = FontWeight.Bold,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis
+                            )
+
+                            // Release year and rating
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.padding(vertical = 4.dp)
+                            ) {
+                                Text(
+                                    text = movie.releaseDate?.split("-")?.firstOrNull() ?: "2025",
+                                    color = LightGray,
+                                    fontSize = 16.sp
+                                )
+
+                                if (movie.voteAverage > 0) {
+                                    Spacer(modifier = Modifier.width(12.dp))
+                                    Icon(
+                                        imageVector = Icons.Filled.Star,
+                                        contentDescription = "Rating",
+                                        tint = Color(0xFFFFD700),
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text(
+                                        text = String.format("%.1f", movie.voteAverage),
+                                        color = LightGray,
+                                        fontSize = 16.sp
+                                    )
+                                }
+                            }
+
+                            // Movie overview/description
+                            Text(
+                                text = movie.overview,
+                                color = White,
+                                fontSize = 14.sp,
+                                lineHeight = 18.sp,
+                                maxLines = 4,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.padding(top = 8.dp)
+                            )
+                        }
+                    }
+
+                    // Action buttons (Play, Download, Preview)
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 16.dp)
+                    ) {
+                        Button(
+                            onClick = onPlayClick,
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = White
+                            ),
+                            shape = RoundedCornerShape(4.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(48.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.PlayArrow,
+                                contentDescription = "Play",
+                                tint = Black,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = stringResource(R.string.play),
+                                color = Black,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 16.sp
+                            )
+                        }
+
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 8.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Button(
+                                onClick = { /* Handle download */ },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color.Transparent
+                                ),
+                                border = BorderStroke(1.dp, Color.White),
+                                shape = RoundedCornerShape(4.dp),
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(48.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Filled.Download,
+                                    contentDescription = "Download",
+                                    tint = White,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = stringResource(R.string.download),
+                                    color = White
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.width(16.dp))
+
+                            Button(
+                                onClick = { /* Handle preview */ },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color.Transparent
+                                ),
+                                border = BorderStroke(1.dp, Color.White),
+                                shape = RoundedCornerShape(4.dp),
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(48.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.PlayCircle,
+                                    contentDescription = "Preview",
+                                    tint = White,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = stringResource(R.string.preview),
+                                    color = White
+                                )
+                            }
+                        }
+                    }
+
+                    // Details & More row
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp, horizontal = 16.dp)
+                            .clickable { /* Handle details click */ },
+                        verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        // Download button
-                        Button(
-                            onClick = { /* Handle download */ },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Color.Transparent
-                            ),
-                            border = BorderStroke(1.dp, Color.White),
-                            shape = RoundedCornerShape(4.dp),
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(48.dp)
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
                             Icon(
-                                imageVector = Icons.Filled.Download,
-                                contentDescription = "Download",
+                                imageVector = Icons.Filled.Info,
+                                contentDescription = "Info",
                                 tint = White,
-                                modifier = Modifier.size(18.dp)
+                                modifier = Modifier.size(20.dp)
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = stringResource(R.string.download),
-                                color = White
+                                text = stringResource(R.string.details_and_more),
+                                color = White,
+                                fontSize = 16.sp
                             )
                         }
-                        
-                        Spacer(modifier = Modifier.width(16.dp))
-                        
-                        // Preview button with new Play Circle icon
-                        Button(
-                            onClick = { /* Handle preview */ },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Color.Transparent
-                            ),
-                            border = BorderStroke(1.dp, Color.White),
-                            shape = RoundedCornerShape(4.dp),
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(48.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Outlined.PlayCircle,
-                                contentDescription = "Preview",
-                                tint = White,
-                                modifier = Modifier.size(18.dp)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = stringResource(R.string.preview),
-                                color = White
-                            )
-                        }
+                        Icon(
+                            imageVector = Icons.Filled.ArrowDropDown,
+                            contentDescription = "View Details",
+                            tint = White,
+                            modifier = Modifier.size(18.dp)
+                        )
                     }
-                }
-                
-                // Details & More row
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 16.dp, horizontal = 16.dp)
-                        .clickable { /* Handle details click */ },
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
+
+                    // Share and Save buttons
                     Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.Info,
-                            contentDescription = "Info",
-                            tint = White,
-                            modifier = Modifier.size(20.dp)
-                        )
-                        
-                        Spacer(modifier = Modifier.width(8.dp))
-                        
-                        Text(
-                            text = stringResource(R.string.details_and_more),
-                            color = White,
-                            fontSize = 16.sp
-                        )
-                    }
-                    
-                    Icon(
-                        imageVector = Icons.Filled.ArrowDropDown,
-                        contentDescription = "View Details",
-                        tint = White,
-                        modifier = Modifier.size(18.dp)
-                    )
-                }
-                
-                // Share and Save buttons
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    // Share button
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = Modifier
-                            .weight(1f)
-                            .clickable { /* Handle share */ }
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 12.dp),
+                        horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
-                        Icon(
-                            imageVector = Icons.Filled.Share,
-                            contentDescription = "Share",
-                            tint = White,
-                            modifier = Modifier.size(22.dp)
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = stringResource(R.string.share),
-                            color = White,
-                            fontSize = 12.sp
-                        )
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier
+                                .weight(1f)
+                                .clickable { /* Handle share */ }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Share,
+                                contentDescription = "Share",
+                                tint = White,
+                                modifier = Modifier.size(22.dp)
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = stringResource(R.string.share),
+                                color = White,
+                                fontSize = 12.sp
+                            )
+                        }
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier
+                                .weight(1f)
+                                .clickable { /* Handle save */ }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.BookmarkBorder,
+                                contentDescription = "Save",
+                                tint = White,
+                                modifier = Modifier.size(22.dp)
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = stringResource(R.string.add_to_list),
+                                color = White,
+                                fontSize = 12.sp
+                            )
+                        }
                     }
-                    
-                    // Save button
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier
-                            .weight(1f)
-                            .clickable { /* Handle save */ }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.BookmarkBorder,
-                            contentDescription = "Save",
-                            tint = White,
-                            modifier = Modifier.size(22.dp)
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = stringResource(R.string.add_to_list),
-                            color = White,
-                            fontSize = 12.sp
-                        )
-                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
                 }
             }
         }
