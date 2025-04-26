@@ -104,6 +104,7 @@
     <string name="notifications">通知</string>
     <string name="push_notifications">プッシュ通知</string>
     <string name="push_notifications_description">新着リリースとおすすめについての通知を受け取る</string>
+    <string name="download">ダウンロード</string>
     <string name="downloads">ダウンロード</string>
     <string name="download_wifi_only">Wi-Fi接続時のみダウンロード</string>
     <string name="download_wifi_description">Wi-Fi経由でのみダウンロードすることでモバイルデータを節約</string>
@@ -138,6 +139,12 @@
     <string name="runtime">上映時間</string>
     <string name="overview">概要</string>
     
+    <!-- Movie detail dialog -->
+    <string name="play">遊ぶ</string>
+    <string name="preview">プレビュー</string>
+    <string name="details_and_more">詳細など</string>
+    <string name="more_info">詳細情報</string>
+
     <!-- Search -->
     <string name="search_hint">映画またはTVを検索</string>
     <string name="no_results">結果が見つかりません</string>

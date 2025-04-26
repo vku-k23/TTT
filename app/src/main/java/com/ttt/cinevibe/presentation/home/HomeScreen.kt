@@ -1,6 +1,7 @@
 package com.ttt.cinevibe.presentation.home
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -366,7 +367,8 @@ fun FeaturedMovieCarousel(
         // Carousel content
         HorizontalPager(
             state = pagerState,
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxSize(),
+            pageSpacing = 10.dp
         ) { page ->
             val movie = movies.getOrNull(page) ?: return@HorizontalPager
             
@@ -426,37 +428,45 @@ fun FeaturedMovieCarousel(
                         .padding(top = 100.dp)
                 )
                 
-                // Left navigation arrow
-                IconButton(
-                    onClick = onPreviousClick,
+                // Left navigation arrow - improved tap area and appearance
+                Box(
                     modifier = Modifier
                         .align(Alignment.CenterStart)
-                        .padding(start = 8.dp)
-                        .size(48.dp)
-                        .background(Color.Black.copy(alpha = 0.3f), CircleShape)
+                        .padding(start = 12.dp)
+                        .size(56.dp)
+                        .clickable { onPreviousClick() }
+                        .background(
+                            color = Black.copy(alpha = 0.6f),
+                            shape = CircleShape
+                        ),
+                    contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.Default.KeyboardArrowLeft,
                         contentDescription = "Previous movie",
                         tint = White,
-                        modifier = Modifier.size(32.dp)
+                        modifier = Modifier.size(36.dp)
                     )
                 }
                 
-                // Right navigation arrow
-                IconButton(
-                    onClick = onNextClick,
+                // Right navigation arrow - improved tap area and appearance
+                Box(
                     modifier = Modifier
                         .align(Alignment.CenterEnd)
-                        .padding(end = 8.dp)
-                        .size(48.dp)
-                        .background(Color.Black.copy(alpha = 0.3f), CircleShape)
+                        .padding(end = 12.dp)
+                        .size(56.dp)
+                        .clickable { onNextClick() }
+                        .background(
+                            color = Black.copy(alpha = 0.6f),
+                            shape = CircleShape
+                        ),
+                    contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.Default.KeyboardArrowRight,
                         contentDescription = "Next movie",
                         tint = White,
-                        modifier = Modifier.size(32.dp)
+                        modifier = Modifier.size(36.dp)
                     )
                 }
                 
@@ -502,7 +512,7 @@ fun FeaturedMovieCarousel(
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = "Play",
+                                text = stringResource(R.string.play),
                                 color = Black,
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 16.sp
@@ -529,7 +539,7 @@ fun FeaturedMovieCarousel(
                             )
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(
-                                text = "More Info",
+                                text = stringResource(R.string.more_info),
                                 color = White,
                                 fontWeight = FontWeight.Bold
                             )
@@ -662,7 +672,7 @@ fun FeaturedMovieBanner(
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = "Play",
+                        text = stringResource(R.string.play),
                         color = Black,
                         fontWeight = FontWeight.Bold
                     )
@@ -902,26 +912,54 @@ fun MovieDetailsDialog(
             .background(Color.Black.copy(alpha = 0.8f))
             .clickable(onClick = onDismiss)
     ) {
-        // Movie details content in a bottom sheet similar to Netflix style shown in image
+        // Movie details content in a bottom sheet style with slide-up animation
         AnimatedVisibility(
             visible = true,
-            enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
-            exit = slideOutVertically(targetOffsetY = { it }) + fadeOut()
+            enter = slideInVertically(
+                initialOffsetY = { it }, // Start from bottom of the screen 
+                animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing)
+            ) + fadeIn(animationSpec = tween(durationMillis = 300)),
+            exit = slideOutVertically(
+                targetOffsetY = { it }, // Exit to bottom of the screen
+                animationSpec = tween(durationMillis = 250)
+            ) + fadeOut(animationSpec = tween(durationMillis = 250))
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .fillMaxHeight(0.6f) // Set to approx 60% of screen height to match image
+                    .fillMaxHeight(0.7f) // Set to 70% of screen height for better visibility
                     .align(Alignment.BottomCenter)
-                    .background(Black)
+                    .background(
+                        color = Black,
+                        shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
+                    )
+                    .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
                     .pointerInput(Unit) {
                         detectTapGestures { /* Prevent click from propagating to parent */ }
                     }
             ) {
+                // Small drag handle at the top
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 12.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .width(40.dp)
+                            .height(4.dp)
+                            .background(
+                                color = LightGray.copy(alpha = 0.5f),
+                                shape = RoundedCornerShape(2.dp)
+                            )
+                    )
+                }
+                
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp),
+                        .padding(horizontal = 16.dp),
                     verticalAlignment = Alignment.Top
                 ) {
                     // Movie poster (left side)
@@ -1049,7 +1087,7 @@ fun MovieDetailsDialog(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "Play",
+                            text = stringResource(R.string.play),
                             color = Black,
                             fontWeight = FontWeight.Bold,
                             fontSize = 16.sp
@@ -1083,7 +1121,7 @@ fun MovieDetailsDialog(
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = "Download",
+                                text = stringResource(R.string.download),
                                 color = White
                             )
                         }
@@ -1110,7 +1148,7 @@ fun MovieDetailsDialog(
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = "Preview",
+                                text = stringResource(R.string.preview),
                                 color = White
                             )
                         }
@@ -1139,7 +1177,7 @@ fun MovieDetailsDialog(
                         Spacer(modifier = Modifier.width(8.dp))
                         
                         Text(
-                            text = "Details & More",
+                            text = stringResource(R.string.details_and_more),
                             color = White,
                             fontSize = 16.sp
                         )
@@ -1175,7 +1213,7 @@ fun MovieDetailsDialog(
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "Share",
+                            text = stringResource(R.string.share),
                             color = White,
                             fontSize = 12.sp
                         )
@@ -1196,7 +1234,7 @@ fun MovieDetailsDialog(
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "Add to List",
+                            text = stringResource(R.string.add_to_list),
                             color = White,
                             fontSize = 12.sp
                         )
