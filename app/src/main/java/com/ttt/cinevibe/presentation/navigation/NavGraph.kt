@@ -93,43 +93,14 @@ fun NavGraph(
         ) { backStackEntry ->
             val movieId = backStackEntry.arguments?.getString(Screens.MOVIE_DETAIL_ARG)?.toIntOrNull() ?: 0
             
-            // Retrieve the selected movie from the ViewModel's state
-            val movieViewModel: MovieDetailViewModel = hiltViewModel()
-            val movieState by movieViewModel.movieState.collectAsState()
-            
-            // Effect to load the movie when we navigate to this screen
-            LaunchedEffect(movieId) {
-                movieViewModel.getMovieById(movieId)
-            }
-            
-            if (movieState.isLoading) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator(color = NetflixRed)
+            // Simply render the MovieDetailScreen and let it manage its own state
+            // This avoids creating two instances of the ViewModel
+            MovieDetailScreen(
+                movieId = movieId,
+                onBackClick = {
+                    navController.popBackStack()
                 }
-            } else if (movieState.error != null) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = movieState.error ?: "Unknown error occurred",
-                        color = White
-                    )
-                }
-            } else {
-                // If we have a movie, show the detail screen
-                movieState.movie?.let { movie ->
-                    MovieDetailScreen(
-                        movieId = movieId,
-                        onBackClick = {
-                            navController.popBackStack()
-                        }
-                    )
-                }
-            }
+            )
         }
     }
 }

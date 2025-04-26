@@ -700,6 +700,9 @@ fun YoutubePlayer(
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     
+    // Store the current videoId to detect actual changes
+    val currentVideoId = remember { mutableStateOf(videoId) }
+    
     // Use a stable key for the player to prevent frequent recreations
     val stableVideoKey = remember(videoId) { videoId }
     
@@ -751,6 +754,14 @@ fun YoutubePlayer(
         }
     }
     
+    // Handle video ID changes
+    LaunchedEffect(videoId) {
+        if (isInitialized.value && currentVideoId.value != videoId) {
+            playerRef.value?.cueVideo(videoId, 0f)
+            currentVideoId.value = videoId
+        }
+    }
+    
     AndroidView(
         modifier = modifier,
         factory = { ctx ->
@@ -770,6 +781,7 @@ fun YoutubePlayer(
                             }
                             
                             isInitialized.value = true
+                            currentVideoId.value = videoId
                         }
                     }, false) // false = don't handle network automatically
                 }
@@ -788,14 +800,7 @@ fun YoutubePlayer(
             }
         },
         update = { view ->
-            // Only update if absolutely necessary
-            if (view is YouTubePlayerView && 
-                playerRef.value != null && 
-                isInitialized.value && 
-                stableVideoKey != videoId) {
-                
-                playerRef.value?.cueVideo(videoId, 0f)
-            }
+            // No need to do anything here, as we're handling updates in LaunchedEffect
         }
     )
 }
