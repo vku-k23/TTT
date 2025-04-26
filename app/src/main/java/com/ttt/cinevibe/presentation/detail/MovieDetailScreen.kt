@@ -1,6 +1,14 @@
 package com.ttt.cinevibe.presentation.detail
 
+import android.widget.TextView
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -13,11 +21,15 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -30,14 +42,26 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.zIndex
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.LifecycleOwner
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
+import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.PlayerConstants
+import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.YouTubePlayer
+import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.listeners.AbstractYouTubePlayerListener
+import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.views.YouTubePlayerView
 import com.ttt.cinevibe.R
 import com.ttt.cinevibe.data.remote.ApiConstants
 import com.ttt.cinevibe.domain.model.Movie
@@ -49,8 +73,86 @@ import com.ttt.cinevibe.ui.theme.White
 
 @Composable
 fun MovieDetailScreen(
-    movie: Movie,
+    viewModel: MovieDetailViewModel = hiltViewModel(),
+    movieId: Int,
     onBackClick: () -> Unit
+) {
+    val movieState by viewModel.movieState.collectAsState()
+    val trailerState by viewModel.trailerState.collectAsState()
+    
+    // Fetch the movie details
+    LaunchedEffect(movieId) {
+        viewModel.getMovieById(movieId)
+    }
+    
+    // Handle loading and error states
+    when {
+        movieState.isLoading -> {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Black),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = NetflixRed)
+            }
+        }
+        
+        movieState.error != null -> {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Black),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    Text(
+                        text = movieState.error ?: "Unknown error",
+                        color = White,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Button(
+                        onClick = { viewModel.getMovieById(movieId) },
+                        colors = ButtonDefaults.buttonColors(containerColor = NetflixRed)
+                    ) {
+                        Text("Retry")
+                    }
+                }
+            }
+        }
+        
+        movieState.movie != null -> {
+            MovieDetailContent(
+                movie = movieState.movie!!,
+                trailerState = trailerState,
+                onBackClick = onBackClick,
+                onPlayTrailerClick = { viewModel.showTrailer() },
+                onCloseTrailerClick = { viewModel.hideTrailer() }
+            )
+            
+            // Full screen trailer dialog
+            if (trailerState.isVisible && trailerState.videoKey != null) {
+                FullScreenTrailerDialog(
+                    videoKey = trailerState.videoKey!!,
+                    isPlaying = trailerState.isPlaying,
+                    onDismiss = { viewModel.hideTrailer() }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun MovieDetailContent(
+    movie: Movie,
+    trailerState: TrailerState,
+    onBackClick: () -> Unit,
+    onPlayTrailerClick: () -> Unit,
+    onCloseTrailerClick: () -> Unit
 ) {
     val scrollState = rememberScrollState()
     val headerAlpha by animateFloatAsState(
@@ -119,7 +221,7 @@ fun MovieDetailScreen(
                         .align(Alignment.Center)
                         .clip(CircleShape)
                         .background(Color.Black.copy(alpha = 0.5f))
-                        .clickable { /* Play trailer */ },
+                        .clickable { onPlayTrailerClick() },
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
@@ -206,7 +308,7 @@ fun MovieDetailScreen(
             
             // Play button
             Button(
-                onClick = { /* Handle play */ },
+                onClick = { onPlayTrailerClick() },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = White
                 ),
@@ -224,7 +326,7 @@ fun MovieDetailScreen(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = stringResource(R.string.play),
+                    text = if (trailerState.isAvailable) stringResource(R.string.play_trailer) else stringResource(R.string.play),
                     color = Black,
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp
@@ -411,68 +513,107 @@ fun MovieDetailScreen(
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
                 
-                // Trailer thumbnail
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(200.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .clickable { /* Play trailer */ }
-                ) {
-                    AsyncImage(
-                        model = ImageRequest.Builder(LocalContext.current)
-                            .data(
-                                if (movie.backdropPath != null)
-                                    ApiConstants.IMAGE_BASE_URL + ApiConstants.BACKDROP_SIZE + movie.backdropPath
-                                else
-                                    "https://via.placeholder.com/1280x720?text=Trailer"
-                            )
-                            .build(),
-                        contentDescription = "Trailer thumbnail",
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize()
-                    )
-                    
-                    // Play button overlay
+                // Trailer thumbnail with embedded mini player if available
+                if (trailerState.isAvailable && trailerState.videoKey != null) {
                     Box(
                         modifier = Modifier
-                            .size(64.dp)
-                            .align(Alignment.Center)
-                            .clip(CircleShape)
-                            .background(Color.Black.copy(alpha = 0.5f)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.PlayArrow,
-                            contentDescription = "Play Trailer",
-                            tint = White,
-                            modifier = Modifier.size(40.dp)
-                        )
-                    }
-                    
-                    // Trailer title
-                    Box(
-                        modifier = Modifier
-                            .align(Alignment.BottomStart)
                             .fillMaxWidth()
-                            .background(
-                                brush = Brush.verticalGradient(
-                                    colors = listOf(
-                                        Color.Transparent,
-                                        Color.Black.copy(alpha = 0.8f)
-                                    ),
-                                    startY = 0f,
-                                    endY = 100f
-                                )
-                            )
-                            .padding(16.dp)
+                            .height(200.dp)
+                            .clip(RoundedCornerShape(8.dp))
                     ) {
-                        Text(
-                            text = "Official Trailer",
-                            color = White,
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold
+                        // Embedded mini trailer player
+                        YoutubePlayer(
+                            videoId = trailerState.videoKey!!,
+                            playing = false, // Don't autoplay in the small view
+                            modifier = Modifier.fillMaxSize()
                         )
+                        
+                        // Play button overlay
+                        Box(
+                            modifier = Modifier
+                                .matchParentSize()
+                                .clickable { onPlayTrailerClick() }
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(64.dp)
+                                    .align(Alignment.Center)
+                                    .clip(CircleShape)
+                                    .background(Color.Black.copy(alpha = 0.5f)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.PlayArrow,
+                                    contentDescription = "Play Trailer",
+                                    tint = White,
+                                    modifier = Modifier.size(40.dp)
+                                )
+                            }
+                            
+                            // Trailer title
+                            Box(
+                                modifier = Modifier
+                                    .align(Alignment.BottomStart)
+                                    .fillMaxWidth()
+                                    .background(
+                                        brush = Brush.verticalGradient(
+                                            colors = listOf(
+                                                Color.Transparent,
+                                                Color.Black.copy(alpha = 0.8f)
+                                            ),
+                                            startY = 0f,
+                                            endY = 100f
+                                        )
+                                    )
+                                    .padding(16.dp)
+                            ) {
+                                Text(
+                                    text = "Official Trailer",
+                                    color = White,
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                    }
+                } else {
+                    // Fallback if no trailer available
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(DarkGray)
+                            .clickable { /* Nothing to play */ }
+                    ) {
+                        AsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(
+                                    if (movie.backdropPath != null)
+                                        ApiConstants.IMAGE_BASE_URL + ApiConstants.BACKDROP_SIZE + movie.backdropPath
+                                    else
+                                        "https://via.placeholder.com/1280x720?text=No+Trailer+Available"
+                                )
+                                .build(),
+                            contentDescription = "Trailer thumbnail",
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                        
+                        // No trailer available overlay
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(Color.Black.copy(alpha = 0.5f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "No Trailer Available",
+                                color = White,
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
                     }
                 }
             }
@@ -500,6 +641,163 @@ fun MovieDetailScreen(
             )
         }
     }
+}
+
+@Composable
+fun FullScreenTrailerDialog(
+    videoKey: String,
+    isPlaying: Boolean,
+    onDismiss: () -> Unit
+) {
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(
+            dismissOnBackPress = true,
+            dismissOnClickOutside = false,
+            usePlatformDefaultWidth = false
+        )
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black)
+        ) {
+            // YouTube player
+            YoutubePlayer(
+                videoId = videoKey,
+                playing = isPlaying,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .align(Alignment.Center)
+            )
+            
+            // Close button
+            IconButton(
+                onClick = onDismiss,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(16.dp)
+                    .size(48.dp)
+                    .background(Color.Black.copy(alpha = 0.5f), CircleShape)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = "Close",
+                    tint = White,
+                    modifier = Modifier.size(28.dp)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun YoutubePlayer(
+    videoId: String,
+    playing: Boolean = true,
+    modifier: Modifier = Modifier
+) {
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+    
+    // Use a stable key for the player to prevent frequent recreations
+    val stableVideoKey = remember(videoId) { videoId }
+    
+    // Single instance of the player to be reused
+    val playerViewRef = remember { mutableStateOf<YouTubePlayerView?>(null) }
+    val playerRef = remember { mutableStateOf<YouTubePlayer?>(null) }
+    
+    // Handle player setup only once using a flag
+    val isInitialized = remember { mutableStateOf(false) }
+    
+    // Update player state when playing prop changes
+    LaunchedEffect(playing) {
+        if (isInitialized.value) {
+            playerRef.value?.let { player ->
+                if (playing) {
+                    player.play()
+                } else {
+                    player.pause()
+                }
+            }
+        }
+    }
+    
+    // Monitor lifecycle to properly pause/resume playback
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_PAUSE -> {
+                    playerRef.value?.pause()
+                }
+                Lifecycle.Event.ON_RESUME -> {
+                    if (playing) {
+                        playerRef.value?.play()
+                    }
+                }
+                else -> {}
+            }
+        }
+        
+        lifecycleOwner.lifecycle.addObserver(observer)
+        
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+            // Explicitly release resources
+            playerViewRef.value?.release()
+            playerViewRef.value = null
+            playerRef.value = null
+            isInitialized.value = false
+        }
+    }
+    
+    AndroidView(
+        modifier = modifier,
+        factory = { ctx ->
+            try {
+                val playerView = YouTubePlayerView(ctx).apply {
+                    // Disable automatic network observation to prevent TooManyRequestsException
+                    enableAutomaticInitialization = false
+                    
+                    // Add a single observer manually
+                    initialize(object : AbstractYouTubePlayerListener() {
+                        override fun onReady(youTubePlayer: YouTubePlayer) {
+                            playerRef.value = youTubePlayer
+                            youTubePlayer.cueVideo(stableVideoKey, 0f)
+                            
+                            if (playing) {
+                                youTubePlayer.play()
+                            }
+                            
+                            isInitialized.value = true
+                        }
+                    }, false) // false = don't handle network automatically
+                }
+                
+                // Store reference for cleanup
+                playerViewRef.value = playerView
+                playerView
+            } catch (e: Exception) {
+                // Fallback to TextView if YouTube player creation fails
+                TextView(ctx).apply {
+                    text = "Could not load video player"
+                    setTextColor(android.graphics.Color.WHITE)
+                    gravity = android.view.Gravity.CENTER
+                    setBackgroundColor(android.graphics.Color.BLACK)
+                }
+            }
+        },
+        update = { view ->
+            // Only update if absolutely necessary
+            if (view is YouTubePlayerView && 
+                playerRef.value != null && 
+                isInitialized.value && 
+                stableVideoKey != videoId) {
+                
+                playerRef.value?.cueVideo(videoId, 0f)
+            }
+        }
+    )
 }
 
 @Composable

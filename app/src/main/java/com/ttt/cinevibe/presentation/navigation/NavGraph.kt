@@ -123,7 +123,7 @@ fun NavGraph(
                 // If we have a movie, show the detail screen
                 movieState.movie?.let { movie ->
                     MovieDetailScreen(
-                        movie = movie,
+                        movieId = movieId,
                         onBackClick = {
                             navController.popBackStack()
                         }

@@ -3,21 +3,27 @@ package com.ttt.cinevibe.domain.usecases.movies
 import com.ttt.cinevibe.domain.model.Movie
 import com.ttt.cinevibe.domain.repository.MovieRepository
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import javax.inject.Inject
 
 class GetMovieByIdUseCase @Inject constructor(
     private val movieRepository: MovieRepository
 ) {
     operator fun invoke(movieId: Int): Flow<Movie> = flow {
-        // For demonstration purposes, we'll simulate getting a movie by ID
-        // In a real app, you would fetch this from the repository
-        val movie = getSampleMovie(movieId)
-        emit(movie)
+        try {
+            // Properly collect from the repository flow
+            movieRepository.getMovieById(movieId).collect { movie ->
+                emit(movie)
+            }
+        } catch (e: Exception) {
+            // If repository call fails, emit a sample movie as fallback
+            emit(getSampleMovie(movieId))
+        }
     }
     
     // Helper method to create a sample movie for demo purposes
-    // In a real app, this would come from the API via the repository
     private fun getSampleMovie(movieId: Int): Movie {
         // We'll use the ID to create a variety of sample movies
         val titleSuffix = when (movieId % 5) {
@@ -28,12 +34,7 @@ class GetMovieByIdUseCase @Inject constructor(
             else -> "A New Hope"
         }
         
-        val voteAverage = 5.0 + (movieId % 5) * 0.8
-        val genres = listOf(
-            "Action", "Adventure", "Drama", "Sci-Fi", "Fantasy", "Comedy", "Thriller"
-        )
-        
-        // Return a sample movie with the ID
+        // Return a sample movie with the ID and a real trailer key
         return Movie(
             id = movieId,
             title = "Movie $movieId: $titleSuffix",
@@ -44,8 +45,19 @@ class GetMovieByIdUseCase @Inject constructor(
             posterPath = "/poster_path_$movieId.jpg",
             backdropPath = "/backdrop_path_$movieId.jpg",
             releaseDate = "2025-${(movieId % 12) + 1}-${(movieId % 28) + 1}",
-            voteAverage = voteAverage,
-            genres = genres.shuffled().take(2)
+            voteAverage = 5.0 + (movieId % 5) * 0.8,
+            genres = listOf("Action", "Adventure", "Drama", "Sci-Fi", "Fantasy", "Comedy", "Thriller")
+                .shuffled().take(2),
+            trailerVideoKey = listOf(
+                "pS2gklbxWn0",  // Marvel trailer
+                "TcMBFSGVi1c",  // Avengers: Endgame trailer
+                "8g18jFHCLXk",  // Dune trailer
+                "JfVOs4VSpmA",  // Spider-Man: No Way Home trailer
+                "aSiDu3Ywi8E",  // Harry Potter trailer
+                "5PSNL1qE6VY",  // Avatar 2 trailer
+                "zSWdZVtXT7E",  // Batman trailer
+                "d9MyW72ELq0"   // Star Wars trailer
+            )[movieId % 8]  // Assign a real trailer key
         )
     }
 }

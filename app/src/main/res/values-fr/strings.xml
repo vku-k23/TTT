@@ -26,11 +26,6 @@
     <string name="logout">Se déconnecter</string>
     <string name="background_image">Image d\'arrière-plan</string>
     <string name="forgot_password_instructions">Entrez votre adresse e-mail et nous vous enverrons un lien pour réinitialiser votre mot de passe.</string>
-    <string name="send_reset_link">Envoyer le lien de réinitialisation</string>
-    <string name="email_sent">E-mail envoyé !</string>
-    <string name="reset_link_sent_to_email">Un lien de réinitialisation du mot de passe a été envoyé à %1$s</string>
-    <string name="check_inbox_instructions">Veuillez vérifier votre boîte de réception et suivre les instructions pour réinitialiser votre mot de passe.</string>
-    <string name="back_to_login">Retour à la connexion</string>
     
     <!-- Profile -->
     <string name="account_information">Informations du compte</string>
@@ -137,13 +132,17 @@
     <string name="director">Réalisateur</string>
     <string name="release_date">Date de sortie</string>
     <string name="runtime">Durée</string>
-    <string name="overview">Synopsis</string>
-
+    
     <!-- Movie detail dialog -->
-    <string name="play">Synopsis</string>
-    <string name="preview">Synopsis</string>
-    <string name="details_and_more">Synopsis</string>
+    <string name="play">Regarder</string>
+    <string name="play_trailer">Regarder la bande-annonce</string>
+    <string name="preview">Aperçu</string>
+    <string name="details_and_more">Détails et plus</string>
     <string name="more_info">Plus d\'informations</string>
+    <string name="more_like_this">Similaires</string>
+    <string name="trailers_and_more">Bandes-annonces et plus</string>
+    <string name="overview">Synopsis</string>
+    <string name="rate">Évaluer</string>
     
     <!-- Search -->
     <string name="search_hint">Rechercher des films ou des émissions TV</string>

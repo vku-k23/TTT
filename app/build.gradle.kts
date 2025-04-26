@@ -126,4 +126,11 @@ dependencies {
     
     // Icon Library - MaterialIcons (already included with Compose)
     implementation("androidx.compose.material:material-icons-extended:1.7.6")
+
+    // YouTube Android Player API
+    implementation("com.pierfrancescosoffritti.androidyoutubeplayer:core:12.1.0")
+    
+    // ExoPlayer for local video playback (optional alternative)
+    implementation("androidx.media3:media3-exoplayer:1.2.1")
+    implementation("androidx.media3:media3-ui:1.2.1")
 }

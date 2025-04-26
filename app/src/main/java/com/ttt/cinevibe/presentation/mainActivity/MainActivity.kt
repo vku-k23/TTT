@@ -187,18 +187,8 @@ fun CineVibeApp() {
             ) { backStackEntry ->
                 val movieId = backStackEntry.arguments?.getInt("movieId") ?: -1
                 
-                val dummyMovie = Movie(
-                    id = movieId,
-                    title = "Movie #$movieId",
-                    overview = "This is a sample movie description. In a real application, you would fetch this data from the API based on the movie ID.",
-                    posterPath = null,
-                    backdropPath = null,
-                    releaseDate = "2025-04-23",
-                    voteAverage = 4.5
-                )
-                
                 MovieDetailScreen(
-                    movie = dummyMovie,
+                    movieId = movieId,
                     onBackClick = {
                         navController.popBackStack()
                     }

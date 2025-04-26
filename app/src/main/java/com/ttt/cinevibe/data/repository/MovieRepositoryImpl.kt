@@ -114,6 +114,21 @@ class MovieRepositoryImpl @Inject constructor(
             val movieDetails = movieApiService.getMovieDetails(movieId)
             Log.d("MovieRepository", "Movie details fetched for ID: $movieId")
             
+            // Fetch videos (trailers) for the movie
+            val videosResponse = try {
+                movieApiService.getMovieVideos(movieId)
+            } catch (e: Exception) {
+                Log.e("MovieRepository", "Error fetching videos for movie ID: $movieId", e)
+                null
+            }
+            
+            // Find the official trailer or use the first video as fallback
+            val trailerKey = videosResponse?.results?.find { 
+                (it.type == "Trailer" || it.type == "Teaser") && it.site == "YouTube" && it.official 
+            }?.key ?: videosResponse?.results?.firstOrNull { 
+                it.site == "YouTube" 
+            }?.key
+            
             // Convert to domain model - handle the genre objects from the detail endpoint
             val genreNames = movieDetails.genres?.map { it.name } ?: emptyList()
             
@@ -125,7 +140,8 @@ class MovieRepositoryImpl @Inject constructor(
                 backdropPath = movieDetails.backdropPath,
                 releaseDate = movieDetails.releaseDate,
                 voteAverage = movieDetails.voteAverage,
-                genres = genreNames
+                genres = genreNames,
+                trailerVideoKey = trailerKey
             )
             
             emit(movie)
