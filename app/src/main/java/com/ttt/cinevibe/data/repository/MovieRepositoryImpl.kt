@@ -105,6 +105,65 @@ class MovieRepositoryImpl @Inject constructor(
         }
     }
     
+    override suspend fun getMovieById(movieId: Int, language: String?): Flow<Movie> = flow {
+        try {
+            if (genresCache.isEmpty()) {
+                loadGenres()
+            }
+            
+            // Use the provided language parameter if available
+            val languageToUse = language ?: "en-US"
+            
+            // Log the language being requested from API
+            Log.d("MovieRepository", "Requesting movie details from API with language: $languageToUse for movieId: $movieId")
+            
+            val movieDetails = movieApiService.getMovieDetails(movieId, language = languageToUse)
+            Log.d("MovieRepository", "Movie details fetched for ID: $movieId with language: $languageToUse")
+            Log.d("MovieRepository", "API Response: title=${movieDetails.title}, overview length=${movieDetails.overview?.length ?: 0}")
+            Log.d("MovieRepository", "First 100 chars of overview: ${movieDetails.overview?.take(100)}")
+            
+            // Fetch videos (trailers) for the movie with the same language
+            val videosResponse = try {
+                movieApiService.getMovieVideos(movieId, language = languageToUse)
+            } catch (e: Exception) {
+                Log.e("MovieRepository", "Error fetching videos for movie ID: $movieId", e)
+                null
+            }
+            
+            // Find the official trailer or use the first video as fallback
+            val trailerKey = videosResponse?.results?.find { 
+                (it.type == "Trailer" || it.type == "Teaser") && it.site == "YouTube" && it.official 
+            }?.key ?: videosResponse?.results?.firstOrNull { 
+                it.site == "YouTube" 
+            }?.key
+            
+            // Convert to domain model - handle the genre objects from the detail endpoint
+            val genreNames = movieDetails.genres?.map { it.name } ?: emptyList()
+            
+            val movie = Movie(
+                id = movieDetails.id,
+                title = movieDetails.title,
+                overview = movieDetails.overview,
+                posterPath = movieDetails.posterPath,
+                backdropPath = movieDetails.backdropPath,
+                releaseDate = movieDetails.releaseDate,
+                voteAverage = movieDetails.voteAverage,
+                genres = genreNames,
+                trailerVideoKey = trailerKey
+            )
+            
+            // Log the domain model being emitted
+            Log.d("MovieRepository", "Emitting movie domain model with title: ${movie.title}")
+            Log.d("MovieRepository", "Domain model overview length: ${movie.overview?.length ?: 0}")
+            
+            emit(movie)
+        } catch (e: Exception) {
+            Log.e("MovieRepository", "Error fetching movie details for ID: $movieId", e)
+            // In a real app, you might want to emit a more specific error or handle this differently
+            throw e
+        }
+    }
+    
     private suspend fun loadGenres() {
         try {
             val genreResponse = movieApiService.getGenres()

@@ -132,15 +132,24 @@
     <string name="watch_now">今すぐ見る</string>
     <string name="add_to_list">リストに追加</string>
     <string name="share">共有</string>
+    <string name="rate">評価する</string>
+    <string name="border">ボーダー</string>
+    <string name="more_like_this">類似作品</string>
+    <string name="trailers_and_more">予告編など</string>
     <string name="genres">ジャンル</string>
     <string name="cast">キャスト</string>
     <string name="director">監督</string>
     <string name="release_date">公開日</string>
     <string name="runtime">上映時間</string>
     <string name="overview">概要</string>
+    <string name="synopsis">あらすじ</string>
+    <string name="read_more">もっと読む</string>
+    <string name="no_synopsis_available">この映画のあらすじはありません</string>
     
     <!-- Movie detail dialog -->
-    <string name="play">遊ぶ</string>
+    <string name="play">再生</string>
+    <string name="play_trailer">予告編を再生</string>
+    <string name="stop_trailer">予告編を停止</string>
     <string name="preview">プレビュー</string>
     <string name="details_and_more">詳細など</string>
     <string name="more_info">詳細情報</string>

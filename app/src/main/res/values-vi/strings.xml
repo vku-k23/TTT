@@ -132,15 +132,24 @@
     <string name="watch_now">Xem ngay</string>
     <string name="add_to_list">Thêm vào danh sách</string>
     <string name="share">Chia sẻ</string>
+    <string name="rate">Đánh giá</string>
+    <string name="border">Viền</string>
+    <string name="more_like_this">Phim tương tự</string>
+    <string name="trailers_and_more">Trailer &amp; Nhiều hơn</string>
     <string name="genres">Thể loại</string>
     <string name="cast">Diễn viên</string>
     <string name="director">Đạo diễn</string>
     <string name="release_date">Ngày phát hành</string>
     <string name="runtime">Thời lượng</string>
     <string name="overview">Tổng quan</string>
+    <string name="synopsis">Tóm tắt nội dung</string>
+    <string name="read_more">Xem thêm</string>
+    <string name="no_synopsis_available">Không có tóm tắt nội dung cho phim này</string>
 
     <!-- Movie detail dialog -->
     <string name="play">Phát</string>
+    <string name="play_trailer">Phát trailer</string>
+    <string name="stop_trailer">Dừng trailer</string>
     <string name="preview">Xem thử</string>
     <string name="details_and_more">Chi tiết</string>
     <string name="more_info">Xem chi tiết</string>
