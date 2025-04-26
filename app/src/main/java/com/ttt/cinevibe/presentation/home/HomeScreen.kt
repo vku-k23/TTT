@@ -285,7 +285,7 @@ fun HomeScreen(
 @Composable
 fun TopNavigationBar() {
     var selectedTabIndex by remember { mutableStateOf(0) }
-    val tabs = listOf("TV Shows", "Movies", "Categories")
+    val tabs = listOf(stringResource(R.string.movies), stringResource(R.string.tv_shows), stringResource(R.string.my_list))
     
     Column(
         modifier = Modifier
@@ -736,7 +736,7 @@ fun ContinueWatchingRow(
             .padding(vertical = 8.dp)
     ) {
         Text(
-            text = "Continue Watching",
+            text = stringResource(R.string.continue_watching),
             color = White,
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,

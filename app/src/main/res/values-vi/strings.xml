@@ -117,6 +117,10 @@
     <string name="build_number">Số bản dựng</string>
     
     <!-- Movies -->
+    <string name="movies">Phim</string>
+    <string name="tv_shows">Truyền hình</string>
+    <string name="my_list">Danh sách của tôi</string>
+    <string name="continue_watching">Tiếp tục xem</string>
     <string name="popular">Phổ biến</string>
     <string name="top_rated">Đánh giá cao</string>
     <string name="now_playing">Đang chiếu</string>

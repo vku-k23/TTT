@@ -117,6 +117,10 @@
     <string name="build_number">ビルド番号</string>
     
     <!-- Movies -->
+    <string name="movies">映画</string>
+    <string name="tv_shows">テレビ番組</string>
+    <string name="my_list">私のリスト</string>
+    <string name="continue_watching">視聴を続ける</string>
     <string name="popular">人気</string>
     <string name="top_rated">高評価</string>
     <string name="now_playing">上映中</string>

@@ -117,6 +117,10 @@
     <string name="build_number">Numéro de build</string>
     
     <!-- Movies -->
+    <string name="movies">Films</string>
+    <string name="tv_shows">Émissions de télévision</string>
+    <string name="my_list">Ma liste</string>
+    <string name="continue_watching">Continuer à regarder</string>
     <string name="popular">Populaires</string>
     <string name="top_rated">Les mieux notés</string>
     <string name="now_playing">À l\'affiche</string>

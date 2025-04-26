@@ -117,6 +117,10 @@
     <string name="build_number">Build Number</string>
     
     <!-- Movies -->
+    <string name="movies">Moives</string>
+    <string name="tv_shows">TV Shows</string>
+    <string name="my_list">My List</string>
+    <string name="continue_watching">Continue watching</string>
     <string name="popular">Popular</string>
     <string name="top_rated">Top Rated</string>
     <string name="now_playing">Now Playing</string>
