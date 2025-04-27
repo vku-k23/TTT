@@ -190,4 +190,14 @@
     <string name="error_passwords_dont_match">Mật khẩu không khớp</string>
     <string name="view">Xem</string>
     <string name="navigate">Điều hướng</string>
+    
+    <!-- Favorites -->
+    <string name="add_to_favorites">Thêm vào yêu thích</string>
+    <string name="remove_from_favorites">Xóa khỏi mục yêu thích</string>
+    <string name="favorites">Yêu thích</string>
+    <string name="favorite_added">Đã thêm vào mục yêu thích</string>
+    <string name="favorite_removed">Đã xóa khỏi mục yêu thích</string>
+    <string name="empty_favorites">Danh sách yêu thích của bạn đang trống</string>
+    <string name="find_something">Tìm nội dung để xem</string>
+    <string name="remove">Xóa</string>
 </resources>
