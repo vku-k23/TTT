@@ -100,6 +100,7 @@ import android.util.Log
 import com.ttt.cinevibe.R
 import com.ttt.cinevibe.data.remote.ApiConstants
 import com.ttt.cinevibe.domain.model.Movie
+import com.ttt.cinevibe.presentation.navigation.TopNavigationTab
 import com.ttt.cinevibe.ui.theme.Black
 import com.ttt.cinevibe.ui.theme.DarkGray
 import com.ttt.cinevibe.ui.theme.LightGray
@@ -112,9 +113,10 @@ import kotlinx.coroutines.launch
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel(),
+    selectedTab: TopNavigationTab = TopNavigationTab.MOVIES,
+    onTabSelected: (TopNavigationTab) -> Unit = {},
     onMovieClick: (Movie) -> Unit = {},
-    onNavigateToDetails: (Movie) -> Unit = {},
-    onNavigateToMyList: () -> Unit = {} // New parameter for My List navigation
+    onNavigateToDetails: (Movie) -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val featuredMovies by viewModel.featuredMovies.collectAsState()
@@ -195,8 +197,11 @@ fun HomeScreen(
                 Column(
                     modifier = Modifier.fillMaxSize()
                 ) {
-                    // Top Navigation Bar
-                    TopNavigationBar(onNavigateToMyList = onNavigateToMyList)
+                    // Use the shared top navigation bar with the selected tab
+                    com.ttt.cinevibe.presentation.components.TopNavigationBar(
+                        selectedTab = selectedTab,
+                        onTabSelected = onTabSelected
+                    )
                     
                     // Scrollable content
                     LazyColumn(
@@ -287,58 +292,6 @@ fun HomeScreen(
                         }
                     )
                 }
-            }
-        }
-    }
-}
-
-@Composable
-fun TopNavigationBar(onNavigateToMyList: () -> Unit) {
-    var selectedTabIndex by remember { mutableStateOf(0) }
-    val tabs = listOf(stringResource(R.string.movies), stringResource(R.string.tv_shows), stringResource(R.string.my_list))
-    
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(Black)
-            .padding(top = 8.dp)
-    ) {
-        // Netflix logo and navigation
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // App logo - using a text "C" for CineVibe logo
-            Text(
-                text = "C",
-                color = NetflixRed,
-                fontSize = 32.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier
-                    .padding(end = 8.dp)
-            )
-            
-            Spacer(modifier = Modifier.weight(1f))
-            
-            // Navigation tabs
-            tabs.forEachIndexed { index, title ->
-                Text(
-                    text = title,
-                    color = if (selectedTabIndex == index) White else White.copy(alpha = 0.7f),
-                    fontSize = 16.sp,
-                    fontWeight = if (selectedTabIndex == index) FontWeight.Bold else FontWeight.Normal,
-                    modifier = Modifier
-                        .clickable { 
-                            selectedTabIndex = index
-                            // Navigate to My List when the My List tab is clicked
-                            if (index == 2) { // My List is the third tab (index 2)
-                                onNavigateToMyList()
-                            }
-                        }
-                        .padding(horizontal = 12.dp, vertical = 8.dp)
-                )
             }
         }
     }

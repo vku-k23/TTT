@@ -24,7 +24,10 @@ import androidx.navigation.compose.rememberNavController
 import com.ttt.cinevibe.R
 import com.ttt.cinevibe.presentation.navigation.BottomNavItem
 import com.ttt.cinevibe.presentation.navigation.NavGraph
+import com.ttt.cinevibe.presentation.navigation.NavigationState
 import com.ttt.cinevibe.presentation.navigation.Screens
+import com.ttt.cinevibe.presentation.navigation.TopNavigationTab
+import com.ttt.cinevibe.presentation.navigation.rememberNavigationState
 import androidx.compose.ui.graphics.Color
 
 // Material Icons
@@ -42,10 +45,12 @@ import androidx.compose.material.icons.outlined.Person
 
 @Composable
 fun MainScreen(
-    rootNavController: NavHostController // Add this parameter for the top-level navigation
+    rootNavController: NavHostController
 ) {
     val navController = rememberNavController()
+    val navigationState = rememberNavigationState()
 
+    // Bottom navigation items (unchanged)
     val bottomNavItems = listOf(
         BottomNavItem(
             route = Screens.HOME_ROUTE,
@@ -84,19 +89,19 @@ fun MainScreen(
         )
     )
 
-    // Rest of the function is unchanged
     Scaffold(
         bottomBar = {
             BottomNavigationBar(
                 navController = navController,
-                items = bottomNavItems
+                items = bottomNavItems,
+                navigationState = navigationState // Pass the navigation state
             )
         }
     ) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding)) {
             NavGraph(
                 navController = navController,
-                rootNavController = rootNavController // Pass the root NavController to NavGraph
+                rootNavController = rootNavController
             )
         }
     }
@@ -105,7 +110,8 @@ fun MainScreen(
 @Composable
 fun BottomNavigationBar(
     navController: NavHostController,
-    items: List<BottomNavItem>
+    items: List<BottomNavItem>,
+    navigationState: NavigationState // Add navigation state parameter
 ) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
@@ -118,7 +124,9 @@ fun BottomNavigationBar(
             containerColor = Color.Black,
         ) {
             items.forEach { item ->
-                val selected = currentDestination?.hierarchy?.any { it.route == item.route } == true
+                // Use the navigation state to determine selection
+                val selected = navigationState.bottomNavRoute.value == item.route
+                
                 NavigationBarItem(
                     icon = {
                         if (item.useImageVector && item.selectedImageVector != null && item.unselectedImageVector != null) {
@@ -146,6 +154,14 @@ fun BottomNavigationBar(
                         indicatorColor = Color.Transparent // Hide the indicator background
                     ),
                     onClick = {
+                        // Update our navigation state
+                        navigationState.bottomNavRoute.value = item.route
+                        
+                        // If we're on My List screen and click Home, reset top nav
+                        if (item.route == Screens.HOME_ROUTE && currentDestination?.route == Screens.MY_LIST_ROUTE) {
+                            navigationState.topNavTab.value = TopNavigationTab.MOVIES
+                        }
+                        
                         navController.navigate(item.route) {
                             // Pop up to the start destination of the graph to
                             // avoid building up a large stack of destinations

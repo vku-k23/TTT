@@ -1,7 +1,6 @@
 package com.ttt.cinevibe.presentation.mylist
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -13,8 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -40,6 +37,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.ttt.cinevibe.R
 import com.ttt.cinevibe.domain.model.Movie
 import com.ttt.cinevibe.presentation.home.MoviePoster
+import com.ttt.cinevibe.presentation.navigation.TopNavigationTab
 import com.ttt.cinevibe.ui.theme.Black
 import com.ttt.cinevibe.ui.theme.NetflixRed
 import com.ttt.cinevibe.ui.theme.White
@@ -48,42 +46,27 @@ import com.ttt.cinevibe.ui.theme.White
 @Composable
 fun MyListScreen(
     viewModel: MyListViewModel = hiltViewModel(),
-    onBackClick: () -> Unit,
+    selectedTab: TopNavigationTab = TopNavigationTab.MY_LIST,
+    onTabSelected: (TopNavigationTab) -> Unit = {},
+    onBackClick: () -> Unit = {},
     onMovieClick: (Movie) -> Unit
 ) {
     val favoriteMoviesState by viewModel.favoriteMoviesState.collectAsState()
     
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = "My List",
-                        color = White,
-                        fontWeight = FontWeight.Bold
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
-                            tint = White
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Black
-                )
-            )
-        }
-    ) { paddingValues ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Black)
-                .padding(paddingValues)
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Black)
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize()
         ) {
+            // Use the shared TopNavigationBar with the selected tab set to MY_LIST
+            com.ttt.cinevibe.presentation.components.TopNavigationBar(
+                selectedTab = selectedTab,
+                onTabSelected = onTabSelected
+            )
+
             when (val state = favoriteMoviesState) {
                 is MyListState.Loading -> {
                     Box(
@@ -137,7 +120,7 @@ fun MyListScreen(
                 is MyListState.Success -> {
                     LazyVerticalGrid(
                         columns = GridCells.Fixed(3),
-                        contentPadding = PaddingValues(8.dp),
+                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 16.dp),
                         modifier = Modifier.fillMaxSize()
                     ) {
                         items(state.movies) { movie ->
