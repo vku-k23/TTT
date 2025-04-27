@@ -56,4 +56,11 @@ interface MovieApiService {
         @Path("movieId") movieId: Int,
         @Query("language") language: String = "en-US"
     ): VideoResponse
+    
+    @GET("movie/{movieId}/similar")
+    suspend fun getSimilarMovies(
+        @Path("movieId") movieId: Int,
+        @Query("language") language: String = "en-US",
+        @Query("page") page: Int = 1
+    ): MovieListResponse
 }

@@ -11,4 +11,5 @@ interface MovieRepository {
     suspend fun searchMovies(query: String, language: String? = null): Flow<List<Movie>>
     suspend fun getGenres(): Flow<Map<Int, String>>
     suspend fun getMovieById(movieId: Int, language: String? = null): Flow<Movie> // Already has language parameter
+    suspend fun getSimilarMovies(movieId: Int, language: String? = null): Flow<List<Movie>>
 }

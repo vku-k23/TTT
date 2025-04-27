@@ -159,6 +159,10 @@ fun NavGraph(
                 movieId = movieId,
                 onBackClick = {
                     navController.popBackStack()
+                },
+                onNavigateToDetails = { similarMovieId ->
+                    // Navigate to the detail screen of the similar movie
+                    navController.navigate(Screens.movieDetailRoute(similarMovieId.toString()))
                 }
             )
         }

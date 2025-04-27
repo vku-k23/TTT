@@ -14,6 +14,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -82,7 +84,8 @@ import java.util.Locale
 fun MovieDetailScreen(
     viewModel: MovieDetailViewModel = hiltViewModel(),
     movieId: Int,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    onNavigateToDetails: (Int) -> Unit = {} // Added navigation callback
 ) {
     // Get the current app locale from our composition local
     val appLocale = LocalAppLocale.current
@@ -146,12 +149,14 @@ fun MovieDetailScreen(
         movieState.movie != null -> {
             MovieDetailContent(
                 movie = movieState.movie!!,
+                viewModel = viewModel,
                 trailerState = trailerState,
                 isFavorite = isFavorite,
                 onBackClick = onBackClick,
                 onPlayTrailerClick = { viewModel.playTrailerInPlace() },
                 onCloseTrailerClick = { viewModel.stopTrailerInPlace() },
-                onToggleFavorite = { viewModel.toggleFavoriteStatus() }
+                onToggleFavorite = { viewModel.toggleFavoriteStatus() },
+                onNavigateToDetails = onNavigateToDetails
             )
         }
     }
@@ -160,12 +165,14 @@ fun MovieDetailScreen(
 @Composable
 fun MovieDetailContent(
     movie: Movie,
+    viewModel: MovieDetailViewModel, // Added this parameter
     trailerState: TrailerState,
     isFavorite: Boolean,
     onBackClick: () -> Unit,
     onPlayTrailerClick: () -> Unit,
     onCloseTrailerClick: () -> Unit,
-    onToggleFavorite: () -> Unit
+    onToggleFavorite: () -> Unit,
+    onNavigateToDetails: (Int) -> Unit // Navigation callback for similar movies
 ) {
     val scrollState = rememberScrollState()
     val headerAlpha by animateFloatAsState(
@@ -548,39 +555,68 @@ fun MovieDetailContent(
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp)
             ) {
-                Text(
-                    text = stringResource(R.string.more_like_this),
-                    color = White,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(vertical = 8.dp)
-                )
-                
-                // This would ideally contain a grid of similar movies
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(180.dp)
-                        .padding(top = 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Placeholder for similar movies
-                    // In a real app, you would iterate through related movies
-                    SimilarMovieItem(
-                        imageUrl = "https://via.placeholder.com/300x450?text=Similar+1",
-                        title = "Snow White",
-                        modifier = Modifier.weight(1f)
+                    // Section title
+                    Text(
+                        text = stringResource(R.string.more_like_this),
+                        color = White,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(vertical = 8.dp)
                     )
-                    SimilarMovieItem(
-                        imageUrl = "https://via.placeholder.com/300x450?text=Similar+2",
-                        title = "Narnia",
-                        modifier = Modifier.weight(1f)
+                    
+                    // Description text
+                    Text(
+                        text = stringResource(R.string.similar_movies_description),
+                        color = LightGray,
+                        fontSize = 12.sp,
+                        modifier = Modifier.padding(start = 8.dp)
                     )
-                    SimilarMovieItem(
-                        imageUrl = "https://via.placeholder.com/300x450?text=Similar+3",
-                        title = "The Seventh Seal",
-                        modifier = Modifier.weight(1f)
-                    )
+                }
+                
+                // LazyRow of similar movies - styled like the My List screen
+                val similarMovies by viewModel.similarMovies.collectAsState()
+                
+                if (similarMovies.isEmpty()) {
+                    // Show loading or placeholder state
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(180.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(
+                            color = NetflixRed,
+                            modifier = Modifier.size(40.dp)
+                        )
+                    }
+                } else {
+                    LazyRow(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp),
+                        contentPadding = PaddingValues(end = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(similarMovies) { movie ->
+                            SimilarMovieItem(
+                                imageUrl = if (movie.posterPath != null)
+                                    ApiConstants.IMAGE_BASE_URL + ApiConstants.POSTER_SIZE + movie.posterPath
+                                else
+                                    "https://via.placeholder.com/300x450?text=${movie.title}",
+                                title = movie.title,
+                                movie = movie,
+                                onClick = { onNavigateToDetails(movie.id) },
+                                modifier = Modifier
+                                    .width(125.dp)
+                                    .height(190.dp)
+                            )
+                        }
+                    }
                 }
             }
             
@@ -596,26 +632,83 @@ fun MovieDetailContent(
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp)
             ) {
-                Text(
-                    text = stringResource(R.string.trailers_and_more),
-                    color = White,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
+                // Section header with count
+                val videosList by viewModel.videosList.collectAsState()
                 
-                // Trailer thumbnail with embedded mini player if available
-                if (trailerState.isAvailable && trailerState.videoKey != null) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = stringResource(R.string.trailers_and_more),
+                        color = White,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    )
+                    
+                    // Show the count of available videos
+                    if (videosList.isNotEmpty()) {
+                        Text(
+                            text = "${videosList.size} Videos",
+                            color = LightGray,
+                            fontSize = 14.sp
+                        )
+                    }
+                }
+                
+                // List of trailer items in a column format
+                if (videosList.isEmpty()) {
+                    // Show loading or "No trailers available" message
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(200.dp)
                             .clip(RoundedCornerShape(8.dp))
+                            .background(DarkGray.copy(alpha = 0.3f)),
+                        contentAlignment = Alignment.Center
                     ) {
-                        // Embedded mini trailer player
+                        if (trailerState.isAvailable) {
+                            CircularProgressIndicator(
+                                color = NetflixRed,
+                                modifier = Modifier.size(40.dp)
+                            )
+                        } else {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier.padding(16.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Filled.PlayArrow,
+                                    contentDescription = "No Trailers",
+                                    tint = LightGray,
+                                    modifier = Modifier.size(48.dp)
+                                )
+                                
+                                Spacer(modifier = Modifier.height(8.dp))
+                                
+                                Text(
+                                    text = stringResource(R.string.no_trailer_available),
+                                    color = LightGray,
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Medium
+                                )
+                            }
+                        }
+                    }
+                } else {
+                    // Featured video player (first item)
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .padding(bottom = 16.dp)
+                    ) {
                         YoutubePlayer(
-                            videoId = trailerState.videoKey!!,
-                            playing = false, // Don't autoplay in the small view
+                            videoId = videosList[0].key,
+                            playing = false, // Don't autoplay in the view
                             modifier = Modifier.fillMaxSize()
                         )
                         
@@ -623,7 +716,7 @@ fun MovieDetailContent(
                         Box(
                             modifier = Modifier
                                 .matchParentSize()
-                                .clickable { onPlayTrailerClick() }
+                                .clickable { viewModel.playVideo(videosList[0].key) }
                         ) {
                             Box(
                                 modifier = Modifier
@@ -641,7 +734,7 @@ fun MovieDetailContent(
                                 )
                             }
                             
-                            // Trailer title
+                            // Featured trailer title
                             Box(
                                 modifier = Modifier
                                     .align(Alignment.BottomStart)
@@ -658,51 +751,42 @@ fun MovieDetailContent(
                                     )
                                     .padding(16.dp)
                             ) {
-                                Text(
-                                    text = "Official Trailer",
-                                    color = White,
-                                    fontSize = 16.sp,
-                                    fontWeight = FontWeight.Bold
-                                )
+                                Column {
+                                    Text(
+                                        text = videosList[0].name,
+                                        color = White,
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    
+                                    Text(
+                                        text = "Featured",
+                                        color = NetflixRed,
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                }
                             }
                         }
                     }
-                } else {
-                    // Fallback if no trailer available
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(200.dp)
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(DarkGray)
-                            .clickable { /* Nothing to play */ }
-                    ) {
-                        AsyncImage(
-                            model = ImageRequest.Builder(LocalContext.current)
-                                .data(
-                                    if (movie.backdropPath != null)
-                                        ApiConstants.IMAGE_BASE_URL + ApiConstants.BACKDROP_SIZE + movie.backdropPath
-                                    else
-                                        "https://via.placeholder.com/1280x720?text=No+Trailer+Available"
-                                )
-                                .build(),
-                            contentDescription = "Trailer thumbnail",
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier.fillMaxSize()
+                    
+                    // Only display additional videos if there are more than one
+                    if (videosList.size > 1) {
+                        // Additional trailers header
+                        Text(
+                            text = "More Videos",
+                            color = White,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(vertical = 8.dp)
                         )
                         
-                        // No trailer available overlay
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .background(Color.Black.copy(alpha = 0.5f)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = stringResource(R.string.no_trailer_available),
-                                color = White,
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold
+                        // List additional trailers (skip the first one)
+                        videosList.drop(1).forEach { video ->
+                            TrailerItem(
+                                video = video,
+                                onClick = { videoKey -> viewModel.playVideo(videoKey) },
+                                modifier = Modifier.padding(bottom = 8.dp)
                             )
                         }
                     }
@@ -900,15 +984,18 @@ fun YoutubePlayer(
 fun SimilarMovieItem(
     imageUrl: String,
     title: String,
+    movie: Movie,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
         modifier = modifier
+            .clickable { onClick() }
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(150.dp)
+                .weight(1f)
                 .clip(RoundedCornerShape(4.dp))
         ) {
             AsyncImage(
@@ -929,5 +1016,92 @@ fun SimilarMovieItem(
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.padding(top = 4.dp)
         )
+    }
+}
+
+@Composable
+fun TrailerItem(
+    video: VideoDetails,
+    onClick: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp)
+            .clip(RoundedCornerShape(8.dp))
+            .background(DarkGray.copy(alpha = 0.3f))
+            .clickable { onClick(video.key) }
+            .padding(12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Thumbnail with play button
+        Box(
+            modifier = Modifier
+                .width(120.dp)
+                .height(70.dp)
+                .clip(RoundedCornerShape(4.dp))
+                .background(Black)
+        ) {
+            // YouTube thumbnail
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data("https://img.youtube.com/vi/${video.key}/0.jpg")
+                    .build(),
+                contentDescription = video.name,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize()
+            )
+            
+            // Play button overlay
+            Box(
+                modifier = Modifier
+                    .size(32.dp)
+                    .align(Alignment.Center)
+                    .clip(CircleShape)
+                    .background(Color.Black.copy(alpha = 0.5f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.PlayArrow,
+                    contentDescription = "Play",
+                    tint = White,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+        }
+        
+        // Video details
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .padding(start = 12.dp)
+        ) {
+            // Video title
+            Text(
+                text = video.name,
+                color = White,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            
+            Spacer(modifier = Modifier.height(4.dp))
+            
+            // Video type badge
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(4.dp))
+                    .background(DarkGray)
+                    .padding(horizontal = 8.dp, vertical = 2.dp)
+            ) {
+                Text(
+                    text = video.type,
+                    color = LightGray,
+                    fontSize = 12.sp
+                )
+            }
+        }
     }
 }

@@ -179,6 +179,24 @@ class MovieRepositoryImpl @Inject constructor(
         }
     }
     
+    override suspend fun getSimilarMovies(movieId: Int, language: String?): Flow<List<Movie>> = flow {
+        try {
+            if (genresCache.isEmpty()) {
+                loadGenres()
+            }
+            
+            // Use the provided language parameter if available
+            val languageToUse = language ?: "en-US"
+            
+            val response = movieApiService.getSimilarMovies(movieId = movieId, language = languageToUse)
+            Log.d("MovieRepository", "Similar movies fetched for movie ID $movieId: ${response.results.size} with language: $languageToUse")
+            emit(response.results.map { it.toDomainModel(genresCache) })
+        } catch (e: Exception) {
+            Log.e("MovieRepository", "Error fetching similar movies for movie ID $movieId", e)
+            emit(emptyList())
+        }
+    }
+    
     private suspend fun loadGenres() {
         try {
             val genreResponse = movieApiService.getGenres()

@@ -127,6 +127,7 @@
     <string name="now_playing">Now Playing</string>
     <string name="upcoming">Upcoming</string>
     <string name="similar">Similar Movies</string>
+    <string name="similar_movies_description">Based on what you watched</string>
     <string name="recommendations">Recommendations</string>
     <string name="trending">Trending</string>
     <string name="watch_now">Watch Now</string>
