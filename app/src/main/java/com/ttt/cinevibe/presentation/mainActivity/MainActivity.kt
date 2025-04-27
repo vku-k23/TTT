@@ -18,8 +18,10 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalConfiguration
@@ -59,11 +61,14 @@ class MainActivity : ComponentActivity() {
     
     @Inject
     lateinit var languageManager: LanguageManager
+    
+    // Track current language to prevent unnecessary recreations
+    private var currentLanguage = ""
 
-    // Sử dụng phương pháp an toàn hơn cho attachBaseContext mà không phụ thuộc vào sớm vào dependency injection
+    // Use a safer approach for attachBaseContext that doesn't depend early on dependency injection
     override fun attachBaseContext(newBase: Context) {
-        // Sử dụng ngôn ngữ mặc định của hệ thống thay vì đọc từ languageManager
-        // Ngôn ngữ sẽ được áp dụng chính xác trong onCreate sau khi languageManager được tiêm
+        // Use the system's default language instead of reading from languageManager
+        // Language will be applied correctly in onCreate after languageManager is injected
         super.attachBaseContext(LocaleHelper.setLocale(newBase, Locale.getDefault()))
     }
     
@@ -72,75 +77,62 @@ class MainActivity : ComponentActivity() {
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
         
-        // Áp dụng ngôn ngữ đã lưu ngay khi có thể sau khi languageManager được tiêm
-        applyStoredLanguage()
+        // Make the app immersive for the splash screen
+        window.setFlags(
+            android.view.WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
+            android.view.WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
+        )
         
-        // Observe language changes to recreate activity when needed
-        observeLanguageChanges()
-
-        setContent {
-            val navController = rememberNavController()
-            
-            // Get the current app language as a collectAsState so composables can react to changes
-            val appLocale by languageManager.getAppLanguage().collectAsState(initial = Locale.getDefault())
-            
-            // Apply locale changes when the composition starts
-            val context = LocalContext.current
-            DisposableEffect(appLocale) {
-                // Apply locale to the context immediately when it changes
-                LocaleHelper.setLocale(context, appLocale)
-                
-                onDispose { }
-            }
-            
-            CineVibeTheme {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    CineVibeApp(appLocale = appLocale)
-                }
-            }
-        }
-    }
-    
-    // Phương thức mới để áp dụng ngôn ngữ đã lưu ngay sau khi languageManager được tiêm
-    private fun applyStoredLanguage() {
         lifecycleScope.launch {
             try {
+                // Load language settings
                 val locale = languageManager.getAppLanguage().first()
-                LocaleHelper.setLocale(this@MainActivity, locale)
-                // Cập nhật resources
-                resources.configuration.setLocale(locale)
-                resources.updateConfiguration(resources.configuration, resources.displayMetrics)
-            } catch (e: Exception) {
-                // Xử lý ngoại lệ nếu có
-                e.printStackTrace()
-            }
-        }
-    }
-    
-    private fun observeLanguageChanges() {
-        var currentLanguage = ""
-        
-        lifecycleScope.launch {
-            languageManager.getAppLanguage().collectLatest { locale ->
-                // Only trigger recreation if we've previously set a language and it's changing
-                if (currentLanguage.isNotEmpty() && currentLanguage != locale.language) {
-                    // Critical: Use a delay to ensure preferences are saved before recreation
-                    kotlinx.coroutines.delay(100)
-                    
-                    // Force activity recreation with proper flags
-                    val intent = intent.apply { 
-                        addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
-                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                        addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
-                    }
-                    finish()
-                    startActivity(intent)
-                    overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
-                }
                 currentLanguage = locale.language
+                
+                val currentUiMode = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
+                
+                // Set content with the application theme
+                setContent {
+                    CineVibeTheme(
+                        darkTheme = currentUiMode == Configuration.UI_MODE_NIGHT_YES
+                    ) {
+                        // Observe locale changes
+                        val appLocale by languageManager.getAppLanguage().collectAsState(locale)
+                        
+                        // Use key to monitor actual language changes
+                        val language = appLocale.language
+                        
+                        // Only trigger recreation if the language actually changed
+                        LaunchedEffect(language) {
+                            if (currentLanguage.isNotEmpty() && language != currentLanguage) {
+                                Log.d("MainActivity", "Locale changed from $currentLanguage to $language")
+                                
+                                // Force activity recreation with proper flags
+                                val intent = intent.apply { 
+                                    addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                    addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                                }
+                                finish()
+                                startActivity(intent)
+                                overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
+                                
+                                // Update tracked language
+                                currentLanguage = language
+                            }
+                        }
+                        
+                        CineVibeApp(appLocale = appLocale)
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("MainActivity", "Error initializing app", e)
+                // Fallback to default locale
+                setContent {
+                    CineVibeTheme {
+                        CineVibeApp(appLocale = Locale.getDefault())
+                    }
+                }
             }
         }
     }
@@ -150,7 +142,9 @@ class MainActivity : ComponentActivity() {
 fun CineVibeApp(appLocale: Locale = Locale.getDefault()) {
     val navController = rememberNavController()
     val context = LocalContext.current
-    val localConfiguration = LocalConfiguration.current
+    
+    // Track whether navigation has occurred from SplashScreen 
+    var navigatedFromSplash by remember { mutableStateOf(false) }
     
     // Apply the app locale immediately and whenever it changes
     SideEffect {
@@ -159,20 +153,29 @@ fun CineVibeApp(appLocale: Locale = Locale.getDefault()) {
     
     // Provide the locale to all child composables
     CompositionLocalProvider(LocalAppLocale provides appLocale) {
-        // Start with the splash screen route
+        // Start with the enhanced splash screen as the launcher
         NavHost(navController = navController, startDestination = SPLASH_ROUTE) {
-            // Splash screen
+            // Splash screen acts as launcher
             composable(route = SPLASH_ROUTE) {
-                // Splash screen doesn't need special locale handling
                 SplashScreen(
                     onSplashFinished = {
-                        navController.navigate(AUTH_GRAPH_ROUTE) {
-                            popUpTo(SPLASH_ROUTE) { inclusive = true }
+                        if (!navigatedFromSplash) {
+                            navigatedFromSplash = true
+                            // Navigate to auth flow when user is not logged in
+                            navController.navigate(AUTH_GRAPH_ROUTE) {
+                                // Remove splash from back stack
+                                popUpTo(SPLASH_ROUTE) { inclusive = true }
+                            }
                         }
                     },
                     onNavigateToHome = {
-                        navController.navigate(NavDestinations.MAIN_FLOW) {
-                            popUpTo(SPLASH_ROUTE) { inclusive = true }
+                        if (!navigatedFromSplash) {
+                            navigatedFromSplash = true
+                            // Navigate directly to main flow when user is already logged in
+                            navController.navigate(NavDestinations.MAIN_FLOW) {
+                                // Remove splash from back stack
+                                popUpTo(SPLASH_ROUTE) { inclusive = true }
+                            }
                         }
                     }
                 )
@@ -208,7 +211,7 @@ fun CineVibeApp(appLocale: Locale = Locale.getDefault()) {
                     
                     // Force locale application on each navigation to detail screen
                     LaunchedEffect(appLocale) {
-                        Log.d("MovieDetail", "Forcefully applying locale: ${appLocale.language} on navigation to Movie Detail")
+                        Log.d("MovieDetail", "Applying locale: ${appLocale.language} on Movie Detail")
                         Locale.setDefault(appLocale) // Set JVM default locale
                         LocaleConfigurationProvider.applyLocaleToContext(detailContext, appLocale)
                     }
