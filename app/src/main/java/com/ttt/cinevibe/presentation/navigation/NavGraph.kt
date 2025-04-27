@@ -15,12 +15,14 @@ import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
 import com.ttt.cinevibe.presentation.auth.AUTH_GRAPH_ROUTE
 import com.ttt.cinevibe.presentation.detail.MovieDetailScreen
 import com.ttt.cinevibe.presentation.detail.MovieDetailViewModel
 import com.ttt.cinevibe.presentation.downloads.DownloadsScreen
 import com.ttt.cinevibe.presentation.home.HomeScreen
+import com.ttt.cinevibe.presentation.mylist.MyListScreen
 import com.ttt.cinevibe.presentation.newhot.NewHotScreen
 import com.ttt.cinevibe.presentation.newhot.NewHotViewModel
 import com.ttt.cinevibe.presentation.profile.PROFILE_GRAPH_ROUTE
@@ -34,6 +36,30 @@ fun NavGraph(
     navController: NavHostController,
     rootNavController: NavHostController
 ) {
+    // Use the combined navigation state that tracks both nav bars
+    val navigationState = rememberNavigationState()
+    
+    // Launch effect to update bottom nav selection when navigation occurs
+    val currentBackStackEntry by navController.currentBackStackEntryAsState()
+    
+    LaunchedEffect(currentBackStackEntry) {
+        // Only update bottom nav selection for main routes (not detail screens)
+        currentBackStackEntry?.destination?.route?.let { currentRoute ->
+            if (currentRoute == Screens.HOME_ROUTE || 
+                currentRoute == Screens.NEW_HOT_ROUTE ||
+                currentRoute == Screens.SEARCH_ROUTE ||
+                currentRoute == Screens.DOWNLOADS_ROUTE ||
+                currentRoute == Screens.PROFILE_ROUTE) {
+                navigationState.bottomNavRoute.value = currentRoute
+            }
+            
+            // If we're on My List route, update top nav tab
+            if (currentRoute == Screens.MY_LIST_ROUTE) {
+                navigationState.topNavTab.value = TopNavigationTab.MY_LIST
+            }
+        }
+    }
+
     NavHost(
         navController = navController,
         startDestination = Screens.HOME_ROUTE
@@ -41,6 +67,17 @@ fun NavGraph(
         // Home screen
         composable(route = Screens.HOME_ROUTE) {
             HomeScreen(
+                selectedTab = navigationState.topNavTab.value,
+                onTabSelected = { tab ->
+                    navigationState.topNavTab.value = tab
+                    // If My List tab is selected, navigate to that screen
+                    if (tab == TopNavigationTab.MY_LIST) {
+                        navController.navigate(Screens.MY_LIST_ROUTE) {
+                            // Pop up to home to avoid building a large backstack
+                            popUpTo(Screens.HOME_ROUTE) { inclusive = false }
+                        }
+                    }
+                },
                 onMovieClick = { movie ->
                     navController.navigate(Screens.movieDetailRoute(movie.id.toString()))
                 },
@@ -72,6 +109,29 @@ fun NavGraph(
         // Downloads screen
         composable(route = Screens.DOWNLOADS_ROUTE) {
             DownloadsScreen()
+        }
+        
+        // My List screen
+        composable(route = Screens.MY_LIST_ROUTE) {
+            // Ensure we maintain the bottom nav selection even when on My List
+            MyListScreen(
+                onBackClick = {
+                    // When going back, keep the HOME route selected in bottom nav
+                    navigationState.bottomNavRoute.value = Screens.HOME_ROUTE
+                    navController.popBackStack(Screens.HOME_ROUTE, false)
+                },
+                onMovieClick = { movie ->
+                    navController.navigate(Screens.movieDetailRoute(movie.id.toString()))
+                },
+                selectedTab = navigationState.topNavTab.value,
+                onTabSelected = { tab ->
+                    navigationState.topNavTab.value = tab
+                    if (tab != TopNavigationTab.MY_LIST) {
+                        // Navigate back to home if another tab is selected
+                        navController.popBackStack(Screens.HOME_ROUTE, false)
+                    }
+                }
+            )
         }
         
         // Use the profile nav graph for profile-related screens

@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ttt.cinevibe.data.manager.LanguageManager
 import com.ttt.cinevibe.domain.model.Movie
+import com.ttt.cinevibe.domain.usecases.favorites.FavoriteMoviesUseCases
 import com.ttt.cinevibe.domain.usecases.movies.GetMovieByIdUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -18,6 +19,7 @@ import javax.inject.Inject
 @HiltViewModel
 class MovieDetailViewModel @Inject constructor(
     private val getMovieByIdUseCase: GetMovieByIdUseCase,
+    private val favoriteMoviesUseCases: FavoriteMoviesUseCases,
     private val languageManager: LanguageManager
 ) : ViewModel() {
 
@@ -27,6 +29,10 @@ class MovieDetailViewModel @Inject constructor(
     // State for trailer playback
     private val _trailerState = MutableStateFlow(TrailerState())
     val trailerState: StateFlow<TrailerState> = _trailerState
+    
+    // State for favorite status
+    private val _isFavorite = MutableStateFlow(false)
+    val isFavorite: StateFlow<Boolean> = _isFavorite
     
     // Track the current fetch job to cancel it if needed
     private var currentFetchJob: Job? = null
@@ -46,6 +52,9 @@ class MovieDetailViewModel @Inject constructor(
         lastRequestedMovieId = movieId
         
         _movieState.value = MovieDetailState(isLoading = true)
+        
+        // Check if the movie is in favorites
+        checkFavoriteStatus(movieId)
         
         currentFetchJob = viewModelScope.launch {
             // Use the user's selected language from LanguageManager
@@ -87,6 +96,26 @@ class MovieDetailViewModel @Inject constructor(
                         )
                     }
                 }
+        }
+    }
+    
+    private fun checkFavoriteStatus(movieId: Int) {
+        viewModelScope.launch {
+            favoriteMoviesUseCases.isMovieFavorite(movieId)
+                .collect { isFav ->
+                    _isFavorite.value = isFav
+                }
+        }
+    }
+    
+    fun toggleFavoriteStatus() {
+        val movie = _movieState.value.movie ?: return
+        viewModelScope.launch {
+            if (_isFavorite.value) {
+                favoriteMoviesUseCases.removeMovieFromFavorites(movie.id)
+            } else {
+                favoriteMoviesUseCases.addMovieToFavorites(movie)
+            }
         }
     }
     
