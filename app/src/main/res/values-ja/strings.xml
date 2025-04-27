@@ -153,7 +153,8 @@
     <string name="preview">プレビュー</string>
     <string name="details_and_more">詳細など</string>
     <string name="more_info">詳細情報</string>
-
+    <string name="no_trailer_available">予告編がありません</string>
+    
     <!-- Search -->
     <string name="search_hint">映画またはTVを検索</string>
     <string name="no_results">結果が見つかりません</string>
@@ -190,4 +191,14 @@
     <string name="error_passwords_dont_match">パスワードが一致しません</string>
     <string name="view">表示</string>
     <string name="navigate">移動</string>
+    
+    <!-- Favorites -->
+    <string name="add_to_favorites">お気に入りに追加</string>
+    <string name="remove_from_favorites">お気に入りから削除</string>
+    <string name="favorites">お気に入り</string>
+    <string name="favorite_added">お気に入りに追加しました</string>
+    <string name="favorite_removed">お気に入りから削除しました</string>
+    <string name="empty_favorites">お気に入りリストが空です</string>
+    <string name="find_something">視聴する作品を探す</string>
+    <string name="remove">削除</string>
 </resources>

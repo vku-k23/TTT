@@ -152,6 +152,7 @@
     <string name="rate">Évaluer</string>
     <string name="read_more">Lire plus</string>
     <string name="no_synopsis_available">Pas de synopsis disponible pour ce film</string>
+    <string name="no_trailer_available">Pas de bande-annonce disponible</string>
     
     <!-- Search -->
     <string name="search_hint">Rechercher des films ou des émissions TV</string>
@@ -189,4 +190,14 @@
     <string name="error_passwords_dont_match">Les mots de passe ne correspondent pas</string>
     <string name="view">Voir</string>
     <string name="navigate">Naviguer</string>
+    
+    <!-- Favorites -->
+    <string name="add_to_favorites">Ajouter aux favoris</string>
+    <string name="remove_from_favorites">Retirer des favoris</string>
+    <string name="favorites">Favoris</string>
+    <string name="favorite_added">Ajouté à vos favoris</string>
+    <string name="favorite_removed">Retiré de vos favoris</string>
+    <string name="empty_favorites">Votre liste de favoris est vide</string>
+    <string name="find_something">Trouver quelque chose à regarder</string>
+    <string name="remove">Supprimer</string>
 </resources>

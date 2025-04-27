@@ -3,6 +3,7 @@ package com.ttt.cinevibe.data.repository
 import android.util.Log
 import com.ttt.cinevibe.data.remote.api.MovieApiService
 import com.ttt.cinevibe.data.remote.models.MovieDto
+import com.ttt.cinevibe.data.remote.models.VideoDto
 import com.ttt.cinevibe.domain.model.Movie
 import com.ttt.cinevibe.domain.repository.MovieRepository
 import kotlinx.coroutines.flow.Flow
@@ -176,6 +177,38 @@ class MovieRepositoryImpl @Inject constructor(
             Log.e("MovieRepository", "Error fetching movie details for ID: $movieId", e)
             // In a real app, you might want to emit a more specific error or handle this differently
             throw e
+        }
+    }
+    
+    override suspend fun getSimilarMovies(movieId: Int, language: String?): Flow<List<Movie>> = flow {
+        try {
+            if (genresCache.isEmpty()) {
+                loadGenres()
+            }
+            
+            // Use the provided language parameter if available
+            val languageToUse = language ?: "en-US"
+            
+            val response = movieApiService.getSimilarMovies(movieId = movieId, language = languageToUse)
+            Log.d("MovieRepository", "Similar movies fetched for movie ID $movieId: ${response.results.size} with language: $languageToUse")
+            emit(response.results.map { it.toDomainModel(genresCache) })
+        } catch (e: Exception) {
+            Log.e("MovieRepository", "Error fetching similar movies for movie ID $movieId", e)
+            emit(emptyList())
+        }
+    }
+
+    override suspend fun getMovieVideos(movieId: Int, language: String?): Flow<List<VideoDto>> = flow {
+        try {
+            // Use the provided language parameter if available
+            val languageToUse = language ?: "en-US"
+            
+            val response = movieApiService.getMovieVideos(movieId, language = languageToUse)
+            Log.d("MovieRepository", "Videos fetched for movie ID $movieId: ${response.results.size} with language: $languageToUse")
+            emit(response.results)
+        } catch (e: Exception) {
+            Log.e("MovieRepository", "Error fetching videos for movie ID $movieId", e)
+            emit(emptyList())
         }
     }
     
