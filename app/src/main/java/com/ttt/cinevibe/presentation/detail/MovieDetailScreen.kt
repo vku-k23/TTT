@@ -26,6 +26,8 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -94,6 +96,7 @@ fun MovieDetailScreen(
     
     val movieState by viewModel.movieState.collectAsState()
     val trailerState by viewModel.trailerState.collectAsState()
+    val isFavorite by viewModel.isFavorite.collectAsState()
     
     // Fetch the movie details
     LaunchedEffect(movieId) {
@@ -144,9 +147,11 @@ fun MovieDetailScreen(
             MovieDetailContent(
                 movie = movieState.movie!!,
                 trailerState = trailerState,
+                isFavorite = isFavorite,
                 onBackClick = onBackClick,
                 onPlayTrailerClick = { viewModel.playTrailerInPlace() },
-                onCloseTrailerClick = { viewModel.stopTrailerInPlace() }
+                onCloseTrailerClick = { viewModel.stopTrailerInPlace() },
+                onToggleFavorite = { viewModel.toggleFavoriteStatus() }
             )
         }
     }
@@ -156,9 +161,11 @@ fun MovieDetailScreen(
 fun MovieDetailContent(
     movie: Movie,
     trailerState: TrailerState,
+    isFavorite: Boolean,
     onBackClick: () -> Unit,
     onPlayTrailerClick: () -> Unit,
-    onCloseTrailerClick: () -> Unit
+    onCloseTrailerClick: () -> Unit,
+    onToggleFavorite: () -> Unit
 ) {
     val scrollState = rememberScrollState()
     val headerAlpha by animateFloatAsState(
@@ -465,21 +472,26 @@ fun MovieDetailContent(
                         .padding(vertical = 24.dp),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    // My List button
+                    // Favorite/My List button
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.clickable { /* Add to list */ }
+                        modifier = Modifier.clickable { onToggleFavorite() }
                     ) {
-                        Icon(
-                            imageVector = Icons.Filled.Add,
-                            contentDescription = "Add to My List",
-                            tint = White,
-                            modifier = Modifier.size(24.dp)
-                        )
+                        androidx.compose.material.icons.Icons.Filled.run {
+                            Icon(
+                                imageVector = if (isFavorite) 
+                                    Icons.Filled.Favorite 
+                                else 
+                                    Icons.Filled.FavoriteBorder,
+                                contentDescription = if (isFavorite) "Remove from favorites" else "Add to favorites",
+                                tint = if (isFavorite) NetflixRed else White,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = stringResource(R.string.my_list),
-                            color = LightGray,
+                            text = if (isFavorite) stringResource(R.string.remove) else stringResource(R.string.my_list),
+                            color = if (isFavorite) NetflixRed else LightGray,
                             fontSize = 12.sp
                         )
                     }

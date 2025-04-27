@@ -1,6 +1,8 @@
 package com.ttt.cinevibe.di
 
+import com.ttt.cinevibe.data.repository.FavoriteMovieRepositoryImpl
 import com.ttt.cinevibe.data.repository.MovieRepositoryImpl
+import com.ttt.cinevibe.domain.repository.FavoriteMovieRepository
 import com.ttt.cinevibe.domain.repository.MovieRepository
 import dagger.Binds
 import dagger.Module
@@ -17,4 +19,10 @@ abstract class RepositoryModule {
     abstract fun bindMovieRepository(
         movieRepositoryImpl: MovieRepositoryImpl
     ): MovieRepository
+    
+    @Binds
+    @Singleton
+    abstract fun bindFavoriteMovieRepository(
+        favoriteMovieRepositoryImpl: FavoriteMovieRepositoryImpl
+    ): FavoriteMovieRepository
 }

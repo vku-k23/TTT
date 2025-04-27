@@ -190,4 +190,14 @@
     <string name="error_passwords_dont_match">Passwords don\'t match</string>
     <string name="view">View</string>
     <string name="navigate">Navigate</string>
+    
+    <!-- Favorites -->
+    <string name="add_to_favorites">Add to favorites</string>
+    <string name="remove_from_favorites">Remove from favorites</string>
+    <string name="favorites">Favorites</string>
+    <string name="favorite_added">Added to your favorites</string>
+    <string name="favorite_removed">Removed from your favorites</string>
+    <string name="empty_favorites">Your favorites list is empty</string>
+    <string name="find_something">Find something to watch</string>
+    <string name="remove">Remove</string>
 </resources>

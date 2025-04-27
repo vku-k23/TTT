@@ -113,7 +113,8 @@ import kotlinx.coroutines.launch
 fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel(),
     onMovieClick: (Movie) -> Unit = {},
-    onNavigateToDetails: (Movie) -> Unit = {} // New parameter for details screen navigation
+    onNavigateToDetails: (Movie) -> Unit = {},
+    onNavigateToMyList: () -> Unit = {} // New parameter for My List navigation
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val featuredMovies by viewModel.featuredMovies.collectAsState()
@@ -195,7 +196,7 @@ fun HomeScreen(
                     modifier = Modifier.fillMaxSize()
                 ) {
                     // Top Navigation Bar
-                    TopNavigationBar()
+                    TopNavigationBar(onNavigateToMyList = onNavigateToMyList)
                     
                     // Scrollable content
                     LazyColumn(
@@ -292,7 +293,7 @@ fun HomeScreen(
 }
 
 @Composable
-fun TopNavigationBar() {
+fun TopNavigationBar(onNavigateToMyList: () -> Unit) {
     var selectedTabIndex by remember { mutableStateOf(0) }
     val tabs = listOf(stringResource(R.string.movies), stringResource(R.string.tv_shows), stringResource(R.string.my_list))
     
@@ -329,7 +330,13 @@ fun TopNavigationBar() {
                     fontSize = 16.sp,
                     fontWeight = if (selectedTabIndex == index) FontWeight.Bold else FontWeight.Normal,
                     modifier = Modifier
-                        .clickable { selectedTabIndex = index }
+                        .clickable { 
+                            selectedTabIndex = index
+                            // Navigate to My List when the My List tab is clicked
+                            if (index == 2) { // My List is the third tab (index 2)
+                                onNavigateToMyList()
+                            }
+                        }
                         .padding(horizontal = 12.dp, vertical = 8.dp)
                 )
             }

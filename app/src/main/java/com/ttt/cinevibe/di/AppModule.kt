@@ -3,10 +3,16 @@ package com.ttt.cinevibe.di
 import android.app.Application
 import com.ttt.cinevibe.data.manager.LocalUserManagerImpl
 import com.ttt.cinevibe.domain.manager.LocalUserManager
+import com.ttt.cinevibe.domain.repository.FavoriteMovieRepository
 import com.ttt.cinevibe.domain.repository.MovieRepository
 import com.ttt.cinevibe.domain.usecases.app_entry.AppEntryUseCases
 import com.ttt.cinevibe.domain.usecases.app_entry.ReadAppEntry
 import com.ttt.cinevibe.domain.usecases.app_entry.SaveAppEntry
+import com.ttt.cinevibe.domain.usecases.favorites.AddMovieToFavoritesUseCase
+import com.ttt.cinevibe.domain.usecases.favorites.FavoriteMoviesUseCases
+import com.ttt.cinevibe.domain.usecases.favorites.GetFavoriteMoviesUseCase
+import com.ttt.cinevibe.domain.usecases.favorites.IsMovieFavoriteUseCase
+import com.ttt.cinevibe.domain.usecases.favorites.RemoveMovieFromFavoritesUseCase
 import com.ttt.cinevibe.domain.usecases.movies.GetPopularMoviesUseCase
 import com.ttt.cinevibe.domain.usecases.movies.GetTopRatedMoviesUseCase
 import com.ttt.cinevibe.domain.usecases.movies.GetTrendingMoviesUseCase
@@ -74,5 +80,18 @@ object AppModule {
         movieRepository: MovieRepository
     ): SearchMoviesUseCase {
         return SearchMoviesUseCase(movieRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideFavoriteMoviesUseCases(
+        favoriteMovieRepository: FavoriteMovieRepository
+    ): FavoriteMoviesUseCases {
+        return FavoriteMoviesUseCases(
+            getFavoriteMovies = GetFavoriteMoviesUseCase(favoriteMovieRepository),
+            addMovieToFavorites = AddMovieToFavoritesUseCase(favoriteMovieRepository),
+            removeMovieFromFavorites = RemoveMovieFromFavoritesUseCase(favoriteMovieRepository),
+            isMovieFavorite = IsMovieFavoriteUseCase(favoriteMovieRepository)
+        )
     }
 }

@@ -21,6 +21,7 @@ import com.ttt.cinevibe.presentation.detail.MovieDetailScreen
 import com.ttt.cinevibe.presentation.detail.MovieDetailViewModel
 import com.ttt.cinevibe.presentation.downloads.DownloadsScreen
 import com.ttt.cinevibe.presentation.home.HomeScreen
+import com.ttt.cinevibe.presentation.mylist.MyListScreen
 import com.ttt.cinevibe.presentation.newhot.NewHotScreen
 import com.ttt.cinevibe.presentation.newhot.NewHotViewModel
 import com.ttt.cinevibe.presentation.profile.PROFILE_GRAPH_ROUTE
@@ -46,6 +47,9 @@ fun NavGraph(
                 },
                 onNavigateToDetails = { movie ->
                     navController.navigate(Screens.movieDetailRoute(movie.id.toString()))
+                },
+                onNavigateToMyList = {
+                    navController.navigate(Screens.MY_LIST_ROUTE)
                 }
             )
         }
@@ -72,6 +76,18 @@ fun NavGraph(
         // Downloads screen
         composable(route = Screens.DOWNLOADS_ROUTE) {
             DownloadsScreen()
+        }
+        
+        // My List screen
+        composable(route = Screens.MY_LIST_ROUTE) {
+            MyListScreen(
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                onMovieClick = { movie ->
+                    navController.navigate(Screens.movieDetailRoute(movie.id.toString()))
+                }
+            )
         }
         
         // Use the profile nav graph for profile-related screens
