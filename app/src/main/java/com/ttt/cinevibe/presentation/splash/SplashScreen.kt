@@ -27,7 +27,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
@@ -36,7 +38,9 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
@@ -83,17 +87,19 @@ fun SplashScreen(
     // For morphing effect
     val morphProgress = remember { Animatable(0f) }
     
-    // Thêm hiệu ứng glow cho logo
+    // Hiệu ứng glow cho logo
     val glowIntensity = remember { Animatable(0f) }
+    
+    // Hiệu ứng mới - các giá trị animation
+    val lineProgress = remember { Animatable(0f) }
+    val circleScale = remember { Animatable(0f) }
+    val gridOpacity = remember { Animatable(0f) }
+    val gradientRotation = remember { Animatable(0f) }
+    val accentLineLength = remember { Animatable(0f) }
     
     // Size of container for drawing elements
     var size by remember { mutableStateOf(IntSize(0, 0)) }
     val density = LocalDensity.current
-    
-    // Particle animation states
-    val particleAlpha = remember { Animatable(0f) }
-    val particleScale = remember { Animatable(0f) }
-    val particleSpread = remember { Animatable(0f) }
     
     // Background animation
     val backgroundWave = remember { Animatable(0f) }
@@ -136,8 +142,6 @@ fun SplashScreen(
     LaunchedEffect(Unit) {
         if (animationsStarted || navigationTriggered) return@LaunchedEffect
         animationsStarted = true
-        
-        // Không cần delay ban đầu nữa, chúng ta bắt đầu hiệu ứng ngay lập tức
         
         // Initial background wave animation
         launch {
@@ -231,32 +235,65 @@ fun SplashScreen(
             }
         }
         
-        // Particle effects start after logo appears - hiển thị sớm hơn
-        delay(300) // Giảm thời gian chờ xuống
+        // HIỆU ỨNG MỚI: Hiệu ứng hiện đại thay thế cho pháo hoa
+        delay(200)
         
-        // Launch particle animations
+        // Hiệu ứng grid hiện đại
         launch {
-            particleAlpha.animateTo(
-                targetValue = 0.8f,
+            gridOpacity.animateTo(
+                targetValue = 0.6f,
+                animationSpec = tween(600, easing = FastOutSlowInEasing)
+            )
+            gridOpacity.animateTo(
+                targetValue = 0.2f,
+                animationSpec = tween(800)
+            )
+        }
+        
+        // Hiệu ứng gradient xoay
+        launch {
+            gradientRotation.animateTo(
+                targetValue = 360f,
+                animationSpec = tween(1500, easing = LinearEasing)
+            )
+        }
+        
+        // Hiệu ứng đường viền tinh tế
+        launch {
+            lineProgress.animateTo(
+                targetValue = 1f,
+                animationSpec = tween(1000, easing = FastOutSlowInEasing)
+            )
+        }
+        
+        // Hiệu ứng vòng tròn mở rộng
+        launch {
+            circleScale.animateTo(
+                targetValue = 1f,
+                animationSpec = tween(1200, easing = FastOutSlowInEasing)
+            )
+            circleScale.animateTo(
+                targetValue = 1.5f,
                 animationSpec = tween(800, easing = FastOutSlowInEasing)
             )
-            particleAlpha.animateTo(
+            circleScale.animateTo(
                 targetValue = 0f,
-                animationSpec = tween(700, easing = FastOutSlowInEasing)
+                animationSpec = tween(500, easing = FastOutSlowInEasing)
             )
         }
         
+        // Hiệu ứng đường accent
         launch {
-            particleScale.animateTo(
+            accentLineLength.animateTo(
                 targetValue = 1f,
-                animationSpec = tween(1200, easing = FastOutSlowInEasing) // Giảm thời gian
+                animationSpec = tween(800, easing = FastOutSlowInEasing)
             )
-        }
-        
-        launch {
-            particleSpread.animateTo(
-                targetValue = 1f,
-                animationSpec = tween(1200, easing = FastOutSlowInEasing) // Giảm thời gian
+            
+            delay(300)
+            
+            accentLineLength.animateTo(
+                targetValue = 0f,
+                animationSpec = tween(500)
             )
         }
         
@@ -350,6 +387,126 @@ fun SplashScreen(
             }
         }
         
+        // HIỆU ỨNG MỚI HIỆN ĐẠI - thay thế cho hiệu ứng pháo hoa
+        // 1. Grid động hiện đại
+        Canvas(
+            modifier = Modifier
+                .fillMaxSize()
+                .alpha(gridOpacity.value)
+        ) {
+            val canvasWidth = size.width.toFloat()
+            val canvasHeight = size.height.toFloat()
+            val cellSize = minOf(canvasWidth, canvasHeight) / 20f
+            val centerX = canvasWidth / 2
+            val centerY = canvasHeight / 2
+            val maxRadius = minOf(canvasWidth, canvasHeight) * 0.6f
+            
+            // Vẽ các đường lưới hiện đại
+            for (i in -15..15) {
+                val progress = lineProgress.value
+                val alpha = (1 - (kotlin.math.abs(i) / 15f)) * 0.5f
+                val offset = i * cellSize
+                
+                // Đường dọc
+                drawLine(
+                    color = Color.White.copy(alpha = alpha * progress),
+                    start = Offset(centerX + offset, centerY - maxRadius * progress),
+                    end = Offset(centerX + offset, centerY + maxRadius * progress),
+                    strokeWidth = 1.dp.toPx()
+                )
+                
+                // Đường ngang
+                drawLine(
+                    color = Color.White.copy(alpha = alpha * progress),
+                    start = Offset(centerX - maxRadius * progress, centerY + offset),
+                    end = Offset(centerX + maxRadius * progress, centerY + offset),
+                    strokeWidth = 1.dp.toPx()
+                )
+            }
+        }
+        
+        // 2. Hiệu ứng gradient xoay động
+        Canvas(
+            modifier = Modifier
+                .fillMaxSize()
+                .graphicsLayer(alpha = 0.7f)
+        ) {
+            val canvasWidth = size.width.toFloat()
+            val canvasHeight = size.height.toFloat()
+            val centerX = canvasWidth / 2
+            val centerY = canvasHeight / 2
+            val radius = minOf(canvasWidth, canvasHeight) * 0.4f * circleScale.value
+            
+            rotate(gradientRotation.value) {
+                drawCircle(
+                    brush = Brush.linearGradient(
+                        colors = listOf(
+                            NetflixRed.copy(alpha = 0.7f),
+                            NetflixRed.copy(alpha = 0.5f),
+                            Color.Transparent,
+                            NetflixRed.copy(alpha = 0.2f)
+                        )
+                    ),
+                    radius = radius,
+                    center = Offset(centerX, centerY),
+                    style = Stroke(width = 12.dp.toPx(), cap = StrokeCap.Round)
+                )
+            }
+        }
+        
+        // 3. Hiệu ứng đường accent
+        Canvas(
+            modifier = Modifier
+                .fillMaxSize()
+                .alpha(0.8f)
+        ) {
+            val canvasWidth = size.width.toFloat()
+            val canvasHeight = size.height.toFloat()
+            val centerX = canvasWidth / 2
+            val centerY = canvasHeight / 2
+            
+            // Vẽ đường accent hiện đại
+            for (i in 0..3) {
+                val angle = (i * 90f) + (gradientRotation.value * 0.5f)
+                val length = minOf(canvasWidth, canvasHeight) * 0.3f * accentLineLength.value
+                val startX = centerX + cos(Math.toRadians((angle - 20).toDouble())).toFloat() * length * 0.2f
+                val startY = centerY + sin(Math.toRadians((angle - 20).toDouble())).toFloat() * length * 0.2f
+                val endX = centerX + cos(Math.toRadians(angle.toDouble())).toFloat() * length
+                val endY = centerY + sin(Math.toRadians(angle.toDouble())).toFloat() * length
+                
+                drawLine(
+                    color = NetflixRed,
+                    start = Offset(startX, startY),
+                    end = Offset(endX, endY),
+                    strokeWidth = 3.dp.toPx(),
+                    cap = StrokeCap.Round
+                )
+            }
+        }
+        
+        // 4. Vòng tròn đồng tâm mở rộng
+        Canvas(
+            modifier = Modifier
+                .fillMaxSize()
+                .alpha(0.4f)
+        ) {
+            val canvasWidth = size.width.toFloat()
+            val canvasHeight = size.height.toFloat()
+            val centerX = canvasWidth / 2
+            val centerY = canvasHeight / 2
+            
+            // Vẽ các vòng tròn đồng tâm
+            for (i in 0..2) {
+                val radius = minOf(canvasWidth, canvasHeight) * (0.15f + i * 0.1f) * circleScale.value
+                drawCircle(
+                    color = if (i % 2 == 0) NetflixRed.copy(alpha = 0.3f) else Color.White.copy(alpha = 0.2f),
+                    center = Offset(centerX, centerY),
+                    radius = radius,
+                    style = Stroke(width = (3 - i).dp.toPx())
+                )
+            }
+        }
+        
         // Hiệu ứng glow cho logo
         if (glowIntensity.value > 0) {
             Box(
@@ -366,37 +523,8 @@ fun SplashScreen(
                         ),
                         shape = CircleShape
                     )
+                    .blur(8.dp) // Thêm blur để tạo hiệu ứng glow mềm mại hơn
             )
-        }
-        
-        // Particle effects
-        Canvas(
-            modifier = Modifier
-                .fillMaxSize()
-                .alpha(particleAlpha.value)
-        ) {
-            val centerX = size.width / 2f
-            val centerY = size.height / 2f
-            val maxRadius = minOf(size.width, size.height).toFloat() * 0.5f
-            
-            // Tăng số lượng hạt và thay đổi góc để khỏi đều
-            for (angle in 0..360 step 12) { // Tăng mật độ hạt
-                for (i in 0..3) { // Thêm một lớp hạt nữa
-                    val progress = particleSpread.value
-                    val distance = maxRadius * (0.3f + (i * 0.2f)) * progress
-                    val x = centerX + cos(Math.toRadians(angle.toDouble())).toFloat() * distance
-                    val y = centerY + sin(Math.toRadians(angle.toDouble())).toFloat() * distance
-                    
-                    // Thay đổi màu sắc giữa các hạt
-                    val particleColor = if (i % 2 == 0) NetflixRed else Color.White
-                    
-                    drawCircle(
-                        color = particleColor.copy(alpha = 0.7f - (i * 0.15f)),
-                        radius = (5 - i).dp.toPx() * particleScale.value,
-                        center = Offset(x, y)
-                    )
-                }
-            }
         }
         
         // Calculate rotation value before using it
@@ -449,6 +577,16 @@ fun SplashScreen(
                         .graphicsLayer(
                             rotationY = rotation
                         )
+                        // Thêm viền phát sáng cho từng ký tự
+                        .drawBehind {
+                            if (charScale > 0.5f) {
+                                drawCircle(
+                                    color = NetflixRed.copy(alpha = 0.2f * charScale),
+                                    radius = this.size.width * 0.7f,
+                                    style = Stroke(width = 1.dp.toPx())
+                                )
+                            }
+                        }
                 )
             }
         }
