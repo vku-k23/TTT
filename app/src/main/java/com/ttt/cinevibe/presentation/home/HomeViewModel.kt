@@ -2,7 +2,9 @@ package com.ttt.cinevibe.presentation.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ttt.cinevibe.data.manager.LanguageManager
 import com.ttt.cinevibe.domain.model.Movie
+import com.ttt.cinevibe.domain.usecases.movies.GetMovieByIdUseCase
 import com.ttt.cinevibe.domain.usecases.movies.GetPopularMoviesUseCase
 import com.ttt.cinevibe.domain.usecases.movies.GetTopRatedMoviesUseCase
 import com.ttt.cinevibe.domain.usecases.movies.GetTrendingMoviesUseCase
@@ -16,6 +18,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -27,7 +30,9 @@ class HomeViewModel @Inject constructor(
     private val getTopRatedMoviesUseCase: GetTopRatedMoviesUseCase,
     private val getTrendingMoviesUseCase: GetTrendingMoviesUseCase,
     private val getUpcomingMoviesUseCase: GetUpcomingMoviesUseCase,
-    private val searchMoviesUseCase: SearchMoviesUseCase
+    private val searchMoviesUseCase: SearchMoviesUseCase,
+    private val getMovieByIdUseCase: GetMovieByIdUseCase,
+    private val languageManager: LanguageManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<HomeUiState>(HomeUiState.Loading)
@@ -67,11 +72,22 @@ class HomeViewModel @Inject constructor(
         startCarouselAutoSlide()
     }
     
+    // Helper method to get current user language in the format required by the API
+    private suspend fun getCurrentLanguageCode(): String {
+        val userLocale = languageManager.getAppLanguage().first()
+        // Create language code in format "en-US" from locale
+        return "${userLocale.language}-${userLocale.country.ifEmpty { userLocale.language.uppercase() }}"
+    }
+    
     private fun fetchAllMovieData() {
-        fetchPopularMovies()
-        fetchTopRatedMovies()
-        fetchTrendingMovies()
-        fetchUpcomingMovies()
+        viewModelScope.launch {
+            val languageCode = getCurrentLanguageCode()
+            android.util.Log.d("HomeViewModel", "Fetching all movie data in language: $languageCode")
+            fetchPopularMovies(languageCode)
+            fetchTopRatedMovies(languageCode)
+            fetchTrendingMovies(languageCode)
+            fetchUpcomingMovies(languageCode)
+        }
     }
     
     fun getFeaturedMovie(): Movie {
@@ -124,8 +140,35 @@ class HomeViewModel @Inject constructor(
     }
     
     fun selectMovie(movie: Movie) {
-        _selectedMovie.value = movie
-        _isMovieDetailsVisible.value = true
+        viewModelScope.launch {
+            try {
+                // First set the selected movie to show the loading state
+                _selectedMovie.value = movie
+                _isMovieDetailsVisible.value = true
+                
+                // Get the current app language
+                val userLocale = languageManager.getAppLanguage().first()
+                // Create language code in format "en-US" from locale
+                val languageCode = "${userLocale.language}-${userLocale.country.ifEmpty { userLocale.language.uppercase() }}"
+                
+                android.util.Log.d("HomeViewModel", "Fetching movie details in language: $languageCode")
+                
+                // Fetch localized movie details
+                getMovieByIdUseCase(movie.id, languageCode)
+                    .catch { e ->
+                        android.util.Log.e("HomeViewModel", "Error loading localized movie details: ${e.message}")
+                        // If there's an error, we'll just use the original movie
+                    }
+                    .collect { localizedMovie ->
+                        // Update with localized movie data
+                        _selectedMovie.value = localizedMovie
+                    }
+            } catch (e: Exception) {
+                android.util.Log.e("HomeViewModel", "Error in selectMovie: ${e.message}")
+                // If all else fails, fall back to using the original movie
+                _selectedMovie.value = movie
+            }
+        }
     }
     
     fun closeMovieDetails() {
@@ -199,9 +242,12 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    private fun fetchPopularMovies() {
+    private fun fetchPopularMovies(languageCode: String? = null) {
         viewModelScope.launch {
-            getPopularMoviesUseCase()
+            val language = languageCode ?: getCurrentLanguageCode()
+            android.util.Log.d("HomeViewModel", "Fetching popular movies in language: $language")
+            
+            getPopularMoviesUseCase(language)
                 .onStart { _uiState.value = HomeUiState.Loading }
                 .catch { e -> _uiState.value = HomeUiState.Error(e.message ?: "Unknown error") }
                 .collect { movies ->
@@ -222,9 +268,12 @@ class HomeViewModel @Inject constructor(
         }
     }
     
-    private fun fetchTopRatedMovies() {
+    private fun fetchTopRatedMovies(languageCode: String? = null) {
         viewModelScope.launch {
-            getTopRatedMoviesUseCase()
+            val language = languageCode ?: getCurrentLanguageCode()
+            android.util.Log.d("HomeViewModel", "Fetching top rated movies in language: $language")
+            
+            getTopRatedMoviesUseCase(language)
                 .catch { /* Handle error silently as this is a background load */ }
                 .collect { movies ->
                     _topRatedMovies.value = movies
@@ -235,9 +284,12 @@ class HomeViewModel @Inject constructor(
         }
     }
     
-    private fun fetchTrendingMovies() {
+    private fun fetchTrendingMovies(languageCode: String? = null) {
         viewModelScope.launch {
-            getTrendingMoviesUseCase()
+            val language = languageCode ?: getCurrentLanguageCode()
+            android.util.Log.d("HomeViewModel", "Fetching trending movies in language: $language")
+            
+            getTrendingMoviesUseCase(language)
                 .catch { /* Handle error silently as this is a background load */ }
                 .collect { movies ->
                     _trendingMovies.value = movies
@@ -248,9 +300,12 @@ class HomeViewModel @Inject constructor(
         }
     }
     
-    private fun fetchUpcomingMovies() {
+    private fun fetchUpcomingMovies(languageCode: String? = null) {
         viewModelScope.launch {
-            getUpcomingMoviesUseCase()
+            val language = languageCode ?: getCurrentLanguageCode()
+            android.util.Log.d("HomeViewModel", "Fetching upcoming movies in language: $language")
+            
+            getUpcomingMoviesUseCase(language)
                 .catch { /* Handle error silently as this is a background load */ }
                 .collect { movies ->
                     _upcomingMovies.value = movies
@@ -275,7 +330,10 @@ class HomeViewModel @Inject constructor(
     
     private fun searchMovies(query: String) {
         viewModelScope.launch {
-            searchMoviesUseCase(query)
+            val languageCode = getCurrentLanguageCode()
+            android.util.Log.d("HomeViewModel", "Searching movies for '$query' in language: $languageCode")
+            
+            searchMoviesUseCase(query, languageCode)
                 .onStart { _uiState.value = HomeUiState.Loading }
                 .catch { e -> _uiState.value = HomeUiState.Error(e.message ?: "Unknown error") }
                 .collect { movies ->

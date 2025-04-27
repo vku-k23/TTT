@@ -17,15 +17,18 @@ class MovieRepositoryImpl @Inject constructor(
     
     private var genresCache: Map<Int, String> = emptyMap()
     
-    override suspend fun getPopularMovies(): Flow<List<Movie>> = flow {
+    override suspend fun getPopularMovies(language: String?): Flow<List<Movie>> = flow {
         try {
             // Ensure we have genres loaded for mapping genre IDs to names
             if (genresCache.isEmpty()) {
                 loadGenres()
             }
             
-            val response = movieApiService.getPopularMovies()
-            Log.d("MovieRepository", "Popular movies fetched: ${response.results.size}")
+            // Use the provided language parameter if available
+            val languageToUse = language ?: "en-US"
+            
+            val response = movieApiService.getPopularMovies(language = languageToUse)
+            Log.d("MovieRepository", "Popular movies fetched: ${response.results.size} with language: $languageToUse")
             emit(response.results.map { it.toDomainModel(genresCache) })
         } catch (e: Exception) {
             // In a real app, you would log the error or handle it more gracefully
@@ -34,14 +37,17 @@ class MovieRepositoryImpl @Inject constructor(
         }
     }
     
-    override suspend fun getTopRatedMovies(): Flow<List<Movie>> = flow {
+    override suspend fun getTopRatedMovies(language: String?): Flow<List<Movie>> = flow {
         try {
             if (genresCache.isEmpty()) {
                 loadGenres()
             }
             
-            val response = movieApiService.getTopRatedMovies()
-            Log.d("MovieRepository", "Top rated movies fetched: ${response.results.size}")
+            // Use the provided language parameter if available
+            val languageToUse = language ?: "en-US"
+            
+            val response = movieApiService.getTopRatedMovies(language = languageToUse)
+            Log.d("MovieRepository", "Top rated movies fetched: ${response.results.size} with language: $languageToUse")
             emit(response.results.map { it.toDomainModel(genresCache) })
         } catch (e: Exception) {
             Log.e("MovieRepository", "Error fetching top rated movies", e)
@@ -49,14 +55,17 @@ class MovieRepositoryImpl @Inject constructor(
         }
     }
     
-    override suspend fun getTrendingMovies(): Flow<List<Movie>> = flow {
+    override suspend fun getTrendingMovies(language: String?): Flow<List<Movie>> = flow {
         try {
             if (genresCache.isEmpty()) {
                 loadGenres()
             }
             
-            val response = movieApiService.getTrendingMovies()
-            Log.d("MovieRepository", "Trending movies fetched: ${response.results.size}")
+            // Use the provided language parameter if available
+            val languageToUse = language ?: "en-US"
+            
+            val response = movieApiService.getTrendingMovies(language = languageToUse)
+            Log.d("MovieRepository", "Trending movies fetched: ${response.results.size} with language: $languageToUse")
             emit(response.results.map { it.toDomainModel(genresCache) })
         } catch (e: Exception) {
             Log.e("MovieRepository", "Error fetching trending movies", e)
@@ -64,14 +73,17 @@ class MovieRepositoryImpl @Inject constructor(
         }
     }
     
-    override suspend fun getUpcomingMovies(): Flow<List<Movie>> = flow {
+    override suspend fun getUpcomingMovies(language: String?): Flow<List<Movie>> = flow {
         try {
             if (genresCache.isEmpty()) {
                 loadGenres()
             }
             
-            val response = movieApiService.getUpcomingMovies()
-            Log.d("MovieRepository", "Upcoming movies fetched: ${response.results.size}")
+            // Use the provided language parameter if available
+            val languageToUse = language ?: "en-US"
+            
+            val response = movieApiService.getUpcomingMovies(language = languageToUse)
+            Log.d("MovieRepository", "Upcoming movies fetched: ${response.results.size} with language: $languageToUse")
             emit(response.results.map { it.toDomainModel(genresCache) })
         } catch (e: Exception) {
             Log.e("MovieRepository", "Error fetching upcoming movies", e)
@@ -79,14 +91,17 @@ class MovieRepositoryImpl @Inject constructor(
         }
     }
     
-    override suspend fun searchMovies(query: String): Flow<List<Movie>> = flow {
+    override suspend fun searchMovies(query: String, language: String?): Flow<List<Movie>> = flow {
         try {
             if (genresCache.isEmpty()) {
                 loadGenres()
             }
             
-            val response = movieApiService.searchMovies(query = query)
-            Log.d("MovieRepository", "Search movies fetched: ${response.results.size}")
+            // Use the provided language parameter if available
+            val languageToUse = language ?: "en-US"
+            
+            val response = movieApiService.searchMovies(query = query, language = languageToUse)
+            Log.d("MovieRepository", "Search movies fetched: ${response.results.size} with language: $languageToUse")
             emit(response.results.map { it.toDomainModel(genresCache) })
         } catch (e: Exception) {
             Log.e("MovieRepository", "Error searching movies", e)

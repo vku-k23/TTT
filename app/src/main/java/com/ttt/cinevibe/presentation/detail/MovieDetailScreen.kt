@@ -30,6 +30,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -71,6 +72,9 @@ import com.ttt.cinevibe.ui.theme.DarkGray
 import com.ttt.cinevibe.ui.theme.LightGray
 import com.ttt.cinevibe.ui.theme.NetflixRed
 import com.ttt.cinevibe.ui.theme.White
+import com.ttt.cinevibe.utils.LocalAppLocale
+import com.ttt.cinevibe.utils.LocaleConfigurationProvider
+import java.util.Locale
 
 @Composable
 fun MovieDetailScreen(
@@ -78,6 +82,16 @@ fun MovieDetailScreen(
     movieId: Int,
     onBackClick: () -> Unit
 ) {
+    // Get the current app locale from our composition local
+    val appLocale = LocalAppLocale.current
+    val context = LocalContext.current
+    
+    // Forcefully apply locale to ensure correct string resources
+    SideEffect {
+        LocaleConfigurationProvider.applyLocaleToContext(context, appLocale)
+        Locale.setDefault(appLocale) // Set JVM default locale
+    }
+    
     val movieState by viewModel.movieState.collectAsState()
     val trailerState by viewModel.trailerState.collectAsState()
     
