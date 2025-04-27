@@ -2,7 +2,9 @@ package com.ttt.cinevibe.presentation.mainActivity
 
 import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,9 +12,17 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
@@ -23,7 +33,6 @@ import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.ttt.cinevibe.data.manager.LanguageManager
-import com.ttt.cinevibe.domain.model.Movie
 import com.ttt.cinevibe.presentation.NavDestinations
 import com.ttt.cinevibe.presentation.auth.AUTH_GRAPH_ROUTE
 import com.ttt.cinevibe.presentation.auth.authNavGraph
@@ -31,6 +40,9 @@ import com.ttt.cinevibe.presentation.detail.MovieDetailScreen
 import com.ttt.cinevibe.presentation.main.MainScreen
 import com.ttt.cinevibe.presentation.splash.SplashScreen
 import com.ttt.cinevibe.ui.theme.CineVibeTheme
+import com.ttt.cinevibe.utils.LanguageContextWrapper
+import com.ttt.cinevibe.utils.LocalAppLocale
+import com.ttt.cinevibe.utils.LocaleConfigurationProvider
 import com.ttt.cinevibe.utils.LocaleHelper
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
@@ -69,17 +81,16 @@ class MainActivity : ComponentActivity() {
         setContent {
             val navController = rememberNavController()
             
+            // Get the current app language as a collectAsState so composables can react to changes
+            val appLocale by languageManager.getAppLanguage().collectAsState(initial = Locale.getDefault())
+            
             // Apply locale changes when the composition starts
             val context = LocalContext.current
-            DisposableEffect(Unit) {
-                val job = lifecycleScope.launch {
-                    languageManager.getAppLanguage().collectLatest { locale ->
-                        LocaleHelper.setLocale(context, locale)
-                    }
-                }
-                onDispose {
-                    job.cancel()
-                }
+            DisposableEffect(appLocale) {
+                // Apply locale to the context immediately when it changes
+                LocaleHelper.setLocale(context, appLocale)
+                
+                onDispose { }
             }
             
             CineVibeTheme {
@@ -87,7 +98,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    CineVibeApp()
+                    CineVibeApp(appLocale = appLocale)
                 }
             }
         }
@@ -136,63 +147,82 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun CineVibeApp() {
+fun CineVibeApp(appLocale: Locale = Locale.getDefault()) {
     val navController = rememberNavController()
+    val context = LocalContext.current
+    val localConfiguration = LocalConfiguration.current
     
-    // Start with the splash screen route
-    NavHost(navController = navController, startDestination = SPLASH_ROUTE) {
-        // Splash screen
-        composable(route = SPLASH_ROUTE) {
-            SplashScreen(
-                onSplashFinished = {
-                    // Navigate to auth flow when splash is done and user is NOT logged in
-                    navController.navigate(AUTH_GRAPH_ROUTE) {
-                        popUpTo(SPLASH_ROUTE) { inclusive = true }
+    // Apply the app locale immediately and whenever it changes
+    SideEffect {
+        LocaleConfigurationProvider.applyLocaleToContext(context, appLocale)
+    }
+    
+    // Provide the locale to all child composables
+    CompositionLocalProvider(LocalAppLocale provides appLocale) {
+        // Start with the splash screen route
+        NavHost(navController = navController, startDestination = SPLASH_ROUTE) {
+            // Splash screen
+            composable(route = SPLASH_ROUTE) {
+                // Splash screen doesn't need special locale handling
+                SplashScreen(
+                    onSplashFinished = {
+                        navController.navigate(AUTH_GRAPH_ROUTE) {
+                            popUpTo(SPLASH_ROUTE) { inclusive = true }
+                        }
+                    },
+                    onNavigateToHome = {
+                        navController.navigate(NavDestinations.MAIN_FLOW) {
+                            popUpTo(SPLASH_ROUTE) { inclusive = true }
+                        }
                     }
-                },
-                onNavigateToHome = {
-                    // Navigate directly to main flow if user is already logged in
+                )
+            }
+            
+            // Auth flow
+            authNavGraph(
+                navController = navController,
+                onAuthSuccess = {
                     navController.navigate(NavDestinations.MAIN_FLOW) {
-                        popUpTo(SPLASH_ROUTE) { inclusive = true }
+                        popUpTo(AUTH_GRAPH_ROUTE) { inclusive = true }
                     }
                 }
             )
-        }
-        
-        // Firebase Auth flow using our new components
-        authNavGraph(
-            navController = navController,
-            onAuthSuccess = {
-                // Navigate to main flow after successful authentication
-                navController.navigate(NavDestinations.MAIN_FLOW) {
-                    popUpTo(AUTH_GRAPH_ROUTE) { inclusive = true }
-                }
-            }
-        )
-        
-        // Main app flow
-        navigation(
-            startDestination = NavDestinations.HOME_ROUTE, 
-            route = NavDestinations.MAIN_FLOW
-        ) {
-            composable(NavDestinations.HOME_ROUTE) {
-                MainScreen(rootNavController = navController)
-            }
             
-            composable(
-                route = NavDestinations.MOVIE_DETAIL_WITH_ARGS,
-                arguments = listOf(
-                    navArgument("movieId") { type = NavType.IntType }
-                )
-            ) { backStackEntry ->
-                val movieId = backStackEntry.arguments?.getInt("movieId") ?: -1
+            // Main app flow
+            navigation(
+                startDestination = NavDestinations.HOME_ROUTE, 
+                route = NavDestinations.MAIN_FLOW
+            ) {
+                composable(NavDestinations.HOME_ROUTE) {
+                    MainScreen(rootNavController = navController)
+                }
                 
-                MovieDetailScreen(
-                    movieId = movieId,
-                    onBackClick = {
-                        navController.popBackStack()
+                composable(
+                    route = NavDestinations.MOVIE_DETAIL_WITH_ARGS,
+                    arguments = listOf(
+                        navArgument("movieId") { type = NavType.IntType }
+                    )
+                ) { backStackEntry ->
+                    val movieId = backStackEntry.arguments?.getInt("movieId") ?: -1
+                    val detailContext = LocalContext.current
+                    
+                    // Force locale application on each navigation to detail screen
+                    LaunchedEffect(appLocale) {
+                        Log.d("MovieDetail", "Forcefully applying locale: ${appLocale.language} on navigation to Movie Detail")
+                        Locale.setDefault(appLocale) // Set JVM default locale
+                        LocaleConfigurationProvider.applyLocaleToContext(detailContext, appLocale)
                     }
-                )
+                    
+                    // Use our improved LanguageContextWrapper
+                    LanguageContextWrapper(locale = appLocale) {
+                        MovieDetailScreen(
+                            movieId = movieId,
+                            onBackClick = {
+                                navController.popBackStack()
+                            }
+                        )
+                    }
+                }
             }
         }
     }

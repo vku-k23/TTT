@@ -8,7 +8,7 @@ import javax.inject.Inject
 class GetTrendingMoviesUseCase @Inject constructor(
     private val movieRepository: MovieRepository
 ) {
-    suspend operator fun invoke(): Flow<List<Movie>> {
-        return movieRepository.getTrendingMovies()
+    suspend operator fun invoke(language: String? = null): Flow<List<Movie>> {
+        return movieRepository.getTrendingMovies(language)
     }
 }
