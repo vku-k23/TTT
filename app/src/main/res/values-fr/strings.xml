@@ -152,6 +152,7 @@
     <string name="rate">Évaluer</string>
     <string name="read_more">Lire plus</string>
     <string name="no_synopsis_available">Pas de synopsis disponible pour ce film</string>
+    <string name="no_trailer_available">Pas de bande-annonce disponible</string>
     
     <!-- Search -->
     <string name="search_hint">Rechercher des films ou des émissions TV</string>

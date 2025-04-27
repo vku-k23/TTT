@@ -699,7 +699,7 @@ fun MovieDetailContent(
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = "No Trailer Available",
+                                text = stringResource(R.string.no_trailer_available),
                                 color = White,
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold
