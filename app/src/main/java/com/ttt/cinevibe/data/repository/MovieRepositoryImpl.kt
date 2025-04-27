@@ -3,6 +3,7 @@ package com.ttt.cinevibe.data.repository
 import android.util.Log
 import com.ttt.cinevibe.data.remote.api.MovieApiService
 import com.ttt.cinevibe.data.remote.models.MovieDto
+import com.ttt.cinevibe.data.remote.models.VideoDto
 import com.ttt.cinevibe.domain.model.Movie
 import com.ttt.cinevibe.domain.repository.MovieRepository
 import kotlinx.coroutines.flow.Flow
@@ -193,6 +194,20 @@ class MovieRepositoryImpl @Inject constructor(
             emit(response.results.map { it.toDomainModel(genresCache) })
         } catch (e: Exception) {
             Log.e("MovieRepository", "Error fetching similar movies for movie ID $movieId", e)
+            emit(emptyList())
+        }
+    }
+
+    override suspend fun getMovieVideos(movieId: Int, language: String?): Flow<List<VideoDto>> = flow {
+        try {
+            // Use the provided language parameter if available
+            val languageToUse = language ?: "en-US"
+            
+            val response = movieApiService.getMovieVideos(movieId, language = languageToUse)
+            Log.d("MovieRepository", "Videos fetched for movie ID $movieId: ${response.results.size} with language: $languageToUse")
+            emit(response.results)
+        } catch (e: Exception) {
+            Log.e("MovieRepository", "Error fetching videos for movie ID $movieId", e)
             emit(emptyList())
         }
     }
