@@ -1,4 +1,4 @@
-package com.ttt.cinevibe.presentation.user
+package com.ttt.cinevibe.presentation.profile
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -21,8 +21,11 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * ViewModel để quản lý dữ liệu người dùng và tương tác với backend API
+ */
 @HiltViewModel
-class UserViewModel @Inject constructor(
+class ProfileUserViewModel @Inject constructor(
     private val getCurrentUserUseCase: GetCurrentUserUseCase,
     private val registerUserUseCase: RegisterUserUseCase,
     private val updateUserUseCase: UpdateUserUseCase,

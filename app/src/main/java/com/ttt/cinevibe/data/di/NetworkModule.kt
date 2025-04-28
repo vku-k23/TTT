@@ -29,6 +29,14 @@ annotation class TMDBRetrofit
 @Retention(AnnotationRetention.BINARY)
 annotation class BackendRetrofit
 
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class TMDBOkHttpClient
+
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class BackendOkHttpClient
+
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
@@ -41,6 +49,7 @@ object NetworkModule {
 
     @Provides
     @Singleton
+    @TMDBOkHttpClient
     fun provideOkHttpClient(
         loggingInterceptor: HttpLoggingInterceptor,
         authInterceptor: AuthInterceptor
@@ -55,6 +64,7 @@ object NetworkModule {
     
     @Provides
     @Singleton
+    @BackendOkHttpClient
     fun provideBackendOkHttpClient(
         loggingInterceptor: HttpLoggingInterceptor,
         firebaseTokenInterceptor: FirebaseTokenInterceptor
@@ -77,7 +87,7 @@ object NetworkModule {
     @Provides
     @Singleton
     @TMDBRetrofit
-    fun provideTMDBRetrofit(okHttpClient: OkHttpClient, json: Json): Retrofit {
+    fun provideTMDBRetrofit(@TMDBOkHttpClient okHttpClient: OkHttpClient, json: Json): Retrofit {
         val contentType = "application/json".toMediaType()
         return Retrofit.Builder()
             .baseUrl(ApiConstants.BASE_URL)
@@ -90,13 +100,13 @@ object NetworkModule {
     @Singleton
     @BackendRetrofit
     fun provideBackendRetrofit(
-        @BackendOkHttpClient backendOkHttpClient: OkHttpClient, 
+        @BackendOkHttpClient okHttpClient: OkHttpClient, 
         json: Json
     ): Retrofit {
         val contentType = "application/json".toMediaType()
         return Retrofit.Builder()
             .baseUrl(BackendApiConstants.BASE_URL)
-            .client(backendOkHttpClient)
+            .client(okHttpClient)
             .addConverterFactory(json.asConverterFactory(contentType))
             .build()
     }
@@ -117,24 +127,5 @@ object NetworkModule {
     @Singleton
     fun provideUserApiService(@BackendRetrofit retrofit: Retrofit): UserApiService {
         return retrofit.create(UserApiService::class.java)
-    }
-    
-    @Qualifier
-    @Retention(AnnotationRetention.BINARY)
-    annotation class BackendOkHttpClient
-    
-    @Provides
-    @Singleton
-    @BackendOkHttpClient
-    fun provideBackendOkHttpClientWithQualifier(
-        loggingInterceptor: HttpLoggingInterceptor,
-        firebaseTokenInterceptor: FirebaseTokenInterceptor
-    ): OkHttpClient {
-        return OkHttpClient.Builder()
-            .addInterceptor(firebaseTokenInterceptor)
-            .addInterceptor(loggingInterceptor)
-            .connectTimeout(15, TimeUnit.SECONDS)
-            .readTimeout(15, TimeUnit.SECONDS)
-            .build()
     }
 }

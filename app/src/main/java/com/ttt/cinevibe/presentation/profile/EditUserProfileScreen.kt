@@ -1,4 +1,4 @@
-package com.ttt.cinevibe.presentation.user
+package com.ttt.cinevibe.presentation.profile
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,14 +30,15 @@ import com.ttt.cinevibe.data.remote.models.UserResponse
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun UserProfileScreen(
-    viewModel: UserViewModel = hiltViewModel(),
+fun EditUserProfileScreen(
+    viewModel: ProfileUserViewModel = hiltViewModel(),
     onLogout: () -> Unit,
     onDeleteSuccess: () -> Unit
 ) {
     // UI state for the profile form
     var displayName by remember { mutableStateOf("") }
     var bio by remember { mutableStateOf("") }
+    var favoriteGenre by remember { mutableStateOf("") }
     
     // State for handling UI messages
     val snackbarHostState = remember { SnackbarHostState() }
@@ -57,6 +58,7 @@ fun UserProfileScreen(
             val userData = (userState as UserState.Success<UserResponse>).data
             displayName = userData.displayName
             bio = userData.bio ?: ""
+            favoriteGenre = userData.favoriteGenre ?: ""
         } else if (userState is UserState.Error) {
             snackbarHostState.showSnackbar(
                 message = (userState as UserState.Error).message
@@ -95,7 +97,7 @@ fun UserProfileScreen(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = "Your Profile",
+                        text = "Edit Your Profile",
                         modifier = Modifier.padding(bottom = 24.dp)
                     )
                     
@@ -117,12 +119,26 @@ fun UserProfileScreen(
                         modifier = Modifier.fillMaxWidth()
                     )
                     
+                    Spacer(modifier = Modifier.height(16.dp))
+                    
+                    // Favorite Genre field
+                    TextField(
+                        value = favoriteGenre,
+                        onValueChange = { favoriteGenre = it },
+                        label = { Text("Favorite Genre") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    
                     Spacer(modifier = Modifier.height(24.dp))
                     
                     // Update Profile Button
                     Button(
                         onClick = {
-                            viewModel.updateUser(displayName = displayName, bio = bio)
+                            viewModel.updateUser(
+                                displayName = displayName,
+                                bio = bio,
+                                favoriteGenre = favoriteGenre
+                            )
                         },
                         modifier = Modifier.fillMaxWidth()
                     ) {

@@ -3,6 +3,7 @@ package com.ttt.cinevibe.data.remote
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.ttt.cinevibe.data.remote.api.UserApiService
+import com.ttt.cinevibe.data.remote.models.UserRequest
 import com.ttt.cinevibe.data.remote.models.UserResponse
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
@@ -41,7 +42,7 @@ class BackendApiClient @Inject constructor(
         return runCatching {
             val userRequest = UserRequest(
                 email = email,
-                username = username,
+                displayName = username,
                 firebaseUid = firebaseUid
             )
             userApiService.registerUser(userRequest)
@@ -58,13 +59,3 @@ class BackendApiClient @Inject constructor(
             ?: throw IllegalStateException("Could not retrieve Firebase token")
     }
 }
-
-/**
- * Sample model for registering a user. Same as the one in models package but added
- * here for demonstration purposes.
- */
-data class UserRequest(
-    val email: String,
-    val username: String,
-    val firebaseUid: String
-)

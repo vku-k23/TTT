@@ -70,28 +70,42 @@ fun RegisterScreen(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
+    
     val registerState by viewModel.registerState.collectAsState()
+    val firebaseAuthState by viewModel.firebaseAuthState.collectAsState()
+    val backendRegState by viewModel.backendRegState.collectAsState()
+    val backendSyncAttempted by viewModel.backendSyncAttempted.collectAsState()
     
     val snackbarHostState = remember { SnackbarHostState() }
     
-    // Track if we've already performed the navigation
+    // Biến để theo dõi tình trạng điều hướng
     val hasNavigated = remember { mutableStateOf(false) }
 
+    // Xử lý điều hướng dựa trên trạng thái Firebase Auth
+    LaunchedEffect(key1 = firebaseAuthState, key2 = registerState) {
+        if (firebaseAuthState is FirebaseAuthState.Success && !hasNavigated.value) {
+            // Đánh dấu đã điều hướng
+            hasNavigated.value = true
+            
+            // Hiển thị thông báo nếu backend không đồng bộ thành công
+            if (backendSyncAttempted && backendRegState is BackendRegistrationState.Error) {
+                // Hiển thị thông báo nhưng vẫn cho phép người dùng tiếp tục
+                snackbarHostState.showSnackbar(
+                    message = "Đăng ký Firebase thành công nhưng đồng bộ với backend thất bại. Một số tính năng có thể không hoạt động."
+                )
+            }
+            
+            // Delay nhỏ để đảm bảo quá trình chuyển đổi mượt mà
+            kotlinx.coroutines.delay(100)
+            
+            // Điều hướng người dùng đến màn hình tiếp theo
+            onRegisterSuccess()
+        }
+    }
+    
+    // Xử lý lỗi từ AuthState và FirebaseAuthState
     LaunchedEffect(key1 = registerState) {
         when (registerState) {
-            is AuthState.Success -> {
-                // Only navigate if we haven't already
-                if (!hasNavigated.value) {
-                    hasNavigated.value = true
-                    
-                    // Reset state first
-                    viewModel.resetAuthStates()
-                    
-                    // Navigate using a slight delay to ensure state resets properly
-                    kotlinx.coroutines.delay(200)
-                    onRegisterSuccess()
-                }
-            }
             is AuthState.Error -> {
                 snackbarHostState.showSnackbar(
                     message = (registerState as AuthState.Error).message
@@ -106,7 +120,7 @@ fun RegisterScreen(
             else -> {}
         }
     }
-
+    
     Box(
         modifier = Modifier.fillMaxSize()
     ) {

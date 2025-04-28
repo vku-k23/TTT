@@ -19,20 +19,28 @@ class FirebaseTokenInterceptor @Inject constructor(
         
         // Only proceed with token if user is logged in
         return if (currentUser != null) {
-            // Get token synchronously - in real apps consider caching the token
-            val token = runCatching { 
-                kotlinx.coroutines.runBlocking { 
-                    currentUser.getIdToken(false).await().token 
+            try {
+                // Get token synchronously - in real apps consider caching the token
+                val token = runCatching { 
+                    kotlinx.coroutines.runBlocking { 
+                        currentUser.getIdToken(false).await().token 
+                    }
+                }.getOrNull()
+                
+                if (token != null) {
+                    // Add Authorization header with Bearer token
+                    val authenticatedRequest = originalRequest.newBuilder()
+                        .header("Authorization", "Bearer $token")
+                        .build()
+                    chain.proceed(authenticatedRequest)
+                } else {
+                    // Proceed with original request if token is null
+                    android.util.Log.w("FirebaseTokenInterceptor", "Couldn't get token, proceeding without authentication")
+                    chain.proceed(originalRequest)
                 }
-            }.getOrNull()
-            
-            if (token != null) {
-                // Add Authorization header with Bearer token
-                val authenticatedRequest = originalRequest.newBuilder()
-                    .header("Authorization", "Bearer $token")
-                    .build()
-                chain.proceed(authenticatedRequest)
-            } else {
+            } catch (e: Exception) {
+                // Log error but don't fail the request
+                android.util.Log.e("FirebaseTokenInterceptor", "Error getting Firebase token: ${e.message}")
                 chain.proceed(originalRequest)
             }
         } else {
