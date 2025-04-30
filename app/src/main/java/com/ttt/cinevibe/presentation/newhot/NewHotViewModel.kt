@@ -3,8 +3,10 @@ package com.ttt.cinevibe.presentation.newhot
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ttt.cinevibe.domain.model.Movie
+import com.ttt.cinevibe.domain.model.TvSeries
 import com.ttt.cinevibe.domain.usecases.movies.GetTrendingMoviesUseCase
 import com.ttt.cinevibe.domain.usecases.movies.GetUpcomingMoviesUseCase
+import com.ttt.cinevibe.domain.usecases.tvseries.GetOnTheAirTvSeriesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,7 +17,8 @@ import javax.inject.Inject
 @HiltViewModel
 class NewHotViewModel @Inject constructor(
     private val getUpcomingMoviesUseCase: GetUpcomingMoviesUseCase,
-    private val getTrendingMoviesUseCase: GetTrendingMoviesUseCase
+    private val getTrendingMoviesUseCase: GetTrendingMoviesUseCase,
+    private val getOnTheAirTvSeriesUseCase: GetOnTheAirTvSeriesUseCase
 ) : ViewModel() {
     
     private val _comingSoonMovies = MutableStateFlow<List<Movie>>(emptyList())
@@ -23,6 +26,9 @@ class NewHotViewModel @Inject constructor(
     
     private val _everyoneWatchingMovies = MutableStateFlow<List<Movie>>(emptyList())
     val everyoneWatchingMovies: StateFlow<List<Movie>> = _everyoneWatchingMovies
+    
+    private val _onTheAirTvSeries = MutableStateFlow<List<TvSeries>>(emptyList())
+    val onTheAirTvSeries: StateFlow<List<TvSeries>> = _onTheAirTvSeries
     
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
@@ -37,6 +43,7 @@ class NewHotViewModel @Inject constructor(
     fun loadData() {
         fetchUpcomingMovies()
         fetchTrendingMovies()
+        fetchOnTheAirTvSeries()
     }
     
     fun getComingSoonMovies(): List<Movie> = _comingSoonMovies.value
@@ -68,6 +75,21 @@ class NewHotViewModel @Inject constructor(
                 }
                 .collect { movies ->
                     _everyoneWatchingMovies.value = movies
+                    _isLoading.value = false
+                }
+        }
+    }
+    
+    private fun fetchOnTheAirTvSeries() {
+        viewModelScope.launch {
+            _isLoading.value = true
+            getOnTheAirTvSeriesUseCase()
+                .catch { e -> 
+                    _errorMessage.value = e.message ?: "Failed to load TV series"
+                    _isLoading.value = false
+                }
+                .collect { series ->
+                    _onTheAirTvSeries.value = series
                     _isLoading.value = false
                 }
         }

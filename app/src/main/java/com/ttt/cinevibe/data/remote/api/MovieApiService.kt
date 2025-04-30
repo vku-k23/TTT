@@ -4,6 +4,7 @@ import com.ttt.cinevibe.data.remote.models.GenreResponse
 import com.ttt.cinevibe.data.remote.models.MovieDetailResponse
 import com.ttt.cinevibe.data.remote.models.MovieListResponse
 import com.ttt.cinevibe.data.remote.models.VideoResponse
+import com.ttt.cinevibe.data.remote.models.TvSeriesResponse
 import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.http.Query
@@ -63,4 +64,41 @@ interface MovieApiService {
         @Query("language") language: String = "en-US",
         @Query("page") page: Int = 1
     ): MovieListResponse
+
+    @GET("tv/popular")
+    suspend fun getPopularTvSeries(
+        @Query("page") page: Int = 1,
+        @Query("language") language: String? = null
+    ): TvSeriesResponse
+
+    @GET("tv/top_rated")
+    suspend fun getTopRatedTvSeries(
+        @Query("page") page: Int = 1,
+        @Query("language") language: String? = null
+    ): TvSeriesResponse
+
+    @GET("tv/on_the_air")
+    suspend fun getOnTheAirTvSeries(
+        @Query("page") page: Int = 1,
+        @Query("language") language: String? = null
+    ): TvSeriesResponse
+
+    @GET("tv/{series_id}")
+    suspend fun getTvSeriesDetails(
+        @Path("series_id") seriesId: Int,
+        @Query("language") language: String? = null
+    ): TvSeriesResponse
+
+    @GET("tv/{series_id}/videos")
+    suspend fun getTvSeriesVideos(
+        @Path("series_id") seriesId: Int,
+        @Query("language") language: String? = null
+    ): VideoResponse
+
+    @GET("search/tv")
+    suspend fun searchTvSeries(
+        @Query("query") query: String,
+        @Query("page") page: Int = 1,
+        @Query("language") language: String? = null
+    ): TvSeriesResponse
 }

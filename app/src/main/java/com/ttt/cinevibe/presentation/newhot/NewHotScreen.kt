@@ -31,6 +31,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -50,23 +51,30 @@ import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import com.ttt.cinevibe.R
 import com.ttt.cinevibe.domain.model.Movie
+import com.ttt.cinevibe.domain.model.TvSeries
 import com.ttt.cinevibe.ui.theme.Black
 import com.ttt.cinevibe.ui.theme.DarkGray
 import com.ttt.cinevibe.ui.theme.LightGray
 import com.ttt.cinevibe.ui.theme.NetflixRed
 import com.ttt.cinevibe.ui.theme.White
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.graphics.graphicsLayer
 
 @Composable
 fun NewHotScreen(
     viewModel: NewHotViewModel = hiltViewModel(),
-    onMovieClick: (Movie) -> Unit = {}
+    onMovieClick: (Movie) -> Unit = {},
+    onTvSeriesClick: (TvSeries) -> Unit = {}
 ) {
     var selectedTabIndex by remember { mutableIntStateOf(0) }
-    val tabs = listOf("Coming Soon", "Everyone's Watching")
+    val tabs = listOf("Coming Soon", "Everyone's Watching", "TV Series")
     
     // Collect StateFlow values from ViewModel
     val comingSoonMovies by viewModel.comingSoonMovies.collectAsState()
     val everyoneWatchingMovies by viewModel.everyoneWatchingMovies.collectAsState()
+    val onTheAirTvSeries by viewModel.onTheAirTvSeries.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
     
@@ -91,8 +99,7 @@ fun NewHotScreen(
             contentColor = White,
             indicator = { tabPositions ->
                 TabRowDefaults.Indicator(
-                    Modifier
-                        .clip(RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp)),
+                    Modifier.clip(RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp)),
                     height = 3.dp,
                     color = NetflixRed
                 )
@@ -152,6 +159,10 @@ fun NewHotScreen(
                     movies = everyoneWatchingMovies,
                     onMovieClick = onMovieClick
                 )
+                2 -> TvSeriesTab(
+                    series = onTheAirTvSeries,
+                    onTvSeriesClick = onTvSeriesClick
+                )
             }
         }
     }
@@ -178,129 +189,111 @@ fun ComingSoonItem(
     movie: Movie,
     onClick: () -> Unit
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp)
-            .clickable(onClick = onClick)
-    ) {
-        // Release date
-        val releaseDate = movie.releaseDate ?: "Coming Soon"
-        val releaseParts = releaseDate.split("-")
-        val month = when (releaseParts.getOrNull(1)?.toIntOrNull()) {
-            1 -> "JAN"
-            2 -> "FEB"
-            3 -> "MAR"
-            4 -> "APR"
-            5 -> "MAY"
-            6 -> "JUN"
-            7 -> "JUL"
-            8 -> "AUG"
-            9 -> "SEP"
-            10 -> "OCT"
-            11 -> "NOV"
-            12 -> "DEC"
-            else -> "SOON"
-        }
-        
-        Row(
+    var isNotified by rememberSaveable(movie.id) { mutableStateOf(false) }
+    var expanded by remember { mutableStateOf(false) }
+    val bellColor by animateColorAsState(if (isNotified) NetflixRed else White, label = "bellColor")
+    val bellScale by animateFloatAsState(if (isNotified) 1.2f else 1f, label = "bellScale")
+
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .padding(horizontal = 16.dp, vertical = 10.dp)
+                .clickable(onClick = onClick),
+            shape = RoundedCornerShape(16.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+            colors = CardDefaults.cardColors(containerColor = DarkGray.copy(alpha = 0.85f))
         ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.width(50.dp)
+            Row(
+                modifier = Modifier.padding(16.dp),
+                verticalAlignment = Alignment.Top
             ) {
-                Text(
-                    text = month,
-                    color = White,
-                    fontWeight = FontWeight.Bold
-                )
-                
-                Text(
-                    text = releaseParts.getOrNull(2) ?: "",
-                    color = White,
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-            
-            Spacer(modifier = Modifier.width(16.dp))
-            
-            // Movie details
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
-                Text(
-                    text = movie.title,
-                    color = White,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                
-                Text(
-                    text = "Coming ${movie.releaseDate ?: "Soon"}",
-                    color = LightGray,
-                    fontSize = 14.sp
-                )
-            }
-            
-            // Bell icon for notifications
-            IconButton(onClick = { /* Set reminder */ }) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_notifications),
-                    contentDescription = "Remind Me",
-                    tint = White,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
-        }
-        
-        Spacer(modifier = Modifier.height(8.dp))
-        
-        // Movie poster or thumbnail
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(200.dp)
-        ) {
-            AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(
-                        if (movie.posterPath != null) 
-                            "https://via.placeholder.com/800x450?text=${movie.title}" 
-                        else 
-                            "https://via.placeholder.com/800x450?text=${movie.title}"
+                // Date Block
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier
+                        .width(56.dp)
+                        .background(NetflixRed, RoundedCornerShape(8.dp))
+                        .padding(vertical = 8.dp)
+                ) {
+                    Text(
+                        text = getMonthAbbreviation(movie.releaseDate),
+                        color = White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp
                     )
-                    .build(),
-                contentDescription = movie.title,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize()
-            )
+                    Text(
+                        text = getDay(movie.releaseDate),
+                        color = White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 22.sp
+                    )
+                }
+                Spacer(modifier = Modifier.width(16.dp))
+                // Movie Details
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = movie.title,
+                        color = White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Text(
+                        text = "Coming ${movie.releaseDate ?: "Soon"}",
+                        color = LightGray,
+                        fontSize = 13.sp
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = movie.overview ?: "",
+                        color = LightGray.copy(alpha = 0.9f),
+                        fontSize = 14.sp,
+                        maxLines = if (expanded) 10 else 2,
+                        overflow = if (expanded) TextOverflow.Visible else TextOverflow.Ellipsis,
+                        modifier = Modifier.clickable { expanded = !expanded }
+                    )
+                }
+                // Bell Icon
+                IconButton(
+                    onClick = { isNotified = !isNotified },
+                    modifier = Modifier
+                        .size(40.dp)
+                        .padding(4.dp)
+                        .graphicsLayer(scaleX = bellScale, scaleY = bellScale)
+                ) {
+                    Icon(
+                        painter = painterResource(
+                            id = if (isNotified) R.drawable.ic_notification_on
+                            else R.drawable.ic_notification_off
+                        ),
+                        contentDescription = if (isNotified) "Turn off notifications" else "Turn on notifications",
+                        tint = bellColor,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+            }
         }
-        
-        Spacer(modifier = Modifier.height(8.dp))
-        
-        // Movie description
-        Text(
-            text = movie.overview,
-            color = White,
-            fontSize = 14.sp,
-            modifier = Modifier.padding(horizontal = 16.dp)
-        )
-        
-        Spacer(modifier = Modifier.height(16.dp))
-        
-        // Divider
+        // Divider between cards
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(1.dp)
-                .background(DarkGray)
+                .background(DarkGray.copy(alpha = 0.5f))
         )
     }
+}
+
+// Helper functions for date formatting
+fun getMonthAbbreviation(date: String?): String {
+    val month = date?.split("-")?.getOrNull(1)?.toIntOrNull()
+    return listOf("JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC")
+        .getOrNull((month ?: 1) - 1) ?: "SOON"
+}
+
+fun getDay(date: String?): String {
+    return date?.split("-")?.getOrNull(2) ?: ""
 }
 
 @Composable
@@ -448,6 +441,128 @@ fun EveryonesWatchingItem(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(8.dp)
+                .background(DarkGray.copy(alpha = 0.5f))
+        )
+    }
+}
+
+@Composable
+fun TvSeriesTab(
+    series: List<TvSeries>,
+    onTvSeriesClick: (TvSeries) -> Unit
+) {
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(bottom = 56.dp)
+    ) {
+        items(series) { tvSeries ->
+            TvSeriesItem(tvSeries = tvSeries, onClick = { onTvSeriesClick(tvSeries) })
+        }
+    }
+}
+
+@Composable
+fun TvSeriesItem(
+    tvSeries: TvSeries,
+    onClick: () -> Unit
+) {
+    var isNotified by rememberSaveable(tvSeries.id) { mutableStateOf(false) }
+    var expanded by remember { mutableStateOf(false) }
+    val bellColor by animateColorAsState(if (isNotified) NetflixRed else White, label = "bellColor")
+    val bellScale by animateFloatAsState(if (isNotified) 1.2f else 1f, label = "bellScale")
+
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 10.dp)
+                .clickable(onClick = onClick),
+            shape = RoundedCornerShape(16.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+            colors = CardDefaults.cardColors(containerColor = DarkGray.copy(alpha = 0.85f))
+        ) {
+            Row(
+                modifier = Modifier.padding(16.dp),
+                verticalAlignment = Alignment.Top
+            ) {
+                // Date Block
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier
+                        .width(56.dp)
+                        .background(NetflixRed, RoundedCornerShape(8.dp))
+                        .padding(vertical = 8.dp)
+                ) {
+                    val airDate = tvSeries.firstAirDate
+                    Text(
+                        text = getMonthAbbreviation(airDate),
+                        color = White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp
+                    )
+                    Text(
+                        text = getDay(airDate),
+                        color = White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 22.sp
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(16.dp))
+
+                // Series Details
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = tvSeries.name,
+                        color = White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Text(
+                        text = "Coming ${tvSeries.firstAirDate ?: "Soon"}",
+                        color = LightGray,
+                        fontSize = 13.sp
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = tvSeries.overview ?: "",
+                        color = LightGray.copy(alpha = 0.9f),
+                        fontSize = 14.sp,
+                        maxLines = if (expanded) 10 else 2,
+                        overflow = if (expanded) TextOverflow.Visible else TextOverflow.Ellipsis,
+                        modifier = Modifier.clickable { expanded = !expanded }
+                    )
+                }
+
+                // Bell Icon
+                IconButton(
+                    onClick = { isNotified = !isNotified },
+                    modifier = Modifier
+                        .size(40.dp)
+                        .padding(4.dp)
+                        .graphicsLayer(scaleX = bellScale, scaleY = bellScale)
+                ) {
+                    Icon(
+                        painter = painterResource(
+                            id = if (isNotified) R.drawable.ic_notification_on
+                            else R.drawable.ic_notification_off
+                        ),
+                        contentDescription = if (isNotified) "Turn off notifications"
+                        else "Turn on notifications",
+                        tint = bellColor,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+            }
+        }
+        // Divider between cards
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(1.dp)
                 .background(DarkGray.copy(alpha = 0.5f))
         )
     }
