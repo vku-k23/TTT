@@ -70,40 +70,48 @@ fun RegisterScreen(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
+    
     val registerState by viewModel.registerState.collectAsState()
+    val firebaseAuthState by viewModel.firebaseAuthState.collectAsState()
+    val backendRegState by viewModel.backendRegState.collectAsState()
+    val backendSyncAttempted by viewModel.backendSyncAttempted.collectAsState()
     
     val snackbarHostState = remember { SnackbarHostState() }
     
-    // Track if we've already performed the navigation
-    val hasNavigated = remember { mutableStateOf(false) }
+    // Removed hasNavigated state
 
+    // Handle navigation and errors based on the final registerState
     LaunchedEffect(key1 = registerState) {
-        when (registerState) {
+        android.util.Log.d("RegistrationDebug", "RegisterScreen LaunchedEffect triggered. State: $registerState")
+        when (val state = registerState) { // Use 'state' for easier access
             is AuthState.Success -> {
-                // Only navigate if we haven't already
-                if (!hasNavigated.value) {
-                    hasNavigated.value = true
-                    
-                    // Reset state first
-                    viewModel.resetAuthStates()
-                    
-                    // Navigate using a slight delay to ensure state resets properly
-                    kotlinx.coroutines.delay(200)
-                    onRegisterSuccess()
-                }
+                android.util.Log.d("RegistrationDebug", "State is Success. Calling onRegisterSuccess...")
+                // Navigate only when the overall registration is successful
+                android.util.Log.d("RegisterScreen", "RegisterState is Success, navigating.")
+                // Optional: Add a small delay for smoother transition if needed
+                // kotlinx.coroutines.delay(100)
+                onRegisterSuccess()
+                // Reset state after navigation to prevent re-triggering on recomposition
+                // Consider if resetting is needed or handled elsewhere (e.g., in ViewModel on screen exit)
+                 viewModel.resetAuthStates() // Resetting here might be appropriate
             }
             is AuthState.Error -> {
-                snackbarHostState.showSnackbar(
-                    message = (registerState as AuthState.Error).message
-                )
+                android.util.Log.e("RegistrationDebug", "State is Error: ${state.message}. Showing Snackbar...")
+                // Show error message
+                android.util.Log.e("RegisterScreen", "RegisterState is Error: ${state.message}")
+                snackbarHostState.showSnackbar(message = state.message)
+                // Reset state after showing error
                 viewModel.resetAuthStates()
-                hasNavigated.value = false
+            }
+            is AuthState.Loading -> {
+                android.util.Log.d("RegistrationDebug", "State is Loading.")
+                android.util.Log.d("RegisterScreen", "RegisterState is Loading.")
+                // Loading indicator is handled below
             }
             is AuthState.Idle -> {
-                // Reset navigation flag when state is idle
-                hasNavigated.value = false
+                 android.util.Log.d("RegisterScreen", "RegisterState is Idle.")
+                // Initial state or after reset
             }
-            else -> {}
         }
     }
 
@@ -302,6 +310,7 @@ fun RegisterScreen(
                 // Sign Up Button
                 Button(
                     onClick = {
+                         android.util.Log.d("RegistrationDebug", "Register Button Clicked.")
                         if (password == confirmPassword) {
                             viewModel.register(email, password, username)
                         }
@@ -348,7 +357,8 @@ fun RegisterScreen(
                 }
             }
             
-            // Loading Indicator
+            // Loading Indicator - Show whenever the overall registration state is Loading
+             android.util.Log.d("RegistrationDebug", "Checking loading indicator visibility. registerState is Loading: ${registerState is AuthState.Loading}")
             if (registerState is AuthState.Loading) {
                 Box(
                     modifier = Modifier
