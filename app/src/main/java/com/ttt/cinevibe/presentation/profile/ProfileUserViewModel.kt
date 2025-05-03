@@ -3,13 +3,11 @@ package com.ttt.cinevibe.presentation.profile
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ttt.cinevibe.data.remote.models.ApiResponse
-import com.ttt.cinevibe.data.remote.models.UserProfile
 import com.ttt.cinevibe.data.remote.models.UserResponse
 import com.ttt.cinevibe.domain.model.Resource
 import com.ttt.cinevibe.domain.usecase.auth.GetAuthStatusUseCase
 import com.ttt.cinevibe.domain.usecase.user.DeleteUserUseCase
 import com.ttt.cinevibe.domain.usecase.user.GetCurrentUserUseCase
-import com.ttt.cinevibe.domain.usecase.user.GetUserProfileUseCase
 import com.ttt.cinevibe.domain.usecase.user.RegisterUserUseCase
 import com.ttt.cinevibe.domain.usecase.user.UpdateUserUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -30,15 +28,11 @@ class ProfileUserViewModel @Inject constructor(
     private val registerUserUseCase: RegisterUserUseCase,
     private val updateUserUseCase: UpdateUserUseCase,
     private val deleteUserUseCase: DeleteUserUseCase,
-    private val getUserProfileUseCase: GetUserProfileUseCase,
     private val getAuthStatusUseCase: GetAuthStatusUseCase
 ) : ViewModel() {
 
     private val _userState = MutableStateFlow<UserState<UserResponse>>(UserState.Idle())
     val userState: StateFlow<UserState<UserResponse>> = _userState.asStateFlow()
-    
-    private val _userProfileState = MutableStateFlow<UserState<UserProfile>>(UserState.Idle())
-    val userProfileState: StateFlow<UserState<UserProfile>> = _userProfileState.asStateFlow()
     
     private val _deleteAccountState = MutableStateFlow<UserState<ApiResponse>>(UserState.Idle())
     val deleteAccountState: StateFlow<UserState<ApiResponse>> = _deleteAccountState.asStateFlow()
@@ -131,7 +125,7 @@ class ProfileUserViewModel @Inject constructor(
             _userState.value = UserState.Loading()
             
             try {
-                updateUserUseCase(displayName, profileImageUrl, bio, favoriteGenre)
+                updateUserUseCase(null, displayName, profileImageUrl, bio, favoriteGenre)
                     .catch { e ->
                         if (e is CancellationException) throw e
                         _userState.value = UserState.Error(e.message ?: "Failed to update profile")
@@ -195,44 +189,8 @@ class ProfileUserViewModel @Inject constructor(
         }
     }
     
-    // Get a public user profile
-    fun getUserProfile(uid: String) {
-        viewModelScope.launch {
-            _userProfileState.value = UserState.Loading()
-            
-            try {
-                getUserProfileUseCase(uid)
-                    .catch { e ->
-                        if (e is CancellationException) throw e
-                        _userProfileState.value = UserState.Error(e.message ?: "Failed to get profile")
-                    }
-                    .collect { result ->
-                        when (result) {
-                            is Resource.Success -> {
-                                result.data?.let { profile ->
-                                    _userProfileState.value = UserState.Success(profile)
-                                } ?: run {
-                                    _userProfileState.value = UserState.Error("No profile data returned")
-                                }
-                            }
-                            is Resource.Error -> {
-                                _userProfileState.value = UserState.Error(result.message ?: "Unknown error")
-                            }
-                            is Resource.Loading -> {
-                                _userProfileState.value = UserState.Loading()
-                            }
-                        }
-                    }
-            } catch (e: Exception) {
-                if (e is CancellationException) throw e
-                _userProfileState.value = UserState.Error(e.message ?: "Failed to load profile")
-            }
-        }
-    }
-    
     fun resetUserStates() {
         _userState.value = UserState.Idle()
-        _userProfileState.value = UserState.Idle()
         _deleteAccountState.value = UserState.Idle()
     }
 }

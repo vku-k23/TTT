@@ -3,8 +3,7 @@ package com.ttt.cinevibe.data.remote.api
 import com.ttt.cinevibe.data.remote.models.ApiResponse
 import com.ttt.cinevibe.data.remote.models.UserRequest
 import com.ttt.cinevibe.data.remote.models.UserResponse
-import com.ttt.cinevibe.data.remote.models.UserUpdateRequest
-import com.ttt.cinevibe.data.remote.models.UserProfile
+import com.ttt.cinevibe.data.remote.models.UserProfileRequest
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
@@ -20,12 +19,10 @@ interface UserApiService {
     @POST("api/user/register")
     suspend fun registerUser(@Body userRequest: UserRequest): UserResponse
     
-    @PUT("api/user/me")
-    suspend fun updateUser(@Body updateRequest: UserUpdateRequest): UserResponse
+    @PUT("api/user/profile")
+    suspend fun updateUser(@Body updateRequest: UserProfileRequest): UserResponse
     
     @DELETE("api/user/me")
     suspend fun deleteUser(): ApiResponse
     
-    @GET("api/user/profile/{uid}")
-    suspend fun getUserProfile(@Path("uid") uid: String): UserProfile
 }

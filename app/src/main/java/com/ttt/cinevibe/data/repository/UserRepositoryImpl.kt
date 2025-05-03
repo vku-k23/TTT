@@ -2,10 +2,9 @@ package com.ttt.cinevibe.data.repository
 
 import com.ttt.cinevibe.data.remote.api.UserApiService
 import com.ttt.cinevibe.data.remote.models.ApiResponse
-import com.ttt.cinevibe.data.remote.models.UserProfile
 import com.ttt.cinevibe.data.remote.models.UserRequest
 import com.ttt.cinevibe.data.remote.models.UserResponse
-import com.ttt.cinevibe.data.remote.models.UserUpdateRequest
+import com.ttt.cinevibe.data.remote.models.UserProfileRequest
 import com.ttt.cinevibe.domain.model.Resource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -46,7 +45,7 @@ class UserRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun updateUser(updateRequest: UserUpdateRequest): Flow<Resource<UserResponse>> = flow {
+    override suspend fun updateUser(updateRequest: UserProfileRequest): Flow<Resource<UserResponse>> = flow {
         emit(Resource.Loading())
         try {
             val response = userApiService.updateUser(updateRequest)
@@ -63,16 +62,6 @@ class UserRepositoryImpl @Inject constructor(
             emit(Resource.Success(response))
         } catch (e: Exception) {
             emit(Resource.Error(e.message ?: "Failed to delete user"))
-        }
-    }
-
-    override suspend fun getUserProfile(uid: String): Flow<Resource<UserProfile>> = flow {
-        emit(Resource.Loading())
-        try {
-            val response = userApiService.getUserProfile(uid)
-            emit(Resource.Success(response))
-        } catch (e: Exception) {
-            emit(Resource.Error(e.message ?: "Failed to get user profile"))
         }
     }
 }

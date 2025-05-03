@@ -78,40 +78,33 @@ fun RegisterScreen(
     
     val snackbarHostState = remember { SnackbarHostState() }
     
-    // Removed hasNavigated state
-
-    // Handle navigation and errors based on the final registerState
+    // Monitor registration state and handle navigation/errors
     LaunchedEffect(key1 = registerState) {
-        android.util.Log.d("RegistrationDebug", "RegisterScreen LaunchedEffect triggered. State: $registerState")
-        when (val state = registerState) { // Use 'state' for easier access
+        when (registerState) {
             is AuthState.Success -> {
-                android.util.Log.d("RegistrationDebug", "State is Success. Calling onRegisterSuccess...")
-                // Navigate only when the overall registration is successful
-                android.util.Log.d("RegisterScreen", "RegisterState is Success, navigating.")
-                // Optional: Add a small delay for smoother transition if needed
-                // kotlinx.coroutines.delay(100)
+                android.util.Log.d("RegisterScreen", "Registration successful, navigating")
                 onRegisterSuccess()
-                // Reset state after navigation to prevent re-triggering on recomposition
-                // Consider if resetting is needed or handled elsewhere (e.g., in ViewModel on screen exit)
-                 viewModel.resetAuthStates() // Resetting here might be appropriate
-            }
-            is AuthState.Error -> {
-                android.util.Log.e("RegistrationDebug", "State is Error: ${state.message}. Showing Snackbar...")
-                // Show error message
-                android.util.Log.e("RegisterScreen", "RegisterState is Error: ${state.message}")
-                snackbarHostState.showSnackbar(message = state.message)
-                // Reset state after showing error
                 viewModel.resetAuthStates()
             }
-            is AuthState.Loading -> {
-                android.util.Log.d("RegistrationDebug", "State is Loading.")
-                android.util.Log.d("RegisterScreen", "RegisterState is Loading.")
-                // Loading indicator is handled below
+            is AuthState.Error -> {
+                val errorMessage = (registerState as AuthState.Error).message
+                android.util.Log.e("RegisterScreen", "Registration error: $errorMessage")
+                snackbarHostState.showSnackbar(message = errorMessage)
             }
-            is AuthState.Idle -> {
-                 android.util.Log.d("RegisterScreen", "RegisterState is Idle.")
-                // Initial state or after reset
-            }
+            else -> { /* No action needed for other states */ }
+        }
+    }
+    
+    // Show meaningful feedback about backend registration status
+    LaunchedEffect(key1 = backendRegState, key2 = backendSyncAttempted) {
+        // Only show backend error messages if Firebase auth was successful
+        if (firebaseAuthState is FirebaseAuthState.Success && 
+            backendRegState is BackendRegistrationState.Error &&
+            backendSyncAttempted) {
+            
+            val message = "Registration completed with Firebase but couldn't connect to app server. " +
+                          "Some features may be limited until next login."
+            snackbarHostState.showSnackbar(message = message)
         }
     }
 
@@ -290,8 +283,7 @@ fun RegisterScreen(
                             imeAction = ImeAction.Done
                         ),
                         singleLine = true,
-                        isError = !passwordsMatch,
-                        supportingText = null // Remove the supporting text from inside the TextField
+                        isError = !passwordsMatch
                     )
                     
                     // Display error message outside of TextField to maintain consistent field height
@@ -307,10 +299,22 @@ fun RegisterScreen(
                 
                 Spacer(modifier = Modifier.height(if (passwordsMatch) 32.dp else 16.dp))
                 
+                // Registration Status (optional)
+                when {
+                    firebaseAuthState is FirebaseAuthState.Success && backendRegState is BackendRegistrationState.Loading -> {
+                        Text(
+                            text = "Account created! Connecting to server...",
+                            color = White,
+                            fontSize = 14.sp,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(bottom = 16.dp)
+                        )
+                    }
+                }
+                
                 // Sign Up Button
                 Button(
                     onClick = {
-                         android.util.Log.d("RegistrationDebug", "Register Button Clicked.")
                         if (password == confirmPassword) {
                             viewModel.register(email, password, username)
                         }
@@ -357,8 +361,7 @@ fun RegisterScreen(
                 }
             }
             
-            // Loading Indicator - Show whenever the overall registration state is Loading
-             android.util.Log.d("RegistrationDebug", "Checking loading indicator visibility. registerState is Loading: ${registerState is AuthState.Loading}")
+            // Improved Loading Indicator with Status Text
             if (registerState is AuthState.Loading) {
                 Box(
                     modifier = Modifier
@@ -366,7 +369,28 @@ fun RegisterScreen(
                         .background(Color.Black.copy(alpha = 0.7f)),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator(color = NetflixRed)
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        CircularProgressIndicator(color = NetflixRed)
+                        Spacer(modifier = Modifier.height(16.dp))
+                        
+                        // Show appropriate status message based on current state
+                        val statusText = when {
+                            firebaseAuthState is FirebaseAuthState.Loading -> 
+                                "Creating your account..."
+                            firebaseAuthState is FirebaseAuthState.Success && 
+                            backendRegState is BackendRegistrationState.Loading -> 
+                                "Connecting to server..."
+                            else -> "Registering..."
+                        }
+                        
+                        Text(
+                            text = statusText,
+                            color = White,
+                            fontSize = 16.sp
+                        )
+                    }
                 }
             }
         }
