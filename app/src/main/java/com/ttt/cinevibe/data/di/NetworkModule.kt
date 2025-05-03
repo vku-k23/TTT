@@ -72,8 +72,9 @@ object NetworkModule {
         return OkHttpClient.Builder()
             .addInterceptor(firebaseTokenInterceptor)
             .addInterceptor(loggingInterceptor)
-            .connectTimeout(15, TimeUnit.SECONDS)
-            .readTimeout(15, TimeUnit.SECONDS)
+            .connectTimeout(30, TimeUnit.SECONDS) // Tăng thời gian timeout kết nối
+            .readTimeout(30, TimeUnit.SECONDS)    // Tăng thời gian timeout đọc dữ liệu
+            .writeTimeout(30, TimeUnit.SECONDS)   // Thêm timeout cho ghi dữ liệu
             .build()
     }
     
