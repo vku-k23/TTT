@@ -1,5 +1,5 @@
 [versions]
-agp = "8.6.0-alpha07"
+agp = "8.9.2"
 kotlin = "1.9.20" # Hạ xuống phiên bản tương thích với Compose Multiplatform 1.6.0
 coreKtx = "1.12.0"
 junit = "4.13.2"
