@@ -123,10 +123,11 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:32.8.0"))
     implementation("com.google.firebase:firebase-auth-ktx")
     implementation("com.google.firebase:firebase-firestore-ktx")
+    implementation("com.google.firebase:firebase-messaging-ktx") // Added FCM dependency
     
     // Icon Library - MaterialIcons (already included with Compose)
     implementation("androidx.compose.material:material-icons-extended:1.7.6")
-
+    
     // YouTube Android Player API
     implementation("com.pierfrancescosoffritti.androidyoutubeplayer:core:12.1.0")
     

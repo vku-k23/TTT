@@ -6,8 +6,11 @@ import android.content.res.Configuration
 import android.os.Handler
 import android.os.Looper
 import android.os.Process
+import android.util.Log
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.messaging.FirebaseMessaging
 import com.ttt.cinevibe.data.manager.LanguageManager
 import com.ttt.cinevibe.utils.LocaleHelper
 import dagger.hilt.android.HiltAndroidApp
@@ -18,6 +21,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.tasks.await
 import java.util.Locale
 import javax.inject.Inject
 
@@ -28,6 +32,10 @@ class CineVibeApp : Application() {
     lateinit var languageManager: LanguageManager
     
     private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    
+    companion object {
+        private const val TAG = "CineVibeApp"
+    }
 
     override fun onCreate() {
         super.onCreate()
@@ -40,6 +48,14 @@ class CineVibeApp : Application() {
         
         // Register for configuration changes
         registerActivityLifecycleCallbacks(LocaleActivityLifecycleCallbacks(this))
+        
+        // Set up Firebase auth listener to log token
+        setupFirebaseAuthListener()
+        
+        // Get current FCM token if user is already logged in
+        if (FirebaseAuth.getInstance().currentUser != null) {
+            logFirebaseMessagingToken()
+        }
     }
     
     /**
@@ -56,6 +72,37 @@ class CineVibeApp : Application() {
             applyLocaleToApplication(locale)
         } catch (e: Exception) {
             e.printStackTrace()
+        }
+    }
+    
+    /**
+     * Sets up a Firebase authentication state listener to log FCM token
+     * when user signs in or registers
+     */
+    private fun setupFirebaseAuthListener() {
+        FirebaseAuth.getInstance().addAuthStateListener { firebaseAuth ->
+            val user = firebaseAuth.currentUser
+            if (user != null) {
+                // User is signed in - log FCM token
+                logFirebaseMessagingToken()
+            }
+        }
+    }
+    
+    /**
+     * Retrieves and logs the Firebase Cloud Messaging token
+     */
+    private fun logFirebaseMessagingToken() {
+        applicationScope.launch {
+            try {
+                val token = FirebaseMessaging.getInstance().token.await()
+                Log.d(TAG, "FCM Token: $token")
+                
+                // You can also store the token in your backend if needed
+                // sendTokenToServer(token)
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to get FCM token", e)
+            }
         }
     }
     
