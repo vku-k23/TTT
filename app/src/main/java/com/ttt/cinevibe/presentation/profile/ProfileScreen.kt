@@ -23,6 +23,7 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Language
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Divider
@@ -162,7 +163,7 @@ fun ProfileScreen(
                     
                     // Edit Icon
                     Icon(
-                        imageVector = Icons.Default.Edit,
+                        imageVector = Icons.Filled.Edit,
                         contentDescription = stringResource(R.string.edit_profile),
                         tint = NetflixRed,
                         modifier = Modifier
@@ -181,25 +182,25 @@ fun ProfileScreen(
                     .padding(horizontal = 16.dp)
             ) {
                 ProfileMenuItem(
-                    icon = Icons.Default.Person,
+                    icon = Icons.Filled.Person,
                     title = stringResource(R.string.account_information),
                     onClick = onNavigateToAccountInfo
                 )
                 
                 ProfileMenuItem(
-                    icon = Icons.Default.Settings,
+                    icon = Icons.Filled.Settings,
                     title = stringResource(R.string.app_settings),
                     onClick = onNavigateToAppSettings
                 )
                 
                 ProfileMenuItem(
-                    icon = Icons.Default.LocationOn,
+                    icon = Icons.Filled.Language,
                     title = stringResource(R.string.change_language),
                     onClick = onNavigateToLanguageSettings
                 )
                 
                 ProfileMenuItem(
-                    icon = Icons.Default.Info,
+                    icon = Icons.Filled.Info,
                     title = stringResource(R.string.help_support),
                     onClick = onNavigateToHelpSupport
                 )

@@ -3,6 +3,7 @@ package com.ttt.cinevibe.data.repository
 import android.util.Log
 import com.ttt.cinevibe.data.remote.api.MovieApiService
 import com.ttt.cinevibe.data.remote.models.MovieDto
+import com.ttt.cinevibe.data.remote.models.VideoDto
 import com.ttt.cinevibe.domain.model.Movie
 import com.ttt.cinevibe.domain.repository.MovieRepository
 import kotlinx.coroutines.flow.Flow
@@ -17,15 +18,18 @@ class MovieRepositoryImpl @Inject constructor(
     
     private var genresCache: Map<Int, String> = emptyMap()
     
-    override suspend fun getPopularMovies(): Flow<List<Movie>> = flow {
+    override suspend fun getPopularMovies(language: String?): Flow<List<Movie>> = flow {
         try {
             // Ensure we have genres loaded for mapping genre IDs to names
             if (genresCache.isEmpty()) {
                 loadGenres()
             }
             
-            val response = movieApiService.getPopularMovies()
-            Log.d("MovieRepository", "Popular movies fetched: ${response.results.size}")
+            // Use the provided language parameter if available
+            val languageToUse = language ?: "en-US"
+            
+            val response = movieApiService.getPopularMovies(language = languageToUse)
+            Log.d("MovieRepository", "Popular movies fetched: ${response.results.size} with language: $languageToUse")
             emit(response.results.map { it.toDomainModel(genresCache) })
         } catch (e: Exception) {
             // In a real app, you would log the error or handle it more gracefully
@@ -34,14 +38,17 @@ class MovieRepositoryImpl @Inject constructor(
         }
     }
     
-    override suspend fun getTopRatedMovies(): Flow<List<Movie>> = flow {
+    override suspend fun getTopRatedMovies(language: String?): Flow<List<Movie>> = flow {
         try {
             if (genresCache.isEmpty()) {
                 loadGenres()
             }
             
-            val response = movieApiService.getTopRatedMovies()
-            Log.d("MovieRepository", "Top rated movies fetched: ${response.results.size}")
+            // Use the provided language parameter if available
+            val languageToUse = language ?: "en-US"
+            
+            val response = movieApiService.getTopRatedMovies(language = languageToUse)
+            Log.d("MovieRepository", "Top rated movies fetched: ${response.results.size} with language: $languageToUse")
             emit(response.results.map { it.toDomainModel(genresCache) })
         } catch (e: Exception) {
             Log.e("MovieRepository", "Error fetching top rated movies", e)
@@ -49,14 +56,17 @@ class MovieRepositoryImpl @Inject constructor(
         }
     }
     
-    override suspend fun getTrendingMovies(): Flow<List<Movie>> = flow {
+    override suspend fun getTrendingMovies(language: String?): Flow<List<Movie>> = flow {
         try {
             if (genresCache.isEmpty()) {
                 loadGenres()
             }
             
-            val response = movieApiService.getTrendingMovies()
-            Log.d("MovieRepository", "Trending movies fetched: ${response.results.size}")
+            // Use the provided language parameter if available
+            val languageToUse = language ?: "en-US"
+            
+            val response = movieApiService.getTrendingMovies(language = languageToUse)
+            Log.d("MovieRepository", "Trending movies fetched: ${response.results.size} with language: $languageToUse")
             emit(response.results.map { it.toDomainModel(genresCache) })
         } catch (e: Exception) {
             Log.e("MovieRepository", "Error fetching trending movies", e)
@@ -64,14 +74,17 @@ class MovieRepositoryImpl @Inject constructor(
         }
     }
     
-    override suspend fun getUpcomingMovies(): Flow<List<Movie>> = flow {
+    override suspend fun getUpcomingMovies(language: String?): Flow<List<Movie>> = flow {
         try {
             if (genresCache.isEmpty()) {
                 loadGenres()
             }
             
-            val response = movieApiService.getUpcomingMovies()
-            Log.d("MovieRepository", "Upcoming movies fetched: ${response.results.size}")
+            // Use the provided language parameter if available
+            val languageToUse = language ?: "en-US"
+            
+            val response = movieApiService.getUpcomingMovies(language = languageToUse)
+            Log.d("MovieRepository", "Upcoming movies fetched: ${response.results.size} with language: $languageToUse")
             emit(response.results.map { it.toDomainModel(genresCache) })
         } catch (e: Exception) {
             Log.e("MovieRepository", "Error fetching upcoming movies", e)
@@ -79,14 +92,17 @@ class MovieRepositoryImpl @Inject constructor(
         }
     }
     
-    override suspend fun searchMovies(query: String): Flow<List<Movie>> = flow {
+    override suspend fun searchMovies(query: String, language: String?): Flow<List<Movie>> = flow {
         try {
             if (genresCache.isEmpty()) {
                 loadGenres()
             }
             
-            val response = movieApiService.searchMovies(query = query)
-            Log.d("MovieRepository", "Search movies fetched: ${response.results.size}")
+            // Use the provided language parameter if available
+            val languageToUse = language ?: "en-US"
+            
+            val response = movieApiService.searchMovies(query = query, language = languageToUse)
+            Log.d("MovieRepository", "Search movies fetched: ${response.results.size} with language: $languageToUse")
             emit(response.results.map { it.toDomainModel(genresCache) })
         } catch (e: Exception) {
             Log.e("MovieRepository", "Error searching movies", e)
@@ -102,6 +118,97 @@ class MovieRepositoryImpl @Inject constructor(
             emit(genresCache)
         } catch (e: Exception) {
             emit(emptyMap())
+        }
+    }
+    
+    override suspend fun getMovieById(movieId: Int, language: String?): Flow<Movie> = flow {
+        try {
+            if (genresCache.isEmpty()) {
+                loadGenres()
+            }
+            
+            // Use the provided language parameter if available
+            val languageToUse = language ?: "en-US"
+            
+            // Log the language being requested from API
+            Log.d("MovieRepository", "Requesting movie details from API with language: $languageToUse for movieId: $movieId")
+            
+            val movieDetails = movieApiService.getMovieDetails(movieId, language = languageToUse)
+            Log.d("MovieRepository", "Movie details fetched for ID: $movieId with language: $languageToUse")
+            Log.d("MovieRepository", "API Response: title=${movieDetails.title}, overview length=${movieDetails.overview?.length ?: 0}")
+            Log.d("MovieRepository", "First 100 chars of overview: ${movieDetails.overview?.take(100)}")
+            
+            // Fetch videos (trailers) for the movie with the same language
+            val videosResponse = try {
+                movieApiService.getMovieVideos(movieId, language = languageToUse)
+            } catch (e: Exception) {
+                Log.e("MovieRepository", "Error fetching videos for movie ID: $movieId", e)
+                null
+            }
+            
+            // Find the official trailer or use the first video as fallback
+            val trailerKey = videosResponse?.results?.find { 
+                (it.type == "Trailer" || it.type == "Teaser") && it.site == "YouTube" && it.official 
+            }?.key ?: videosResponse?.results?.firstOrNull { 
+                it.site == "YouTube" 
+            }?.key
+            
+            // Convert to domain model - handle the genre objects from the detail endpoint
+            val genreNames = movieDetails.genres?.map { it.name } ?: emptyList()
+            
+            val movie = Movie(
+                id = movieDetails.id,
+                title = movieDetails.title,
+                overview = movieDetails.overview,
+                posterPath = movieDetails.posterPath,
+                backdropPath = movieDetails.backdropPath,
+                releaseDate = movieDetails.releaseDate,
+                voteAverage = movieDetails.voteAverage,
+                genres = genreNames,
+                trailerVideoKey = trailerKey
+            )
+            
+            // Log the domain model being emitted
+            Log.d("MovieRepository", "Emitting movie domain model with title: ${movie.title}")
+            Log.d("MovieRepository", "Domain model overview length: ${movie.overview?.length ?: 0}")
+            
+            emit(movie)
+        } catch (e: Exception) {
+            Log.e("MovieRepository", "Error fetching movie details for ID: $movieId", e)
+            // In a real app, you might want to emit a more specific error or handle this differently
+            throw e
+        }
+    }
+    
+    override suspend fun getSimilarMovies(movieId: Int, language: String?): Flow<List<Movie>> = flow {
+        try {
+            if (genresCache.isEmpty()) {
+                loadGenres()
+            }
+            
+            // Use the provided language parameter if available
+            val languageToUse = language ?: "en-US"
+            
+            val response = movieApiService.getSimilarMovies(movieId = movieId, language = languageToUse)
+            Log.d("MovieRepository", "Similar movies fetched for movie ID $movieId: ${response.results.size} with language: $languageToUse")
+            emit(response.results.map { it.toDomainModel(genresCache) })
+        } catch (e: Exception) {
+            Log.e("MovieRepository", "Error fetching similar movies for movie ID $movieId", e)
+            emit(emptyList())
+        }
+    }
+
+    override suspend fun getMovieVideos(movieId: Int, language: String?): Flow<List<VideoDto>> = flow {
+        try {
+            // Use the provided language parameter if available
+            val languageToUse = language ?: "en-US"
+            
+            val response = movieApiService.getMovieVideos(movieId, language = languageToUse)
+            Log.d("MovieRepository", "Videos fetched for movie ID $movieId: ${response.results.size} with language: $languageToUse")
+            emit(response.results)
+        } catch (e: Exception) {
+            Log.e("MovieRepository", "Error fetching videos for movie ID $movieId", e)
+            emit(emptyList())
         }
     }
     

@@ -27,7 +27,7 @@
     <string name="background_image">Image d\'arrière-plan</string>
     <string name="forgot_password_instructions">Entrez votre adresse e-mail et nous vous enverrons un lien pour réinitialiser votre mot de passe.</string>
     <string name="send_reset_link">Envoyer le lien de réinitialisation</string>
-    <string name="email_sent">E-mail envoyé !</string>
+    <string name="email_sent">Email envoyé!</string>
     <string name="reset_link_sent_to_email">Un lien de réinitialisation du mot de passe a été envoyé à %1$s</string>
     <string name="check_inbox_instructions">Veuillez vérifier votre boîte de réception et suivre les instructions pour réinitialiser votre mot de passe.</string>
     <string name="back_to_login">Retour à la connexion</string>
@@ -104,6 +104,7 @@
     <string name="notifications">Notifications</string>
     <string name="push_notifications">Notifications push</string>
     <string name="push_notifications_description">Recevoir des notifications sur les nouvelles sorties et recommandations</string>
+    <string name="download">Télécharger</string>
     <string name="downloads">Téléchargements</string>
     <string name="download_wifi_only">Télécharger uniquement en Wi-Fi</string>
     <string name="download_wifi_description">Économiser les données mobiles en téléchargeant uniquement via Wi-Fi</string>
@@ -117,6 +118,10 @@
     <string name="build_number">Numéro de build</string>
     
     <!-- Movies -->
+    <string name="movies">Films</string>
+    <string name="tv_shows">Émissions de télévision</string>
+    <string name="my_list">Ma liste</string>
+    <string name="continue_watching">Continuer à regarder</string>
     <string name="popular">Populaires</string>
     <string name="top_rated">Les mieux notés</string>
     <string name="now_playing">À l\'affiche</string>
@@ -127,12 +132,27 @@
     <string name="watch_now">Regarder maintenant</string>
     <string name="add_to_list">Ajouter à ma liste</string>
     <string name="share">Partager</string>
+    <string name="border">Bordure</string>
     <string name="genres">Genres</string>
     <string name="cast">Distribution</string>
     <string name="director">Réalisateur</string>
     <string name="release_date">Date de sortie</string>
     <string name="runtime">Durée</string>
+    
+    <!-- Movie detail dialog -->
+    <string name="play">Regarder</string>
+    <string name="play_trailer">Regarder la bande-annonce</string>
+    <string name="stop_trailer">Arrêter la bande-annonce</string>
+    <string name="preview">Aperçu</string>
+    <string name="details_and_more">Détails et plus</string>
+    <string name="more_info">Plus d\'informations</string>
+    <string name="more_like_this">Similaires</string>
+    <string name="trailers_and_more">Bandes-annonces et plus</string>
     <string name="overview">Synopsis</string>
+    <string name="rate">Évaluer</string>
+    <string name="read_more">Lire plus</string>
+    <string name="no_synopsis_available">Pas de synopsis disponible pour ce film</string>
+    <string name="no_trailer_available">Pas de bande-annonce disponible</string>
     
     <!-- Search -->
     <string name="search_hint">Rechercher des films ou des émissions TV</string>
@@ -170,4 +190,14 @@
     <string name="error_passwords_dont_match">Les mots de passe ne correspondent pas</string>
     <string name="view">Voir</string>
     <string name="navigate">Naviguer</string>
+    
+    <!-- Favorites -->
+    <string name="add_to_favorites">Ajouter aux favoris</string>
+    <string name="remove_from_favorites">Retirer des favoris</string>
+    <string name="favorites">Favoris</string>
+    <string name="favorite_added">Ajouté à vos favoris</string>
+    <string name="favorite_removed">Retiré de vos favoris</string>
+    <string name="empty_favorites">Votre liste de favoris est vide</string>
+    <string name="find_something">Trouver quelque chose à regarder</string>
+    <string name="remove">Supprimer</string>
 </resources>

@@ -104,6 +104,7 @@
     <string name="notifications">Thông báo</string>
     <string name="push_notifications">Thông báo đẩy</string>
     <string name="push_notifications_description">Nhận thông báo về phim mới và gợi ý</string>
+    <string name="download">Tải xuống</string>
     <string name="downloads">Tải xuống</string>
     <string name="download_wifi_only">Chỉ tải xuống khi dùng Wi-Fi</string>
     <string name="download_wifi_description">Tiết kiệm dữ liệu di động bằng cách chỉ tải xuống qua Wi-Fi</string>
@@ -117,6 +118,10 @@
     <string name="build_number">Số bản dựng</string>
     
     <!-- Movies -->
+    <string name="movies">Phim</string>
+    <string name="tv_shows">Truyền hình</string>
+    <string name="my_list">Danh sách của tôi</string>
+    <string name="continue_watching">Tiếp tục xem</string>
     <string name="popular">Phổ biến</string>
     <string name="top_rated">Đánh giá cao</string>
     <string name="now_playing">Đang chiếu</string>
@@ -127,13 +132,29 @@
     <string name="watch_now">Xem ngay</string>
     <string name="add_to_list">Thêm vào danh sách</string>
     <string name="share">Chia sẻ</string>
+    <string name="rate">Đánh giá</string>
+    <string name="border">Viền</string>
+    <string name="more_like_this">Phim tương tự</string>
+    <string name="trailers_and_more">Trailer &amp; Nhiều hơn</string>
     <string name="genres">Thể loại</string>
     <string name="cast">Diễn viên</string>
     <string name="director">Đạo diễn</string>
     <string name="release_date">Ngày phát hành</string>
     <string name="runtime">Thời lượng</string>
     <string name="overview">Tổng quan</string>
-    
+    <string name="synopsis">Tóm tắt nội dung</string>
+    <string name="read_more">Xem thêm</string>
+    <string name="no_synopsis_available">Không có tóm tắt nội dung cho phim này</string>
+
+    <!-- Movie detail dialog -->
+    <string name="play">Phát</string>
+    <string name="play_trailer">Phát trailer</string>
+    <string name="stop_trailer">Dừng trailer</string>
+    <string name="preview">Xem thử</string>
+    <string name="details_and_more">Chi tiết</string>
+    <string name="more_info">Xem chi tiết</string>
+    <string name="no_trailer_available">Không có sẵn trailer</string>
+
     <!-- Search -->
     <string name="search_hint">Tìm kiếm phim hoặc chương trình TV</string>
     <string name="no_results">Không tìm thấy kết quả</string>
@@ -170,4 +191,14 @@
     <string name="error_passwords_dont_match">Mật khẩu không khớp</string>
     <string name="view">Xem</string>
     <string name="navigate">Điều hướng</string>
+    
+    <!-- Favorites -->
+    <string name="add_to_favorites">Thêm vào yêu thích</string>
+    <string name="remove_from_favorites">Xóa khỏi mục yêu thích</string>
+    <string name="favorites">Yêu thích</string>
+    <string name="favorite_added">Đã thêm vào mục yêu thích</string>
+    <string name="favorite_removed">Đã xóa khỏi mục yêu thích</string>
+    <string name="empty_favorites">Danh sách yêu thích của bạn đang trống</string>
+    <string name="find_something">Tìm nội dung để xem</string>
+    <string name="remove">Xóa</string>
 </resources>

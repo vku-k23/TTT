@@ -8,5 +8,6 @@ data class Movie(
     val backdropPath: String?,
     val releaseDate: String?,
     val voteAverage: Double,
-    val genres: List<String> = emptyList()
+    val genres: List<String> = emptyList(),
+    val trailerVideoKey: String? = null  // YouTube video key for the trailer
 )
