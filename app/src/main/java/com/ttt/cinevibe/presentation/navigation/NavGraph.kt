@@ -20,11 +20,10 @@ import androidx.navigation.navArgument
 import com.ttt.cinevibe.presentation.auth.AUTH_GRAPH_ROUTE
 import com.ttt.cinevibe.presentation.detail.MovieDetailScreen
 import com.ttt.cinevibe.presentation.detail.MovieDetailViewModel
-import com.ttt.cinevibe.presentation.downloads.DownloadsScreen
+import com.ttt.cinevibe.presentation.feed.FeedScreen
 import com.ttt.cinevibe.presentation.home.HomeScreen
 import com.ttt.cinevibe.presentation.mylist.MyListScreen
-import com.ttt.cinevibe.presentation.newhot.NewHotScreen
-import com.ttt.cinevibe.presentation.newhot.NewHotViewModel
+import com.ttt.cinevibe.presentation.notifications.NotificationsScreen
 import com.ttt.cinevibe.presentation.profile.PROFILE_GRAPH_ROUTE
 import com.ttt.cinevibe.presentation.profile.profileNavGraph
 import com.ttt.cinevibe.presentation.search.SearchScreen
@@ -46,9 +45,9 @@ fun NavGraph(
         // Only update bottom nav selection for main routes (not detail screens)
         currentBackStackEntry?.destination?.route?.let { currentRoute ->
             if (currentRoute == Screens.HOME_ROUTE || 
-                currentRoute == Screens.NEW_HOT_ROUTE ||
+                currentRoute == Screens.FEED_ROUTE ||
                 currentRoute == Screens.SEARCH_ROUTE ||
-                currentRoute == Screens.DOWNLOADS_ROUTE ||
+                currentRoute == Screens.NOTIFICATIONS_ROUTE ||
                 currentRoute == Screens.PROFILE_ROUTE) {
                 navigationState.bottomNavRoute.value = currentRoute
             }
@@ -87,12 +86,11 @@ fun NavGraph(
             )
         }
         
-        // New & Hot screen
-        composable(route = Screens.NEW_HOT_ROUTE) {
-            val viewModel = hiltViewModel<NewHotViewModel>()
-            NewHotScreen(
-                onMovieClick = { movie ->
-                    navController.navigate(Screens.movieDetailRoute(movie.id.toString()))
+        // Feed screen (replaced New & Hot)
+        composable(route = Screens.FEED_ROUTE) {
+            FeedScreen(
+                onMovieClick = { movieId ->
+                    navController.navigate(Screens.movieDetailRoute(movieId.toString()))
                 }
             )
         }
@@ -106,9 +104,9 @@ fun NavGraph(
             )
         }
         
-        // Downloads screen
-        composable(route = Screens.DOWNLOADS_ROUTE) {
-            DownloadsScreen()
+        // Notifications screen (replaced Downloads)
+        composable(route = Screens.NOTIFICATIONS_ROUTE) {
+            NotificationsScreen()
         }
         
         // My List screen

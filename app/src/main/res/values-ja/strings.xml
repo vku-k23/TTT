@@ -4,7 +4,7 @@
     
     <!-- Navigation -->
     <string name="home">ホーム</string>
-    <string name="new_and_hot">新着 &amp; 注目</string>
+    <string name="feed">フィード</string>
     <string name="search">検索</string>
     <string name="profile">プロフィール</string>
     <string name="back">戻る</string>
@@ -201,4 +201,26 @@
     <string name="empty_favorites">お気に入りリストが空です</string>
     <string name="find_something">視聴する作品を探す</string>
     <string name="remove">削除</string>
+    
+    <!-- Feed -->
+    <string name="following">フォロー中</string>
+    <string name="discover">発見</string>
+    <string name="movie_reviews">映画レビュー</string>
+    <string name="no_reviews">レビューはまだありません</string>
+    <string name="user_activity">ユーザーアクティビティ</string>
+    <string name="popular_reviews">人気のレビュー</string>
+    <string name="trending_discussions">トレンドの議論</string>
+    <string name="write_review">レビューを書く</string>
+    
+    <!-- Notifications -->
+    <string name="all_notifications">すべての通知</string>
+    <string name="mentions">メンション</string>
+    <string name="likes">いいね</string>
+    <string name="comments">コメント</string>
+    <string name="follows">フォロー</string>
+    <string name="follow_requests">フォローリクエスト</string>
+    <string name="follow_accepted">フォローが承認されました</string>
+    <string name="mark_all_as_read">すべて既読にする</string>
+    <string name="no_notifications">通知はまだありません</string>
+    <string name="clear_all">すべてクリア</string>
 </resources>

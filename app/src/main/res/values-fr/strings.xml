@@ -4,8 +4,8 @@
     
     <!-- Navigation -->
     <string name="home">Accueil</string>
-    <string name="new_and_hot">Nouveau &amp; Hot</string>
-    <string name="search">Rechercher</string>
+    <string name="feed">Fil d\'actualités</string>
+    <string name="search">Recherche</string>
     <string name="profile">Profil</string>
     <string name="back">Retour</string>
     
@@ -200,4 +200,26 @@
     <string name="empty_favorites">Votre liste de favoris est vide</string>
     <string name="find_something">Trouver quelque chose à regarder</string>
     <string name="remove">Supprimer</string>
+
+    <!-- Feed -->
+    <string name="following">Abonnements</string>
+    <string name="discover">Découvrir</string>
+    <string name="movie_reviews">Critiques de films</string>
+    <string name="no_reviews">Pas encore de critiques</string>
+    <string name="user_activity">Activité des utilisateurs</string>
+    <string name="popular_reviews">Critiques populaires</string>
+    <string name="trending_discussions">Discussions tendances</string>
+    <string name="write_review">Écrire une critique</string>
+    
+    <!-- Notifications -->
+    <string name="all_notifications">Toutes les notifications</string>
+    <string name="mentions">Mentions</string>
+    <string name="likes">J\'aime</string>
+    <string name="comments">Commentaires</string>
+    <string name="follows">Abonnements</string>
+    <string name="follow_requests">Demandes d\'abonnement</string>
+    <string name="follow_accepted">Abonnement accepté</string>
+    <string name="mark_all_as_read">Marquer tout comme lu</string>
+    <string name="no_notifications">Pas encore de notifications</string>
+    <string name="clear_all">Tout effacer</string>
 </resources>

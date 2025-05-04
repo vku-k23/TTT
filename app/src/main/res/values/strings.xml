@@ -4,7 +4,7 @@
     
     <!-- Navigation -->
     <string name="home">Home</string>
-    <string name="new_and_hot">New &amp; Hot</string>
+    <string name="feed">Feed</string>
     <string name="search">Search</string>
     <string name="profile">Profile</string>
     <string name="back">Back</string>
@@ -202,4 +202,26 @@
     <string name="empty_favorites">Your favorites list is empty</string>
     <string name="find_something">Find something to watch</string>
     <string name="remove">Remove</string>
+    
+    <!-- Feed -->
+    <string name="following">Following</string>
+    <string name="discover">Discover</string>
+    <string name="movie_reviews">Movie Reviews</string>
+    <string name="no_reviews">No reviews yet</string>
+    <string name="user_activity">User Activity</string>
+    <string name="popular_reviews">Popular Reviews</string>
+    <string name="trending_discussions">Trending Discussions</string>
+    <string name="write_review">Write a Review</string>
+    
+    <!-- Notifications -->
+    <string name="all_notifications">All Notifications</string>
+    <string name="mentions">Mentions</string>
+    <string name="likes">Likes</string>
+    <string name="comments">Comments</string>
+    <string name="follows">Follows</string>
+    <string name="follow_requests">Follow Requests</string>
+    <string name="follow_accepted">Follow Accepted</string>
+    <string name="mark_all_as_read">Mark all as read</string>
+    <string name="no_notifications">No notifications yet</string>
+    <string name="clear_all">Clear all</string>
 </resources>
