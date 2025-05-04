@@ -211,6 +211,20 @@
     <string name="popular_reviews">人気のレビュー</string>
     <string name="trending_discussions">トレンドの議論</string>
     <string name="write_review">レビューを書く</string>
+    <string name="lists">リスト</string>
+    <string name="shared_lists">共有リスト</string>
+    <string name="my_created_lists">作成したリスト</string>
+    <string name="create_new_list">新しいリストを作成</string>
+    <string name="popular_lists">人気のリスト</string>
+    <string name="following_desc">フォローしている人のレビューとアクティビティ</string>
+    <string name="discover_desc">人気のレビューとアクティビティを発見</string>
+    <string name="movie_reviews_desc">すべての映画レビューを見る</string>
+    <string name="lists_desc">ユーザーが共有する映画リスト</string>
+    <string name="create_first_list">最初のリストを作成</string>
+    <string name="no_popular_lists">人気のリストが見つかりません</string>
+    <string name="no_created_lists">作成したリストがありません</string>
+    <string name="no_created_lists_desc">最初の映画コレクションを作成しましょう</string>
+    <string name="movies_count">%1$d本の映画</string>
     
     <!-- Notifications -->
     <string name="all_notifications">すべての通知</string>

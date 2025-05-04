@@ -212,6 +212,20 @@
     <string name="popular_reviews">Popular Reviews</string>
     <string name="trending_discussions">Trending Discussions</string>
     <string name="write_review">Write a Review</string>
+    <string name="lists">Lists</string>
+    <string name="shared_lists">Shared Lists</string>
+    <string name="my_created_lists">My Created Lists</string>
+    <string name="create_new_list">Create New List</string>
+    <string name="popular_lists">Popular Lists</string>
+    <string name="following_desc">Reviews and activities from people you follow</string>
+    <string name="discover_desc">Discover popular reviews and activities</string>
+    <string name="movie_reviews_desc">See all movie reviews</string>
+    <string name="lists_desc">Movie lists shared by users</string>
+    <string name="create_first_list">Create your first list</string>
+    <string name="no_popular_lists">No popular lists found</string>
+    <string name="no_created_lists">You have not created any lists yet</string>
+    <string name="no_created_lists_desc">Create your first movie collection</string>
+    <string name="movies_count">%1$d movies</string>
     
     <!-- Notifications -->
     <string name="all_notifications">All Notifications</string>
