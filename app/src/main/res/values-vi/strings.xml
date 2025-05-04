@@ -4,7 +4,7 @@
     
     <!-- Navigation -->
     <string name="home">Trang chủ</string>
-    <string name="new_and_hot">Mới &amp; Hot</string>
+    <string name="feed">Bảng tin</string>
     <string name="search">Tìm kiếm</string>
     <string name="profile">Hồ sơ</string>
     <string name="back">Quay lại</string>
@@ -201,4 +201,40 @@
     <string name="empty_favorites">Danh sách yêu thích của bạn đang trống</string>
     <string name="find_something">Tìm nội dung để xem</string>
     <string name="remove">Xóa</string>
+    
+    <!-- Feed -->
+    <string name="following">Đang theo dõi</string>
+    <string name="discover">Khám phá</string>
+    <string name="movie_reviews">Đánh giá phim</string>
+    <string name="no_reviews">Chưa có đánh giá nào</string>
+    <string name="user_activity">Hoạt động người dùng</string>
+    <string name="popular_reviews">Đánh giá phổ biến</string>
+    <string name="trending_discussions">Thảo luận xu hướng</string>
+    <string name="write_review">Viết đánh giá</string>
+    <string name="lists">Danh sách</string>
+    <string name="shared_lists">Danh sách được chia sẻ</string>
+    <string name="my_created_lists">Danh sách của tôi</string>
+    <string name="create_new_list">Tạo danh sách mới</string>
+    <string name="popular_lists">Danh sách phổ biến</string>
+    <string name="following_desc">Đánh giá/hoạt động từ người dùng đang theo dõi</string>
+    <string name="discover_desc">Khám phá đánh giá/hoạt động phổ biến từ mọi người dùng</string>
+    <string name="movie_reviews_desc">Xem tất cả đánh giá về phim</string>
+    <string name="lists_desc">Danh sách phim được chia sẻ bởi người dùng</string>
+    <string name="create_first_list">Tạo danh sách đầu tiên của bạn</string>
+    <string name="no_popular_lists">Không tìm thấy danh sách phổ biến</string>
+    <string name="no_created_lists">Bạn chưa tạo danh sách nào</string>
+    <string name="no_created_lists_desc">Tạo bộ sưu tập phim đầu tiên của bạn</string>
+    <string name="movies_count">%1$d phim</string>
+
+    <!-- Notifications -->
+    <string name="all_notifications">Tất cả thông báo</string>
+    <string name="mentions">Đề cập</string>
+    <string name="likes">Lượt thích</string>
+    <string name="comments">Bình luận</string>
+    <string name="follows">Theo dõi</string>
+    <string name="follow_requests">Yêu cầu theo dõi</string>
+    <string name="follow_accepted">Đã chấp nhận theo dõi</string>
+    <string name="mark_all_as_read">Đánh dấu tất cả là đã đọc</string>
+    <string name="no_notifications">Chưa có thông báo nào</string>
+    <string name="clear_all">Xóa tất cả</string>
 </resources>

@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -31,10 +32,8 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -61,7 +60,6 @@ import com.ttt.cinevibe.ui.theme.LightGray
 import com.ttt.cinevibe.ui.theme.NetflixRed
 import com.ttt.cinevibe.ui.theme.White
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
     viewModel: AuthViewModel = hiltViewModel(),
@@ -98,23 +96,20 @@ fun ProfileScreen(
         profileViewModel.fetchCurrentUser()
     }
     
-    Scaffold(
-        containerColor = Black,
-    ) { paddingValues ->
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Black)
+    ) {
         if (userProfileState is Resource.Loading) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = paddingValues.calculateLeftPadding(layoutDirection = androidx.compose.ui.unit.LayoutDirection.Ltr)),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator(color = NetflixRed)
-            }
+            CircularProgressIndicator(
+                color = NetflixRed,
+                modifier = Modifier.align(Alignment.Center)
+            )
         } else {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Black)
                     .verticalScroll(scrollState),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {

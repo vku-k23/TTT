@@ -34,12 +34,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.filled.Tv
-import androidx.compose.material.icons.outlined.Tv
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material.icons.filled.Download
-import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.outlined.Person
 
@@ -50,7 +46,7 @@ fun MainScreen(
     val navController = rememberNavController()
     val navigationState = rememberNavigationState()
 
-    // Bottom navigation items (unchanged)
+    // Bottom navigation items (updated with Feed and Notifications)
     val bottomNavItems = listOf(
         BottomNavItem(
             route = Screens.HOME_ROUTE,
@@ -60,11 +56,11 @@ fun MainScreen(
             useImageVector = true
         ),
         BottomNavItem(
-            route = Screens.NEW_HOT_ROUTE,
-            title = "New & Hot",
-            selectedImageVector = Icons.Filled.Tv,
-            unselectedImageVector = Icons.Outlined.Tv,
-            useImageVector = true
+            route = Screens.FEED_ROUTE,
+            title = "Feed",
+            selectedIcon = R.drawable.ic_feed_filled,
+            unselectedIcon = R.drawable.ic_feed_outlined,
+            useImageVector = false
         ),
         BottomNavItem(
             route = Screens.SEARCH_ROUTE,
@@ -74,11 +70,11 @@ fun MainScreen(
             useImageVector = true
         ),
         BottomNavItem(
-            route = Screens.DOWNLOADS_ROUTE,
-            title = "Downloads",
-            selectedImageVector = Icons.Filled.Download,
-            unselectedImageVector = Icons.Outlined.Download,
-            useImageVector = true
+            route = Screens.NOTIFICATIONS_ROUTE,
+            title = "Notifications",
+            selectedIcon = R.drawable.ic_notifications_filled,
+            unselectedIcon = R.drawable.ic_notifications_outlined,
+            useImageVector = false
         ),
         BottomNavItem(
             route = Screens.PROFILE_ROUTE,

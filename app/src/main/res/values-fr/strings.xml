@@ -4,8 +4,8 @@
     
     <!-- Navigation -->
     <string name="home">Accueil</string>
-    <string name="new_and_hot">Nouveau &amp; Hot</string>
-    <string name="search">Rechercher</string>
+    <string name="feed">Fil d\'actualités</string>
+    <string name="search">Recherche</string>
     <string name="profile">Profil</string>
     <string name="back">Retour</string>
     
@@ -95,7 +95,7 @@
     <string name="agreement_section_content_content">Tout le contenu disponible via notre service est la propriété de CineVibe ou de ses concédants et est protégé par des droits de propriété intellectuelle. Vous acceptez de ne pas reproduire, distribuer, modifier, afficher ou utiliser le contenu d\'une manière non expressément autorisée par CineVibe.</string>
     
     <string name="agreement_section_disclaimers_title">6. Avis de Non-responsabilité et Limitations de Responsabilité</string>
-    <string name="agreement_section_disclaimers_content">LE SERVICE ET TOUT LE CONTENU SONT FOURNIS \"TEL QUEL\" SANS GARANTIE D\'AUCUNE SORTE. DANS LA MESURE MAXIMALE PERMISE PAR LA LOI APPLICABLE, CINEVIBE NE SERA PAS RESPONSABLE DES DOMMAGES INDIRECTS, ACCESSOIRES, SPÉCIAUX, CONSÉCUTIFS OU PUNITIFS.</string>
+    <string name="agreement_section_disclaimers_content">LE SERVICE ET TOUT LE CONTENU SONT FOURNIS "TEL QUEL" SANS GARANTIE D\'AUCUNE SORTE. DANS LA MESURE MAXIMALE PERMISE PAR LA LOI APPLICABLE, CINEVIBE NE SERA PAS RESPONSABLE DES DOMMAGES INDIRECTS, ACCESSOIRES, SPÉCIAUX, CONSÉCUTIFS OU PUNITIFS.</string>
     
     <string name="agreement_section_law_title">7. Loi Applicable</string>
     <string name="agreement_section_law_content">Ces conditions seront régies par les lois de la juridiction dans laquelle vous résidez, sans égard à ses dispositions relatives aux conflits de lois.</string>
@@ -200,4 +200,41 @@
     <string name="empty_favorites">Votre liste de favoris est vide</string>
     <string name="find_something">Trouver quelque chose à regarder</string>
     <string name="remove">Supprimer</string>
+
+    <!-- Feed -->
+    <string name="following">Abonnements</string>
+    <string name="discover">Découvrir</string>
+    <string name="movie_reviews">Critiques de films</string>
+    <string name="no_reviews">Pas encore de critiques</string>
+    <string name="user_activity">Activité des utilisateurs</string>
+    <string name="popular_reviews">Critiques populaires</string>
+    <string name="trending_discussions">Discussions tendances</string>
+    <string name="write_review">Écrire une critique</string>
+    <string name="lists">Collections</string>
+    <string name="shared_lists">Collections partagées</string>
+    <string name="my_created_lists">Mes collections</string>
+    <string name="create_new_list">Créer une nouvelle collection</string>
+    <string name="popular_lists">Collections populaires</string>
+    <string name="following_desc">Critiques et activités des personnes que vous suivez</string>
+    <string name="discover_desc">Découvrir des critiques et activités populaires</string>
+    <string name="movie_reviews_desc">Voir toutes les critiques de films</string>
+    <string name="lists_desc">Collections de films partagées par les utilisateurs</string>
+    <string name="create_first_list">Créer votre première collection</string>
+    <string name="no_popular_lists">Aucune collection populaire trouvée</string>
+    <string name="no_created_lists">Vous n\'avez pas encore créé de collections</string>
+    <string name="no_created_lists_desc">Créez votre première collection de films</string>
+    <string name="movies_count">%1$d films</string>
+    <string name="synopsis">Synopsis</string>
+    
+    <!-- Notifications -->
+    <string name="all_notifications">Toutes les notifications</string>
+    <string name="mentions">Mentions</string>
+    <string name="likes">J\'aime</string>
+    <string name="comments">Commentaires</string>
+    <string name="follows">Abonnements</string>
+    <string name="follow_requests">Demandes d\'abonnement</string>
+    <string name="follow_accepted">Abonnement accepté</string>
+    <string name="mark_all_as_read">Marquer tout comme lu</string>
+    <string name="no_notifications">Pas encore de notifications</string>
+    <string name="clear_all">Tout effacer</string>
 </resources>

@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -29,7 +30,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -170,187 +170,175 @@ fun EditProfileScreen(
         }
     }
 
-    Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-        containerColor = Black,
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = stringResource(R.string.edit_profile),
-                        color = White,
-                        fontSize = 22.sp,
-                        fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.Left,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBackPressed) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.back),
-                            tint = White
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Black
-                ),
-                modifier = Modifier.fillMaxWidth()
-            )
-        },
-        modifier = Modifier.padding(top = 0.dp)
-    ) { paddingValues ->
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Black)
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Black)
-                .padding(paddingValues)
-                .verticalScroll(scrollState)
-                .padding(horizontal = 16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Profile Picture Area
-            Box(
+            ProfileTopBar(
+                title = stringResource(R.string.edit_profile),
+                onBackPressed = onBackPressed
+            )
+            
+            // Main Content
+            Column(
                 modifier = Modifier
-                    .size(100.dp)
-                    .clip(CircleShape)
-                    .background(DarkGray)
-                    .clickable {
-                        // Check permission before launching gallery
-                        if (permissionState.status.isGranted) {
-                            galleryLauncher.launch("image/*")
-                        } else {
-                            permissionState.launchPermissionRequest()
-                        }
-                    },
-                contentAlignment = Alignment.Center
+                    .fillMaxSize()
+                    .verticalScroll(scrollState)
+                    .padding(horizontal = 16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Display selected image or current profile image
-                if (selectedImageUri != null) {
-                    AsyncImage(
-                        model = selectedImageUri,
-                        contentDescription = "Selected Profile Image",
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
-                    )
-                } else if (profileImageUrl.isNotEmpty()) {
-                    AsyncImage(
-                        model = profileImageUrl,
-                        contentDescription = "Profile Image",
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
-                    )
-                } else {
-                    Text(
-                        text = displayName.firstOrNull()?.uppercase() ?: "U",
-                        color = White,
-                        fontSize = 36.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-
-                // Overlay with edit icon
+                // Profile Picture Area
                 Box(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.3f)),
+                        .size(100.dp)
+                        .clip(CircleShape)
+                        .background(DarkGray)
+                        .clickable {
+                            // Check permission before launching gallery
+                            if (permissionState.status.isGranted) {
+                                galleryLauncher.launch("image/*")
+                            } else {
+                                permissionState.launchPermissionRequest()
+                            }
+                        },
                     contentAlignment = Alignment.Center
                 ) {
-                    if (avatarUploadState is Resource.Loading) {
+                    // Display selected image or current profile image
+                    if (selectedImageUri != null) {
+                        AsyncImage(
+                            model = selectedImageUri,
+                            contentDescription = "Selected Profile Image",
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                    } else if (profileImageUrl.isNotEmpty()) {
+                        AsyncImage(
+                            model = profileImageUrl,
+                            contentDescription = "Profile Image",
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                    } else {
+                        Text(
+                            text = displayName.firstOrNull()?.uppercase() ?: "U",
+                            color = White,
+                            fontSize = 36.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+
+                    // Overlay with edit icon
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.Black.copy(alpha = 0.3f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if (avatarUploadState is Resource.Loading) {
+                            CircularProgressIndicator(
+                                color = White,
+                                strokeWidth = 2.dp,
+                                modifier = Modifier.size(32.dp)
+                            )
+                        } else {
+                            Icon(
+                                imageVector = Icons.Default.Edit,
+                                contentDescription = "Change profile picture",
+                                tint = White,
+                                modifier = Modifier.size(32.dp)
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+                
+                Text(
+                    text = "Tap to change profile picture",
+                    color = LightGray,
+                    fontSize = 14.sp,
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Form Fields
+                ProfileTextField(
+                    value = displayName,
+                    onValueChange = { displayName = it },
+                    label = stringResource(R.string.full_name),
+                    keyboardType = KeyboardType.Text
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                ProfileTextField(
+                    value = bio,
+                    onValueChange = { bio = it },
+                    label = "Bio",
+                    keyboardType = KeyboardType.Text,
+                    singleLine = false,
+                    modifier = Modifier.height(120.dp).fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                ProfileTextField(
+                    value = favoriteGenre,
+                    onValueChange = { favoriteGenre = it },
+                    label = "Favorite Genre",
+                    keyboardType = KeyboardType.Text
+                )
+
+                Spacer(modifier = Modifier.height(32.dp))
+
+                // Save Button
+                Button(
+                    onClick = {
+                        profileViewModel.updateUserProfile(
+                            displayName = displayName,
+                            bio = bio.ifEmpty { null },
+                            favoriteGenre = favoriteGenre.ifEmpty { null },
+                            profileImageUrl = profileImageUrl.ifEmpty { null }
+                        )
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = NetflixRed,
+                        contentColor = White
+                    ),
+                    shape = RoundedCornerShape(4.dp),
+                    enabled = displayName.isNotEmpty() && updateProfileState !is Resource.Loading
+                ) {
+                    if (updateProfileState is Resource.Loading) {
                         CircularProgressIndicator(
                             color = White,
                             strokeWidth = 2.dp,
-                            modifier = Modifier.size(32.dp)
+                            modifier = Modifier.size(24.dp)
                         )
                     } else {
-                        Icon(
-                            imageVector = Icons.Default.Edit,
-                            contentDescription = "Change profile picture",
-                            tint = White,
-                            modifier = Modifier.size(32.dp)
+                        Text(
+                            text = stringResource(R.string.save_changes),
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold
                         )
                     }
                 }
             }
-
-            Spacer(modifier = Modifier.height(8.dp))
-            
-            Text(
-                text = "Tap to change profile picture",
-                color = LightGray,
-                fontSize = 14.sp,
-                textAlign = TextAlign.Center
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Form Fields
-            ProfileTextField(
-                value = displayName,
-                onValueChange = { displayName = it },
-                label = stringResource(R.string.full_name),
-                keyboardType = KeyboardType.Text
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            ProfileTextField(
-                value = bio,
-                onValueChange = { bio = it },
-                label = "Bio",
-                keyboardType = KeyboardType.Text,
-                singleLine = false,
-                modifier = Modifier.height(120.dp)
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            ProfileTextField(
-                value = favoriteGenre,
-                onValueChange = { favoriteGenre = it },
-                label = "Favorite Genre",
-                keyboardType = KeyboardType.Text
-            )
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            // Save Button
-            Button(
-                onClick = {
-                    profileViewModel.updateUserProfile(
-                        displayName = displayName,
-                        bio = bio.ifEmpty { null },
-                        favoriteGenre = favoriteGenre.ifEmpty { null },
-                        profileImageUrl = profileImageUrl.ifEmpty { null }
-                    )
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = NetflixRed,
-                    contentColor = White
-                ),
-                shape = RoundedCornerShape(4.dp),
-                enabled = displayName.isNotEmpty() && updateProfileState !is Resource.Loading
-            ) {
-                if (updateProfileState is Resource.Loading) {
-                    CircularProgressIndicator(
-                        color = White,
-                        strokeWidth = 2.dp,
-                        modifier = Modifier.size(24.dp)
-                    )
-                } else {
-                    Text(
-                        text = stringResource(R.string.save_changes),
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-            }
         }
+        
+        // Snackbar
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
     }
 }
 
