@@ -1,7 +1,6 @@
 package com.ttt.cinevibe.data.repository
 
 import com.ttt.cinevibe.data.remote.api.UserApiService
-import com.ttt.cinevibe.data.remote.models.ApiResponse
 import com.ttt.cinevibe.data.remote.models.UserRequest
 import com.ttt.cinevibe.data.remote.models.UserResponse
 import com.ttt.cinevibe.data.remote.models.UserProfileRequest
@@ -26,7 +25,7 @@ class UserRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun registerUser(
+    override suspend fun syncUser(
         email: String, 
         displayName: String, 
         firebaseUid: String
@@ -38,30 +37,20 @@ class UserRepositoryImpl @Inject constructor(
                 displayName = displayName,
                 firebaseUid = firebaseUid
             )
-            val response = userApiService.registerUser(userRequest)
+            val response = userApiService.syncUser(userRequest)
             emit(Resource.Success(response))
         } catch (e: Exception) {
-            emit(Resource.Error(e.message ?: "Registration with backend failed"))
+            emit(Resource.Error(e.message ?: "Sync with backend failed"))
         }
     }
 
-    override suspend fun updateUser(updateRequest: UserProfileRequest): Flow<Resource<UserResponse>> = flow {
+    override suspend fun updateUserProfile(profileRequest: UserProfileRequest): Flow<Resource<UserResponse>> = flow {
         emit(Resource.Loading())
         try {
-            val response = userApiService.updateUser(updateRequest)
+            val response = userApiService.updateUserProfile(profileRequest)
             emit(Resource.Success(response))
         } catch (e: Exception) {
-            emit(Resource.Error(e.message ?: "Failed to update user"))
-        }
-    }
-
-    override suspend fun deleteUser(): Flow<Resource<ApiResponse>> = flow {
-        emit(Resource.Loading())
-        try {
-            val response = userApiService.deleteUser()
-            emit(Resource.Success(response))
-        } catch (e: Exception) {
-            emit(Resource.Error(e.message ?: "Failed to delete user"))
+            emit(Resource.Error(e.message ?: "Failed to update user profile"))
         }
     }
 }

@@ -8,7 +8,7 @@ import com.ttt.cinevibe.domain.usecase.auth.GetAuthStatusUseCase
 import com.ttt.cinevibe.domain.usecase.auth.LoginUseCase
 import com.ttt.cinevibe.domain.usecase.auth.LogoutUseCase
 import com.ttt.cinevibe.domain.usecase.auth.RegisterUseCase
-import com.ttt.cinevibe.domain.usecase.user.RegisterUserUseCase
+import com.ttt.cinevibe.domain.usecase.user.SyncUserUseCase
 import com.ttt.cinevibe.data.local.PendingSyncManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
@@ -18,9 +18,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.withTimeoutOrNull
 import javax.inject.Inject
+
+private const val TAG = "AuthViewModel"
+private const val SYNC_TIMEOUT_MS = 10000L // 10 seconds
 
 @HiltViewModel
 class AuthViewModel @Inject constructor(
@@ -29,7 +31,7 @@ class AuthViewModel @Inject constructor(
     private val logoutUseCase: LogoutUseCase,
     private val forgotPasswordUseCase: ForgotPasswordUseCase,
     private val getAuthStatusUseCase: GetAuthStatusUseCase,
-    private val registerUserUseCase: RegisterUserUseCase,
+    private val syncUserUseCase: SyncUserUseCase,
     private val pendingSyncManager: PendingSyncManager
 ) : ViewModel() {
 
@@ -45,15 +47,12 @@ class AuthViewModel @Inject constructor(
     private val _forgotPasswordState = MutableStateFlow<AuthState>(AuthState.Idle)
     val forgotPasswordState: StateFlow<AuthState> = _forgotPasswordState.asStateFlow()
 
-    // Add states to track Firebase auth and backend registration separately
+    // Consolidated states for Firebase auth and backend sync
     private val _firebaseAuthState = MutableStateFlow<FirebaseAuthState>(FirebaseAuthState.Idle)
     val firebaseAuthState: StateFlow<FirebaseAuthState> = _firebaseAuthState
 
-    private val _backendRegState = MutableStateFlow<BackendRegistrationState>(BackendRegistrationState.Idle)
-    val backendRegState: StateFlow<BackendRegistrationState> = _backendRegState
-
-    private val _backendSyncAttempted = MutableStateFlow(false)
-    val backendSyncAttempted: StateFlow<Boolean> = _backendSyncAttempted
+    private val _backendSyncState = MutableStateFlow<BackendSyncState>(BackendSyncState.Idle)
+    val backendSyncState: StateFlow<BackendSyncState> = _backendSyncState
 
     fun forgotPassword(email: String) {
         viewModelScope.launch {
@@ -65,15 +64,9 @@ class AuthViewModel @Inject constructor(
                 }
                 .collect { result ->
                     when (result) {
-                        is Resource.Success -> {
-                            _forgotPasswordState.value = AuthState.Success
-                        }
-                        is Resource.Error -> {
-                            _forgotPasswordState.value = AuthState.Error(result.message ?: "Password reset failed")
-                        }
-                        is Resource.Loading -> {
-                            _forgotPasswordState.value = AuthState.Loading
-                        }
+                        is Resource.Success -> _forgotPasswordState.value = AuthState.Success
+                        is Resource.Error -> _forgotPasswordState.value = AuthState.Error(result.message ?: "Password reset failed")
+                        is Resource.Loading -> _forgotPasswordState.value = AuthState.Loading
                     }
                 }
         }
@@ -90,44 +83,54 @@ class AuthViewModel @Inject constructor(
                 .collect { result ->
                     when (result) {
                         is Resource.Success -> {
-                            _loginState.value = AuthState.Success
+                            android.util.Log.d(TAG, "Firebase login successful")
                             
-                            // Check for pending registration data to sync with backend
+                            // Check for pending registration data first
                             checkPendingSyncTasks()
+                            
+                            // Now sync current user with backend
+                            _backendSyncState.value = BackendSyncState.Loading
+                            try {
+                                // Sync with backend (we don't care about result here, just log it)
+                                syncUserWithBackend()
+                                
+                                // Always proceed after sync attempt, regardless of result
+                                android.util.Log.d(TAG, "Login successful and sync with backend attempted")
+                                _loginState.value = AuthState.Success
+                            } catch (e: Exception) {
+                                if (e is CancellationException) throw e
+                                // Log the error but still consider login successful since Firebase auth worked
+                                android.util.Log.e(TAG, "Error during login sync with backend: ${e.message}")
+                                _loginState.value = AuthState.Success
+                            }
                         }
-                        is Resource.Error -> {
-                            _loginState.value = AuthState.Error(result.message ?: "Unknown error")
-                        }
-                        is Resource.Loading -> {
-                            _loginState.value = AuthState.Loading
-                        }
+                        is Resource.Error -> _loginState.value = AuthState.Error(result.message ?: "Login failed")
+                        is Resource.Loading -> _loginState.value = AuthState.Loading
                     }
                 }
         }
     }
 
     fun register(email: String, password: String, username: String) {
-        android.util.Log.d("RegistrationDebug", "Register function called with: $email, username: $username")
+        android.util.Log.d(TAG, "Starting registration process for: $email")
         viewModelScope.launch {
             _registerState.value = AuthState.Loading
             _firebaseAuthState.value = FirebaseAuthState.Loading
-            _backendRegState.value = BackendRegistrationState.Idle
-            _backendSyncAttempted.value = false
             
             try {
-                // Step 1: Register with Firebase first
+                // Step 1: Register with Firebase
                 var firebaseSuccess = false
                 registerUseCase(email, password, username)
                     .catch { e ->
                         if (e is CancellationException) throw e
-                        android.util.Log.e("RegistrationDebug", "Firebase registration failed: ${e.message}")
-                        _firebaseAuthState.value = FirebaseAuthState.Error(e.message ?: "Firebase registration failed")
+                        android.util.Log.e(TAG, "Firebase registration failed: ${e.message}")
+                        _firebaseAuthState.value = FirebaseAuthState.Error(e.message ?: "Registration failed")
                         _registerState.value = AuthState.Error(e.message ?: "Registration failed")
                     }
                     .collect { result ->
                         when (result) {
                             is Resource.Success -> {
-                                android.util.Log.d("RegistrationDebug", "Firebase registration successful")
+                                android.util.Log.d(TAG, "Firebase registration successful")
                                 _firebaseAuthState.value = FirebaseAuthState.Success
                                 firebaseSuccess = true
                                 
@@ -138,8 +141,8 @@ class AuthViewModel @Inject constructor(
                                 }
                             }
                             is Resource.Error -> {
-                                android.util.Log.e("RegistrationDebug", "Firebase error: ${result.message}")
-                                _firebaseAuthState.value = FirebaseAuthState.Error(result.message ?: "Firebase registration failed")
+                                android.util.Log.e(TAG, "Firebase error: ${result.message}")
+                                _firebaseAuthState.value = FirebaseAuthState.Error(result.message ?: "Registration failed")
                                 _registerState.value = AuthState.Error(result.message ?: "Registration failed")
                             }
                             is Resource.Loading -> {
@@ -148,82 +151,93 @@ class AuthViewModel @Inject constructor(
                         }
                     }
                 
-                // Step 2: If Firebase registration was successful, proceed with backend registration
+                // Step 2: If Firebase registration was successful, sync user with backend
                 if (firebaseSuccess) {
-                    val uid = getAuthStatusUseCase.getCurrentUserId()
-                    
-                    if (uid != null) {
-                        android.util.Log.d("RegistrationDebug", "Starting backend registration with uid: $uid")
-                        _backendRegState.value = BackendRegistrationState.Loading
+                    _backendSyncState.value = BackendSyncState.Loading
+                    try {
+                        // We're deliberately not waiting for backend sync to complete
+                        // Just kick off the sync process
+                        syncUserWithBackend()
                         
-                        // Use a timeout for backend registration to prevent hanging
-                        val backendResult = withTimeoutOrNull(15000) { // 15 seconds timeout
-                            try {
-                                var finalResult: Resource<Any> = Resource.Loading()
-                                
-                                registerUserUseCase(email, username, uid)
-                                    .catch { e ->
-                                        if (e is CancellationException) throw e
-                                        android.util.Log.e("RegistrationDebug", "Backend registration error: ${e.message}")
-                                        finalResult = Resource.Error(e.message ?: "Backend registration failed")
-                                    }
-                                    .collect { result ->
-                                        finalResult = when (result) {
-                                            is Resource.Success -> {
-                                                android.util.Log.d("RegistrationDebug", "Backend registration successful")
-                                                Resource.Success(Unit)
-                                            }
-                                            is Resource.Error -> {
-                                                android.util.Log.e("RegistrationDebug", "Backend registration error: ${result.message}")
-                                                Resource.Error(result.message ?: "Backend registration failed")
-                                            }
-                                            is Resource.Loading -> finalResult
-                                        }
-                                    }
-                                
-                                finalResult
-                            } catch (e: Exception) {
-                                if (e is CancellationException) throw e
-                                android.util.Log.e("RegistrationDebug", "Backend registration exception: ${e.message}")
-                                Resource.Error(e.message ?: "Backend registration failed")
-                            }
-                        } ?: Resource.Error("Backend registration timed out")
-                        
-                        _backendSyncAttempted.value = true
-                        
-                        // Handle backend result
-                        when (backendResult) {
-                            is Resource.Success -> {
-                                android.util.Log.d("RegistrationDebug", "Backend registration succeeded, clearing pending data")
-                                _backendRegState.value = BackendRegistrationState.Success
-                                pendingSyncManager.clearPendingRegistration()
-                                _registerState.value = AuthState.Success
-                            }
-                            is Resource.Error -> {
-                                android.util.Log.w("RegistrationDebug", "Backend registration failed but Firebase registration succeeded. Continuing with FirebaseAuth only for now: ${backendResult.message}")
-                                _backendRegState.value = BackendRegistrationState.Error(backendResult.message ?: "Unknown backend error")
-                                
-                                // IMPORTANT: Despite backend failure, consider registration successful 
-                                // since Firebase auth worked and we've saved data for later sync
-                                _registerState.value = AuthState.Success
-                            }
-                            is Resource.Loading -> {
-                                // This shouldn't happen due to the timeout, but just in case
-                                android.util.Log.w("RegistrationDebug", "Backend registration still in Loading state after timeout")
-                                _backendRegState.value = BackendRegistrationState.Error("Backend registration timed out")
-                                _registerState.value = AuthState.Success // Still allow login with Firebase only
-                            }
-                        }
-                    } else {
-                        android.util.Log.e("RegistrationDebug", "Firebase UID is null after successful registration")
-                        _registerState.value = AuthState.Error("Failed to get user ID after registration")
+                        // Always consider registration successful if Firebase auth worked
+                        android.util.Log.d(TAG, "Registration successful and backend sync initiated")
+                        _registerState.value = AuthState.Success
+                    } catch (e: Exception) {
+                        if (e is CancellationException) throw e
+                        // Log the error but still consider registration successful since Firebase auth worked
+                        android.util.Log.e(TAG, "Error during registration sync with backend: ${e.message}")
+                        _registerState.value = AuthState.Success
                     }
                 }
                 
             } catch (e: Exception) {
                 if (e is CancellationException) throw e
-                android.util.Log.e("RegistrationDebug", "Uncaught exception in registration: ${e.message}", e)
-                _registerState.value = AuthState.Error(e.message ?: "An unexpected error occurred")
+                android.util.Log.e(TAG, "Uncaught exception in registration: ${e.message}", e)
+                _registerState.value = AuthState.Error(e.message ?: "Registration failed")
+            }
+        }
+    }
+
+    /**
+     * Unified method to sync the current user with backend
+     * Used for both login and registration flows
+     * 
+     * This method returns immediately but handles the sync in a coroutine
+     */
+    private fun syncUserWithBackend() {
+        viewModelScope.launch {
+            try {
+                _backendSyncState.value = BackendSyncState.Loading
+                
+                val uid = getAuthStatusUseCase.getCurrentUserId()
+                val email = getAuthStatusUseCase.getCurrentUserEmail()
+                
+                if (uid != null && email != null) {
+                    android.util.Log.d(TAG, "Syncing user with backend: $uid, email: $email")
+                    
+                    // Use email prefix as default username if needed
+                    val username = email.substringBefore('@')
+                    
+                    withTimeoutOrNull(SYNC_TIMEOUT_MS) {
+                        try {
+                            syncUserUseCase(email, username, uid)
+                                .catch { e ->
+                                    if (e is CancellationException) throw e
+                                    android.util.Log.e(TAG, "Backend sync error: ${e.message}")
+                                    _backendSyncState.value = BackendSyncState.Error(e.message ?: "Failed to sync with server")
+                                }
+                                .collect { result ->
+                                    when (result) {
+                                        is Resource.Success -> {
+                                            android.util.Log.d(TAG, "Backend sync successful")
+                                            _backendSyncState.value = BackendSyncState.Success
+                                            pendingSyncManager.clearPendingRegistration()
+                                        }
+                                        is Resource.Error -> {
+                                            android.util.Log.e(TAG, "Backend sync error: ${result.message}")
+                                            _backendSyncState.value = BackendSyncState.Error(result.message ?: "Sync failed")
+                                        }
+                                        is Resource.Loading -> {} // Stay in loading state
+                                    }
+                                }
+                        } catch (e: Exception) {
+                            if (e is CancellationException) throw e
+                            android.util.Log.e(TAG, "Backend sync exception: ${e.message}")
+                            _backendSyncState.value = BackendSyncState.Error(e.message ?: "Sync failed")
+                        }
+                    } ?: run {
+                        // Timeout occurred
+                        android.util.Log.w(TAG, "Backend sync timed out")
+                        _backendSyncState.value = BackendSyncState.Error("Sync timed out")
+                    }
+                } else {
+                    android.util.Log.e(TAG, "Missing user data for sync: uid=$uid, email=$email")
+                    _backendSyncState.value = BackendSyncState.Error("Missing user data")
+                }
+            } catch (e: Exception) {
+                if (e is CancellationException) throw e
+                android.util.Log.e(TAG, "General error during sync: ${e.message}")
+                _backendSyncState.value = BackendSyncState.Error(e.message ?: "Sync failed")
             }
         }
     }
@@ -232,33 +246,33 @@ class AuthViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 if (pendingSyncManager.hasPendingRegistration()) {
-                    android.util.Log.d("AuthViewModel", "Found pending registration data, attempting to sync with backend")
+                    android.util.Log.d(TAG, "Found pending registration data")
                     val registrationData = pendingSyncManager.getPendingRegistrationData()
                     
                     if (registrationData != null) {
-                        // Try to sync with backend server
-                        withTimeoutOrNull(10000) { // 10 second timeout
+                        // Try to sync with backend
+                        withTimeoutOrNull(SYNC_TIMEOUT_MS) {
                             try {
-                                registerUserUseCase(
+                                syncUserUseCase(
                                     registrationData.email, 
                                     registrationData.displayName, 
                                     registrationData.firebaseUid
-                                ).first() // Just take the first emission to complete the flow
+                                ).first()
                                 
-                                // If we reach here without exception, sync was successful
+                                // Sync successful
                                 pendingSyncManager.clearPendingRegistration()
-                                android.util.Log.d("AuthViewModel", "Background sync with backend successful")
+                                android.util.Log.d(TAG, "Pending data sync successful")
                             } catch (e: Exception) {
                                 if (e is CancellationException) throw e
-                                android.util.Log.e("AuthViewModel", "Background sync failed: ${e.message}")
-                                // Leave pending data for next attempt
+                                android.util.Log.e(TAG, "Pending data sync failed: ${e.message}")
+                                // Keep pending data for next attempt
                             }
                         }
                     }
                 }
             } catch (e: Exception) {
                 if (e is CancellationException) throw e
-                android.util.Log.e("AuthViewModel", "Error checking pending sync tasks: ${e.message}")
+                android.util.Log.e(TAG, "Error checking pending sync tasks: ${e.message}")
             }
         }
     }
@@ -273,15 +287,9 @@ class AuthViewModel @Inject constructor(
                 }
                 .collect { result ->
                     when (result) {
-                        is Resource.Success -> {
-                            _logoutState.value = AuthState.Success
-                        }
-                        is Resource.Error -> {
-                            _logoutState.value = AuthState.Error(result.message ?: "Logout failed")
-                        }
-                        is Resource.Loading -> {
-                            _logoutState.value = AuthState.Loading
-                        }
+                        is Resource.Success -> _logoutState.value = AuthState.Success
+                        is Resource.Error -> _logoutState.value = AuthState.Error(result.message ?: "Logout failed")
+                        is Resource.Loading -> _logoutState.value = AuthState.Loading
                     }
                 }
         }
@@ -292,19 +300,13 @@ class AuthViewModel @Inject constructor(
         _registerState.value = AuthState.Idle
         _logoutState.value = AuthState.Idle
         _forgotPasswordState.value = AuthState.Idle
+        _firebaseAuthState.value = FirebaseAuthState.Idle
+        _backendSyncState.value = BackendSyncState.Idle
     }
 
-    fun isUserLoggedIn(): Boolean {
-        return getAuthStatusUseCase.isUserLoggedIn()
-    }
-
-    fun getCurrentUserId(): String? {
-        return getAuthStatusUseCase.getCurrentUserId()
-    }
-
-    fun getCurrentUserEmail(): String? {
-        return getAuthStatusUseCase.getCurrentUserEmail()
-    }
+    fun isUserLoggedIn(): Boolean = getAuthStatusUseCase.isUserLoggedIn()
+    fun getCurrentUserId(): String? = getAuthStatusUseCase.getCurrentUserId()
+    fun getCurrentUserEmail(): String? = getAuthStatusUseCase.getCurrentUserEmail()
 }
 
 sealed class AuthState {
@@ -321,9 +323,10 @@ sealed class FirebaseAuthState {
     data class Error(val message: String) : FirebaseAuthState()
 }
 
-sealed class BackendRegistrationState {
-    object Idle : BackendRegistrationState()
-    object Loading : BackendRegistrationState()
-    object Success : BackendRegistrationState()
-    data class Error(val message: String) : BackendRegistrationState()
+// Consolidated backend sync state (replaces separate states for registration and login)
+sealed class BackendSyncState {
+    object Idle : BackendSyncState()
+    object Loading : BackendSyncState()
+    object Success : BackendSyncState()
+    data class Error(val message: String) : BackendSyncState()
 }

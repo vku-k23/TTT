@@ -73,8 +73,7 @@ fun RegisterScreen(
     
     val registerState by viewModel.registerState.collectAsState()
     val firebaseAuthState by viewModel.firebaseAuthState.collectAsState()
-    val backendRegState by viewModel.backendRegState.collectAsState()
-    val backendSyncAttempted by viewModel.backendSyncAttempted.collectAsState()
+    val backendSyncState by viewModel.backendSyncState.collectAsState()
     
     val snackbarHostState = remember { SnackbarHostState() }
     
@@ -96,11 +95,10 @@ fun RegisterScreen(
     }
     
     // Show meaningful feedback about backend registration status
-    LaunchedEffect(key1 = backendRegState, key2 = backendSyncAttempted) {
+    LaunchedEffect(key1 = backendSyncState) {
         // Only show backend error messages if Firebase auth was successful
         if (firebaseAuthState is FirebaseAuthState.Success && 
-            backendRegState is BackendRegistrationState.Error &&
-            backendSyncAttempted) {
+            backendSyncState is BackendSyncState.Error) {
             
             val message = "Registration completed with Firebase but couldn't connect to app server. " +
                           "Some features may be limited until next login."
@@ -301,7 +299,7 @@ fun RegisterScreen(
                 
                 // Registration Status (optional)
                 when {
-                    firebaseAuthState is FirebaseAuthState.Success && backendRegState is BackendRegistrationState.Loading -> {
+                    firebaseAuthState is FirebaseAuthState.Success && backendSyncState is BackendSyncState.Loading -> {
                         Text(
                             text = "Account created! Connecting to server...",
                             color = White,
@@ -380,7 +378,7 @@ fun RegisterScreen(
                             firebaseAuthState is FirebaseAuthState.Loading -> 
                                 "Creating your account..."
                             firebaseAuthState is FirebaseAuthState.Success && 
-                            backendRegState is BackendRegistrationState.Loading -> 
+                            backendSyncState is BackendSyncState.Loading -> 
                                 "Connecting to server..."
                             else -> "Registering..."
                         }

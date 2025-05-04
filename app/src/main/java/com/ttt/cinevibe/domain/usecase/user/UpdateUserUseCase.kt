@@ -4,7 +4,6 @@ import com.ttt.cinevibe.data.remote.models.UserResponse
 import com.ttt.cinevibe.data.remote.models.UserProfileRequest
 import com.ttt.cinevibe.data.repository.UserRepository
 import com.ttt.cinevibe.domain.model.Resource
-import com.google.firebase.firestore.firestoreSettings
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
@@ -21,7 +20,7 @@ class UpdateUserUseCase @Inject constructor(
         followersCount: String? = null,
         followingCount: String? = null
     ): Flow<Resource<UserResponse>> {
-        val updateRequest = UserProfileRequest(
+        val profileRequest = UserProfileRequest(
             firebaseUid = firebaseUid,
             displayName = displayName,
             profileImageUrl = profileImageUrl,
@@ -31,6 +30,6 @@ class UpdateUserUseCase @Inject constructor(
             followersCount = followersCount,
             followingCount = followingCount
         )
-        return userRepository.updateUser(updateRequest)
+        return userRepository.updateUserProfile(profileRequest)
     }
 }
