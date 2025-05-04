@@ -16,6 +16,6 @@ interface UserApiService {
     @POST("api/user/sync")
     suspend fun syncUser(@Body userRequest: UserRequest): UserResponse
     
-    @PUT("api/user/me")
+    @PUT("api/user/profile")
     suspend fun updateUserProfile(@Body profileRequest: UserProfileRequest): UserResponse
 }

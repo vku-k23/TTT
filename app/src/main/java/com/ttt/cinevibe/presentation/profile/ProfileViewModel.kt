@@ -3,7 +3,13 @@ package com.ttt.cinevibe.presentation.profile
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ttt.cinevibe.data.manager.LanguageManager
+import com.ttt.cinevibe.data.remote.models.UserProfileRequest
+import com.ttt.cinevibe.data.remote.models.UserResponse
+import com.ttt.cinevibe.data.repository.UserRepository
+import com.ttt.cinevibe.domain.model.Resource
+import com.ttt.cinevibe.domain.usecase.auth.GetAuthStatusUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -15,7 +21,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
-    private val languageManager: LanguageManager
+    private val languageManager: LanguageManager,
+    private val userRepository: UserRepository,
+    private val getAuthStatusUseCase: GetAuthStatusUseCase
 ) : ViewModel() {
     
     // Settings state flows
@@ -47,11 +55,100 @@ class ProfileViewModel @Inject constructor(
             Locale.getDefault()
         )
     
-    // Functions to get user information
-    // In a real app, these would fetch from a repository or API
+    // User profile states
+    private val _userProfileState = MutableStateFlow<Resource<UserResponse>>(Resource.Loading())
+    val userProfileState: StateFlow<Resource<UserResponse>> = _userProfileState
+    
+    // Using null as initial state instead of non-existent Idle state
+    private val _updateProfileState = MutableStateFlow<Resource<UserResponse>?>(null)
+    val updateProfileState: StateFlow<Resource<UserResponse>?> = _updateProfileState
+    
+    // Initialize by fetching current user data
+    init {
+        fetchCurrentUser()
+    }
+    
+    fun fetchCurrentUser() {
+        viewModelScope.launch {
+            try {
+                userRepository.getCurrentUser().collect { result ->
+                    _userProfileState.value = result
+                }
+            } catch (e: Exception) {
+                if (e is CancellationException) throw e
+                _userProfileState.value = Resource.Error(e.message ?: "Failed to load user profile")
+            }
+        }
+    }
+    
+    fun updateUserProfile(
+        displayName: String,
+        bio: String?,
+        favoriteGenre: String?,
+        profileImageUrl: String?
+    ) {
+        viewModelScope.launch {
+            _updateProfileState.value = Resource.Loading()
+            try {
+                val uid = getAuthStatusUseCase.getCurrentUserId()
+                if (uid == null) {
+                    _updateProfileState.value = Resource.Error("User ID not available")
+                    return@launch
+                }
+                
+                val request = UserProfileRequest(
+                    firebaseUid = uid,
+                    displayName = displayName,
+                    bio = bio,
+                    favoriteGenre = favoriteGenre,
+                    profileImageUrl = profileImageUrl
+                )
+                
+                userRepository.updateUserProfile(request).collect { result ->
+                    _updateProfileState.value = result
+                    if (result is Resource.Success) {
+                        // Refresh user data after successful update
+                        fetchCurrentUser()
+                    }
+                }
+            } catch (e: Exception) {
+                if (e is CancellationException) throw e
+                _updateProfileState.value = Resource.Error(e.message ?: "Failed to update profile")
+            }
+        }
+    }
+    
+    fun resetUpdateState() {
+        _updateProfileState.value = null  // Using null instead of non-existent Idle state
+    }
+    
+    // Functions to get user information from current user state
+    fun getCurrentUserResponse(): UserResponse? {
+        return (userProfileState.value as? Resource.Success)?.data
+    }
+    
+    fun getUserDisplayName(): String {
+        return getCurrentUserResponse()?.displayName ?: ""
+    }
+    
+    fun getUserEmail(): String {
+        return getCurrentUserResponse()?.email ?: getAuthStatusUseCase.getCurrentUserEmail() ?: ""
+    }
+    
+    fun getUserBio(): String {
+        return getCurrentUserResponse()?.bio ?: ""
+    }
+    
+    fun getUserFavoriteGenre(): String {
+        return getCurrentUserResponse()?.favoriteGenre ?: ""
+    }
+    
+    fun getUserProfileImageUrl(): String? {
+        return getCurrentUserResponse()?.profileImageUrl
+    }
     
     fun getUserFullName(): String {
-        return "John Doe"
+        return getCurrentUserResponse()?.displayName ?: "User"
     }
     
     fun getUserAccountType(): String {
