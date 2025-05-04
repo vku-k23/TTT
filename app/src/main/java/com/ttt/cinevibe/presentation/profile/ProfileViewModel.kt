@@ -1,8 +1,11 @@
 package com.ttt.cinevibe.presentation.profile
 
+import android.content.Context
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ttt.cinevibe.data.manager.LanguageManager
+import com.ttt.cinevibe.data.remote.CloudinaryService
 import com.ttt.cinevibe.data.remote.models.UserProfileRequest
 import com.ttt.cinevibe.data.remote.models.UserResponse
 import com.ttt.cinevibe.data.repository.UserRepository
@@ -23,7 +26,8 @@ import javax.inject.Inject
 class ProfileViewModel @Inject constructor(
     private val languageManager: LanguageManager,
     private val userRepository: UserRepository,
-    private val getAuthStatusUseCase: GetAuthStatusUseCase
+    private val getAuthStatusUseCase: GetAuthStatusUseCase,
+    private val cloudinaryService: CloudinaryService
 ) : ViewModel() {
     
     // Settings state flows
@@ -62,6 +66,10 @@ class ProfileViewModel @Inject constructor(
     // Using null as initial state instead of non-existent Idle state
     private val _updateProfileState = MutableStateFlow<Resource<UserResponse>?>(null)
     val updateProfileState: StateFlow<Resource<UserResponse>?> = _updateProfileState
+    
+    // Avatar upload state
+    private val _avatarUploadState = MutableStateFlow<Resource<String>?>(null)
+    val avatarUploadState: StateFlow<Resource<String>?> = _avatarUploadState
     
     // Initialize by fetching current user data
     init {
@@ -118,8 +126,30 @@ class ProfileViewModel @Inject constructor(
         }
     }
     
+    /**
+     * Upload avatar image to cloudinary
+     * @param context Application context
+     * @param imageUri Uri of the selected image
+     */
+    fun uploadAvatar(context: Context, imageUri: Uri) {
+        viewModelScope.launch {
+            _avatarUploadState.value = Resource.Loading()
+            try {
+                val result = cloudinaryService.uploadImage(context, imageUri)
+                _avatarUploadState.value = result
+            } catch (e: Exception) {
+                if (e is CancellationException) throw e
+                _avatarUploadState.value = Resource.Error(e.message ?: "Failed to upload image")
+            }
+        }
+    }
+    
     fun resetUpdateState() {
         _updateProfileState.value = null  // Using null instead of non-existent Idle state
+    }
+    
+    fun resetAvatarUploadState() {
+        _avatarUploadState.value = null
     }
     
     // Functions to get user information from current user state

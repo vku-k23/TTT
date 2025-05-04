@@ -1,5 +1,10 @@
 package com.ttt.cinevibe.presentation.profile
 
+import android.Manifest
+import android.net.Uri
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -44,6 +49,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -53,6 +59,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
 import com.ttt.cinevibe.R
 import com.ttt.cinevibe.domain.model.Resource
 import com.ttt.cinevibe.ui.theme.Black
@@ -62,7 +71,7 @@ import com.ttt.cinevibe.ui.theme.MediumGray
 import com.ttt.cinevibe.ui.theme.NetflixRed
 import com.ttt.cinevibe.ui.theme.White
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
 fun EditProfileScreen(
     onBackPressed: () -> Unit,
@@ -71,10 +80,12 @@ fun EditProfileScreen(
 ) {
     val scrollState = rememberScrollState()
     val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
 
     // User profile states
     val userProfileState by profileViewModel.userProfileState.collectAsState()
     val updateProfileState by profileViewModel.updateProfileState.collectAsState()
+    val avatarUploadState by profileViewModel.avatarUploadState.collectAsState()
 
     // Form fields
     var displayName by remember { mutableStateOf(profileViewModel.getUserDisplayName()) }
@@ -85,6 +96,24 @@ fun EditProfileScreen(
             profileViewModel.getUserProfileImageUrl() ?: ""
         )
     }
+    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+
+    // Permission state for accessing images
+    val permissionState = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        rememberPermissionState(permission = Manifest.permission.READ_MEDIA_IMAGES)
+    } else {
+        rememberPermissionState(permission = Manifest.permission.READ_EXTERNAL_STORAGE)
+    }
+
+    // Image picker launcher
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            selectedImageUri = it
+            profileViewModel.uploadAvatar(context, it)
+        }
+    }
 
     // Effect to update form fields when profile data is loaded
     LaunchedEffect(userProfileState) {
@@ -92,7 +121,6 @@ fun EditProfileScreen(
             val user = (userProfileState as Resource.Success).data
             if (user != null) {
                 displayName = user.displayName
-
                 bio = user.bio ?: ""
                 favoriteGenre = user.favoriteGenre ?: ""
                 profileImageUrl = user.profileImageUrl ?: ""
@@ -113,6 +141,29 @@ fun EditProfileScreen(
                 val message =
                     (updateProfileState as Resource.Error).message ?: "Failed to update profile"
                 snackbarHostState.showSnackbar(message)
+            }
+
+            else -> {}
+        }
+    }
+
+    // Effect to handle avatar upload state changes
+    LaunchedEffect(avatarUploadState) {
+        when (avatarUploadState) {
+            is Resource.Success -> {
+                val imageUrl = (avatarUploadState as Resource.Success).data
+                if (imageUrl != null) {
+                    profileImageUrl = imageUrl
+                }
+                snackbarHostState.showSnackbar("Image uploaded successfully")
+                profileViewModel.resetAvatarUploadState()
+            }
+
+            is Resource.Error -> {
+                val message =
+                    (avatarUploadState as Resource.Error).message ?: "Failed to upload image"
+                snackbarHostState.showSnackbar(message)
+                profileViewModel.resetAvatarUploadState()
             }
 
             else -> {}
@@ -155,8 +206,7 @@ fun EditProfileScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Black)
-                // Apply only horizontal padding, reduce vertical padding
-                .padding(horizontal = paddingValues.calculateLeftPadding(layoutDirection = androidx.compose.ui.unit.LayoutDirection.Ltr))
+                .padding(paddingValues)
                 .verticalScroll(scrollState)
                 .padding(horizontal = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -168,12 +218,24 @@ fun EditProfileScreen(
                     .clip(CircleShape)
                     .background(DarkGray)
                     .clickable {
-                        // In a real app, this would launch an image picker
-                        // For now, we'll just use a test URL if user enters it in the field below
+                        // Check permission before launching gallery
+                        if (permissionState.status.isGranted) {
+                            galleryLauncher.launch("image/*")
+                        } else {
+                            permissionState.launchPermissionRequest()
+                        }
                     },
                 contentAlignment = Alignment.Center
             ) {
-                if (profileImageUrl.isNotEmpty()) {
+                // Display selected image or current profile image
+                if (selectedImageUri != null) {
+                    AsyncImage(
+                        model = selectedImageUri,
+                        contentDescription = "Selected Profile Image",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                } else if (profileImageUrl.isNotEmpty()) {
                     AsyncImage(
                         model = profileImageUrl,
                         contentDescription = "Profile Image",
@@ -189,20 +251,38 @@ fun EditProfileScreen(
                     )
                 }
 
+                // Overlay with edit icon
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
                         .background(Color.Black.copy(alpha = 0.3f)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Edit,
-                        contentDescription = stringResource(R.string.edit_profile),
-                        tint = White,
-                        modifier = Modifier.size(32.dp)
-                    )
+                    if (avatarUploadState is Resource.Loading) {
+                        CircularProgressIndicator(
+                            color = White,
+                            strokeWidth = 2.dp,
+                            modifier = Modifier.size(32.dp)
+                        )
+                    } else {
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = "Change profile picture",
+                            tint = White,
+                            modifier = Modifier.size(32.dp)
+                        )
+                    }
                 }
             }
+
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            Text(
+                text = "Tap to change profile picture",
+                color = LightGray,
+                fontSize = 14.sp,
+                textAlign = TextAlign.Center
+            )
 
             Spacer(modifier = Modifier.height(24.dp))
 
@@ -217,21 +297,12 @@ fun EditProfileScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             ProfileTextField(
-                value = profileImageUrl,
-                onValueChange = { profileImageUrl = it },
-                label = "Profile Image URL",
-                keyboardType = KeyboardType.Uri
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            ProfileTextField(
                 value = bio,
                 onValueChange = { bio = it },
                 label = "Bio",
                 keyboardType = KeyboardType.Text,
                 singleLine = false,
-                modifier = Modifier.height(120.dp).fillMaxWidth()
+                modifier = Modifier.height(120.dp)
             )
 
             Spacer(modifier = Modifier.height(16.dp))
