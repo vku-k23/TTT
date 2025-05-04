@@ -1,4 +1,3 @@
-package com.ttt.cinevibe.presentation.profile
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
@@ -20,6 +19,7 @@ import com.ttt.cinevibe.ui.theme.Black
 import com.ttt.cinevibe.ui.theme.LightGray
 import com.ttt.cinevibe.ui.theme.White
 import com.ttt.cinevibe.R
+import com.ttt.cinevibe.presentation.profile.ProfileTopBar
 
 @Composable
 fun PrivacyTermsScreen(
