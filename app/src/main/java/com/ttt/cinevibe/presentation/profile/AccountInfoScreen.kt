@@ -6,10 +6,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -30,21 +30,21 @@ fun AccountInfoScreen(
     val email = authViewModel.getCurrentUserEmail() ?: "User"
     val userId = authViewModel.getCurrentUserId() ?: "Unknown"
     
-    Scaffold(
-        containerColor = Black,
-        topBar = {
-            ProfileTopBar(
-                title = stringResource(R.string.account_information),
-                onBackPressed = onBackPressed
-            )
-        }
-    ) { paddingValues ->
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Black)
+    ) {
+        ProfileTopBar(
+            title = stringResource(R.string.account_information),
+            onBackPressed = onBackPressed
+        )
+        
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Black)
-                .padding(paddingValues)
                 .verticalScroll(scrollState)
+                .padding(horizontal = 16.dp)
         ) {
             SettingsCard {
                 ProfileInfoItem(

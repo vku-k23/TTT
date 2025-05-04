@@ -9,20 +9,18 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.Divider
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ttt.cinevibe.R
@@ -31,28 +29,29 @@ import com.ttt.cinevibe.ui.theme.DarkGray
 import com.ttt.cinevibe.ui.theme.LightGray
 import com.ttt.cinevibe.ui.theme.White
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HelpSupportScreen(
     onBackPressed: () -> Unit
 ) {
     val scrollState = rememberScrollState()
     
-    Scaffold(
-        containerColor = Black,
-        topBar = {
-            ProfileTopBar(
-                title = stringResource(R.string.help_support),
-                onBackPressed = onBackPressed
-            )
-        }
-    ) { paddingValues ->
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Black)
+    ) {
+        // TopBar không còn nằm trong Scaffold
+        ProfileTopBar(
+            title = stringResource(R.string.help_support),
+            onBackPressed = onBackPressed
+        )
+        
+        // Nội dung chính
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Black)
-                .padding(paddingValues)
                 .verticalScroll(scrollState)
+                .padding(horizontal = 16.dp)
         ) {
             SectionHeader(title = stringResource(R.string.common_issues))
             
