@@ -4,10 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ttt.cinevibe.data.manager.LanguageManager
 import com.ttt.cinevibe.domain.model.Movie
-import com.ttt.cinevibe.domain.usecases.favorites.FavoriteMoviesUseCases
-import com.ttt.cinevibe.domain.usecases.movies.GetMovieByIdUseCase
-import com.ttt.cinevibe.domain.usecases.movies.GetSimilarMoviesUseCase
-import com.ttt.cinevibe.domain.usecases.movies.GetMovieVideosUseCase
+import com.ttt.cinevibe.domain.usecase.favorites.FavoriteMoviesUseCases
+import com.ttt.cinevibe.domain.usecase.movies.GetMovieByIdUseCase
+import com.ttt.cinevibe.domain.usecase.movies.GetSimilarMoviesUseCase
+import com.ttt.cinevibe.domain.usecase.movies.GetMovieVideosUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow

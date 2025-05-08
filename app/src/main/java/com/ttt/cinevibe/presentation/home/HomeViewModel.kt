@@ -4,12 +4,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ttt.cinevibe.data.manager.LanguageManager
 import com.ttt.cinevibe.domain.model.Movie
-import com.ttt.cinevibe.domain.usecases.movies.GetMovieByIdUseCase
-import com.ttt.cinevibe.domain.usecases.movies.GetPopularMoviesUseCase
-import com.ttt.cinevibe.domain.usecases.movies.GetTopRatedMoviesUseCase
-import com.ttt.cinevibe.domain.usecases.movies.GetTrendingMoviesUseCase
-import com.ttt.cinevibe.domain.usecases.movies.GetUpcomingMoviesUseCase
-import com.ttt.cinevibe.domain.usecases.movies.SearchMoviesUseCase
+import com.ttt.cinevibe.domain.usecase.movies.GetMovieByIdUseCase
+import com.ttt.cinevibe.domain.usecase.movies.GetPopularMoviesUseCase
+import com.ttt.cinevibe.domain.usecase.movies.GetTopRatedMoviesUseCase
+import com.ttt.cinevibe.domain.usecase.movies.GetTrendingMoviesUseCase
+import com.ttt.cinevibe.domain.usecase.movies.GetUpcomingMoviesUseCase
+import com.ttt.cinevibe.domain.usecase.movies.SearchMoviesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.delay
@@ -124,18 +124,21 @@ class HomeViewModel @Inject constructor(
     }
     
     fun nextFeaturedMovie() {
-        val currentIndex = _currentFeaturedMovieIndex.value
-        val featuredMoviesCount = _featuredMovies.value.size
-        if (featuredMoviesCount > 1) {
-            _currentFeaturedMovieIndex.value = (currentIndex + 1) % featuredMoviesCount
-        }
+        _currentFeaturedMovieIndex.value = (_currentFeaturedMovieIndex.value + 1) % _featuredMovies.value.size
     }
     
     fun previousFeaturedMovie() {
-        val currentIndex = _currentFeaturedMovieIndex.value
-        val featuredMoviesCount = _featuredMovies.value.size
-        if (featuredMoviesCount > 1) {
-            _currentFeaturedMovieIndex.value = if (currentIndex > 0) currentIndex - 1 else featuredMoviesCount - 1
+        _currentFeaturedMovieIndex.value = if (_currentFeaturedMovieIndex.value > 0) {
+            _currentFeaturedMovieIndex.value - 1
+        } else {
+            _featuredMovies.value.size - 1
+        }
+    }
+    
+    // New method to directly update the featured movie index for the auto-slide feature
+    fun updateFeaturedMovieIndex(index: Int) {
+        if (index in 0 until _featuredMovies.value.size) {
+            _currentFeaturedMovieIndex.value = index
         }
     }
     

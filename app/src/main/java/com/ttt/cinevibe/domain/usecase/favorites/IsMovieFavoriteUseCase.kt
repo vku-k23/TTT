@@ -1,4 +1,4 @@
-package com.ttt.cinevibe.domain.usecases.favorites
+package com.ttt.cinevibe.domain.usecase.favorites
 
 import com.ttt.cinevibe.domain.repository.FavoriteMovieRepository
 import kotlinx.coroutines.flow.Flow

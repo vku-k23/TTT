@@ -118,7 +118,7 @@ fun ListsScreen(
                             Modifier
                                 .clip(RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp)),
                             height = 2.dp,
-                            color = NetflixRed
+                            color = Color.Transparent
                         )
                     }
                 ) {
