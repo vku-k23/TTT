@@ -1,4 +1,4 @@
-package com.ttt.cinevibe.domain.usecases.app_entry
+package com.ttt.cinevibe.domain.usecase.app_entry
 
 data class AppEntryUseCases(
     val readAppEntry: ReadAppEntry,

@@ -142,10 +142,18 @@ fun HomeScreen(
         }
     }
     
-    // Keep view model in sync with pager
+    // Auto-slide feature for carousel
     LaunchedEffect(pagerState.currentPage) {
+        // Update view model when user manually changes page
         if (featuredMovies.isNotEmpty() && pagerState.currentPage != currentFeaturedMovieIndex) {
-            viewModel.nextFeaturedMovie()
+            viewModel.updateFeaturedMovieIndex(pagerState.currentPage)
+        }
+        
+        // Auto-slide every 5 seconds if there are featured movies
+        if (featuredMovies.isNotEmpty()) {
+            delay(5000)
+            val nextPage = (pagerState.currentPage + 1) % featuredMovies.size
+            viewModel.updateFeaturedMovieIndex(nextPage)
         }
     }
     
@@ -332,11 +340,10 @@ fun FeaturedMovieCarousel(
             .fillMaxWidth()
             .height(550.dp)
     ) {
-        // Carousel content
+        // Carousel content with improved animation
         HorizontalPager(
             state = pagerState,
-            modifier = Modifier.fillMaxSize(),
-            pageSpacing = 10.dp
+            modifier = Modifier.fillMaxSize()
         ) { page ->
             val movie = movies.getOrNull(page) ?: return@HorizontalPager
             
@@ -363,16 +370,16 @@ fun FeaturedMovieCarousel(
                     contentScale = ContentScale.Crop
                 )
                 
-                // Gradient overlay
+                // Enhanced gradient overlay for better text readability
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
                         .background(
                             brush = Brush.verticalGradient(
                                 colors = listOf(
-                                    Color.Black.copy(alpha = 0.7f), // Darker at top for tagline
-                                    Color.Transparent.copy(alpha = 0.1f), // Transparent in middle
-                                    Color.Black.copy(alpha = 0.95f) // Darker at bottom for buttons
+                                    Color.Black.copy(alpha = 0.8f), // Darker at top for tagline
+                                    Color.Transparent.copy(alpha = 0.0f), // Completely transparent in middle
+                                    Color.Black.copy(alpha = 1.0f) // Fully opaque at bottom for buttons
                                 ),
                                 startY = 0f,
                                 endY = 1000f
@@ -380,10 +387,12 @@ fun FeaturedMovieCarousel(
                         )
                 )
                 
-                // Tagline at the top
-                val tagline = when (movie.title) {
-                    "In the Lost Lands" -> "BETRAYAL IS CLOSE"
-                    else -> "${movie.genres?.firstOrNull() ?: "NEW"} • ${movie.releaseDate?.split("-")?.firstOrNull()}"
+                // Tagline at the top with movie metadata
+                val genres = movie.genres?.take(2)?.joinToString(" • ") ?: "NEW"
+                val releaseYear = movie.releaseDate?.split("-")?.firstOrNull() ?: ""
+                val tagline = when {
+                    releaseYear.isNotEmpty() -> "$genres • $releaseYear"
+                    else -> genres
                 }
                 
                 Text(
@@ -448,11 +457,46 @@ fun FeaturedMovieCarousel(
                     Text(
                         text = movie.title,
                         color = White,
-                        fontSize = 30.sp,
+                        fontSize = 32.sp,
                         fontWeight = FontWeight.Bold,
                         textAlign = TextAlign.Center,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.fillMaxWidth()
                     )
+                    
+                    // Rating indicator
+                    if (movie.voteAverage > 0) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 8.dp),
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            repeat(5) { index ->
+                                val starSize = 20.dp
+                                val fillPercent = (movie.voteAverage / 10.0 * 5).toInt()
+                                val isFilled = index < fillPercent
+                                
+                                Icon(
+                                    imageVector = Icons.Filled.Star,
+                                    contentDescription = null,
+                                    tint = if (isFilled) Color(0xFFFFD700) else Color.Gray.copy(alpha = 0.5f),
+                                    modifier = Modifier.size(starSize)
+                                )
+                            }
+                            
+                            Spacer(modifier = Modifier.width(8.dp))
+                            
+                            Text(
+                                text = String.format("%.1f/10", movie.voteAverage),
+                                color = LightGray,
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+                    }
                     
                     Spacer(modifier = Modifier.height(16.dp))
                     
@@ -470,13 +514,13 @@ fun FeaturedMovieCarousel(
                             shape = RoundedCornerShape(4.dp),
                             modifier = Modifier
                                 .weight(1f)
-                                .height(40.dp)
+                                .height(48.dp)
                         ) {
                             Icon(
                                 imageVector = Icons.Filled.PlayArrow,
                                 contentDescription = "Play",
                                 tint = Black,
-                                modifier = Modifier.size(20.dp)
+                                modifier = Modifier.size(24.dp)
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
@@ -493,43 +537,46 @@ fun FeaturedMovieCarousel(
                         Button(
                             onClick = { onInfoClick(movie) },
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = DarkGray.copy(alpha = 0.7f)
+                                containerColor = DarkGray.copy(alpha = 0.8f)
                             ),
                             shape = RoundedCornerShape(4.dp),
                             modifier = Modifier
                                 .weight(1f)
-                                .height(40.dp)
+                                .height(48.dp)
                         ) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_info),
                                 contentDescription = "Info",
-                                tint = White
+                                tint = White,
+                                modifier = Modifier.size(20.dp)
                             )
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(
                                 text = stringResource(R.string.more_info),
                                 color = White,
-                                fontWeight = FontWeight.Bold
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 16.sp
                             )
                         }
                     }
                     
-                    // Carousel dot indicators
+                    // Improved carousel dot indicators
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(top = 16.dp),
+                            .padding(top = 24.dp),
                         horizontalArrangement = Arrangement.Center
                     ) {
                         repeat(movies.size) { index ->
                             val isActive = index == pagerState.currentPage
                             Box(
                                 modifier = Modifier
-                                    .padding(horizontal = 2.dp)
-                                    .width(if (isActive) 16.dp else 8.dp)
-                                    .height(2.dp)
+                                    .padding(horizontal = 4.dp)
+                                    .width(if (isActive) 24.dp else 8.dp)
+                                    .height(3.dp)
                                     .background(
-                                        if (isActive) NetflixRed else White.copy(alpha = 0.5f)
+                                        if (isActive) NetflixRed else White.copy(alpha = 0.5f),
+                                        RoundedCornerShape(1.5.dp)
                                     )
                             )
                         }
@@ -854,7 +901,6 @@ fun MoviePoster(
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
                 .data(
-                    // Properly construct the URL for poster images
                     if (movie.posterPath != null)
                         ApiConstants.IMAGE_BASE_URL + ApiConstants.POSTER_SIZE + movie.posterPath
                     else

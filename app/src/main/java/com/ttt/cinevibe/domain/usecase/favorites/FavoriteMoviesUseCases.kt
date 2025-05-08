@@ -1,4 +1,4 @@
-package com.ttt.cinevibe.domain.usecases.favorites
+package com.ttt.cinevibe.domain.usecase.favorites
 
 data class FavoriteMoviesUseCases(
     val getFavoriteMovies: GetFavoriteMoviesUseCase,

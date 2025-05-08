@@ -1,4 +1,4 @@
-package com.ttt.cinevibe.domain.usecases.movies
+package com.ttt.cinevibe.domain.usecase.movies
 
 import com.ttt.cinevibe.data.remote.models.VideoDto
 import com.ttt.cinevibe.domain.repository.MovieRepository
