@@ -18,10 +18,22 @@ class UserRepositoryImpl @Inject constructor(
     override suspend fun getCurrentUser(): Flow<Resource<UserResponse>> = flow {
         emit(Resource.Loading())
         try {
+            android.util.Log.d("UserRepository", "Making API call to getCurrentUser()")
             val response = userApiService.getCurrentUser()
+            android.util.Log.d("UserRepository", "Received user response: $response")
             emit(Resource.Success(response))
         } catch (e: Exception) {
-            emit(Resource.Error(e.message ?: "Failed to get current user"))
+            android.util.Log.e("UserRepository", "Error getting current user", e)
+            
+            // Check for specific error types
+            val errorMessage = when (e) {
+                is retrofit2.HttpException -> "Server error: ${e.code()} - ${e.message()}"
+                is java.net.SocketTimeoutException -> "Connection timeout - please check your internet"
+                is java.io.IOException -> "Network error - please check your connection"
+                else -> e.message ?: "Failed to get current user"
+            }
+            
+            emit(Resource.Error(errorMessage))
         }
     }
 
@@ -33,6 +45,7 @@ class UserRepositoryImpl @Inject constructor(
     ): Flow<Resource<UserResponse>> = flow {
         emit(Resource.Loading())
         try {
+            android.util.Log.d("UserRepository", "Making API call to syncUser()")
             val userRequest = UserRequest(
                 email = email,
                 displayName = displayName,
@@ -40,19 +53,44 @@ class UserRepositoryImpl @Inject constructor(
                 firebaseUid = firebaseUid
             )
             val response = userApiService.syncUser(userRequest)
+            android.util.Log.d("UserRepository", "Sync user successful: $response")
             emit(Resource.Success(response))
         } catch (e: Exception) {
-            emit(Resource.Error(e.message ?: "Sync with backend failed"))
+            android.util.Log.e("UserRepository", "Error syncing user", e)
+            
+            // Check for specific error types
+            val errorMessage = when (e) {
+                is retrofit2.HttpException -> "Server error: ${e.code()} - ${e.message()}"
+                is kotlinx.serialization.SerializationException -> "Data parsing error: ${e.message}"
+                is java.net.SocketTimeoutException -> "Connection timeout - please check your internet"
+                is java.io.IOException -> "Network error - please check your connection"
+                else -> e.message ?: "Failed to sync user with backend"
+            }
+            
+            emit(Resource.Error(errorMessage))
         }
     }
 
     override suspend fun updateUserProfile(profileRequest: UserProfileRequest): Flow<Resource<UserResponse>> = flow {
         emit(Resource.Loading())
         try {
+            android.util.Log.d("UserRepository", "Making API call to updateUserProfile(): $profileRequest")
             val response = userApiService.updateUserProfile(profileRequest)
+            android.util.Log.d("UserRepository", "Update profile successful: $response")
             emit(Resource.Success(response))
         } catch (e: Exception) {
-            emit(Resource.Error(e.message ?: "Failed to update user profile"))
+            android.util.Log.e("UserRepository", "Error updating user profile", e)
+            
+            // Check for specific error types
+            val errorMessage = when (e) {
+                is retrofit2.HttpException -> "Server error: ${e.code()} - ${e.message()}"
+                is kotlinx.serialization.SerializationException -> "Data parsing error: ${e.message}"
+                is java.net.SocketTimeoutException -> "Connection timeout - please check your internet"
+                is java.io.IOException -> "Network error - please check your connection"
+                else -> e.message ?: "Failed to update user profile"
+            }
+            
+            emit(Resource.Error(errorMessage))
         }
     }
 }

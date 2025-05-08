@@ -23,12 +23,17 @@ class FirebaseTokenInterceptor @Inject constructor(
         val originalRequest = chain.request()
         val currentUser = firebaseAuth.currentUser
         
+        // Log the request URL for debugging
+        Log.d(TAG, "Intercepting request to: ${originalRequest.url}")
+        
         // Only proceed with token if user is logged in
         return if (currentUser != null) {
             try {
+                Log.d(TAG, "Current user found. UID: ${currentUser.uid}")
                 // Always get a fresh token (forceRefresh=true) for better security
                 val token = runCatching { 
                     kotlinx.coroutines.runBlocking { 
+                        Log.d(TAG, "Getting fresh ID token...")
                         currentUser.getIdToken(true).await().token 
                     }
                 }.getOrNull()
@@ -38,7 +43,7 @@ class FirebaseTokenInterceptor @Inject constructor(
                     val authenticatedRequest = originalRequest.newBuilder()
                         .header(BackendApiConstants.AUTH_HEADER, "${BackendApiConstants.AUTH_BEARER_PREFIX}$token")
                         .build()
-                    Log.d(TAG, "Adding Firebase token to request: ${originalRequest.url}")
+                    Log.d(TAG, "Added Firebase token to request: ${originalRequest.url}")
                     chain.proceed(authenticatedRequest)
                 } else {
                     // Fail the request if token is null - this is an auth protected endpoint

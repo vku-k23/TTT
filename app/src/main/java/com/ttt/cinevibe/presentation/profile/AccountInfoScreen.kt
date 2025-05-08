@@ -27,7 +27,8 @@ fun AccountInfoScreen(
     profileViewModel: ProfileViewModel = hiltViewModel()
 ) {
     val scrollState = rememberScrollState()
-    val email = authViewModel.getCurrentUserEmail() ?: "User"
+    val displayName = profileViewModel.getUserFullName()
+    val email = authViewModel.getCurrentUserEmail() ?: ""
     val userId = authViewModel.getCurrentUserId() ?: "Unknown"
     
     Column(
@@ -49,7 +50,7 @@ fun AccountInfoScreen(
             SettingsCard {
                 ProfileInfoItem(
                     label = stringResource(R.string.full_name),
-                    value = profileViewModel.getUserFullName()
+                    value = displayName
                 )
                 
                 ProfileInfoItem(

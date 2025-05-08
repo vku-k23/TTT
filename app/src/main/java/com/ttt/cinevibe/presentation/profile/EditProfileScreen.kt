@@ -121,7 +121,7 @@ fun EditProfileScreen(
         if (userProfileState is Resource.Success) {
             val user = (userProfileState as Resource.Success).data
             if (user != null) {
-                username = user.username
+                username = user.username ?: ""
                 displayName = user.displayName
                 bio = user.bio ?: ""
                 favoriteGenre = user.favoriteGenre ?: ""

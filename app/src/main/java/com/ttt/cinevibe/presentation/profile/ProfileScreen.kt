@@ -109,7 +109,32 @@ fun ProfileScreen(
                 color = NetflixRed,
                 modifier = Modifier.align(Alignment.Center)
             )
+        } else if (userProfileState is Resource.Error) {
+            // Show error state
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = (userProfileState as Resource.Error).message ?: "An error occurred",
+                    color = White,
+                    fontSize = 16.sp,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+                Button(
+                    onClick = { profileViewModel.fetchCurrentUser() },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = NetflixRed
+                    )
+                ) {
+                    Text("Retry")
+                }
+            }
         } else {
+            // Success state - the rest of the UI
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -178,7 +203,7 @@ fun ProfileScreen(
                     )
                     
                     Text(
-                        text = user?.email ?: "",
+                        text = user?.username ?: "",
                         color = LightGray,
                         fontSize = 14.sp
                     )
