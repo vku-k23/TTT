@@ -8,7 +8,7 @@ interface PendingSyncManager {
     /**
      * Lưu thông tin đăng ký đang chờ được đồng bộ với backend
      */
-    suspend fun savePendingRegistration(email: String, displayName: String, firebaseUid: String)
+    suspend fun savePendingRegistration(email: String, displayName: String, username: String, firebaseUid: String)
     
     /**
      * Xóa thông tin đăng ký đang chờ sau khi đã đồng bộ thành công
@@ -32,5 +32,6 @@ interface PendingSyncManager {
 data class RegistrationData(
     val email: String,
     val displayName: String,
+    val username: String,
     val firebaseUid: String
 )

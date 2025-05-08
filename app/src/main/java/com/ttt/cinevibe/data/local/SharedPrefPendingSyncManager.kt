@@ -26,8 +26,8 @@ class SharedPrefPendingSyncManager @Inject constructor(
     /**
      * Lưu thông tin đăng ký đang chờ được đồng bộ với backend
      */
-    override suspend fun savePendingRegistration(email: String, displayName: String, firebaseUid: String) = withContext(Dispatchers.IO) {
-        val registrationData = RegistrationData(email, displayName, firebaseUid)
+    override suspend fun savePendingRegistration(email: String, displayName: String, username: String, firebaseUid: String) = withContext(Dispatchers.IO) {
+        val registrationData = RegistrationData(email, displayName, username, firebaseUid)
         val json = Json.encodeToString(registrationData)
         prefs.edit().putString(KEY_PENDING_REGISTRATION, json).apply()
     }

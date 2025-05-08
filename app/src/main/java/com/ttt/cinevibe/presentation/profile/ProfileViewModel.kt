@@ -90,6 +90,7 @@ class ProfileViewModel @Inject constructor(
     }
     
     fun updateUserProfile(
+        username: String,
         displayName: String,
         bio: String?,
         favoriteGenre: String?,
@@ -106,6 +107,7 @@ class ProfileViewModel @Inject constructor(
                 
                 val request = UserProfileRequest(
                     firebaseUid = uid,
+                    username = username,
                     displayName = displayName,
                     bio = bio,
                     favoriteGenre = favoriteGenre,
@@ -155,6 +157,10 @@ class ProfileViewModel @Inject constructor(
     // Functions to get user information from current user state
     fun getCurrentUserResponse(): UserResponse? {
         return (userProfileState.value as? Resource.Success)?.data
+    }
+
+    fun getUserUsername(): String {
+        return getCurrentUserResponse()?.username ?: ""
     }
     
     fun getUserDisplayName(): String {

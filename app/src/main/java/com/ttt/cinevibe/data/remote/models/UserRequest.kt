@@ -6,5 +6,6 @@ import kotlinx.serialization.Serializable
 data class UserRequest(
     val firebaseUid: String,
     val email: String,
-    val displayName: String
+    val displayName: String,
+    val username: String
 )

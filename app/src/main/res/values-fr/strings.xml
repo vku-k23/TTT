@@ -53,6 +53,8 @@
     <string name="subscription_date">Date d\'abonnement</string>
     <string name="next_billing_date">Prochaine date de facturation</string>
     <string name="payment_method">Mode de paiement</string>
+    <string name="bio">Biographie</string>
+    <string name="favorite_genre">Genre préféré</string>
     
     <!-- Privacy & Terms -->
     <string name="privacy_policy">Politique de Confidentialité</string>

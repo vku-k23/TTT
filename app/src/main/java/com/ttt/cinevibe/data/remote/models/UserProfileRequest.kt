@@ -6,6 +6,7 @@ import kotlinx.serialization.Serializable
 data class UserProfileRequest(
     val firebaseUid: String? = null,
     val displayName: String? = null,
+    val username: String? = null,
     val profileImageUrl: String? = null,
     val bio: String? = null,
     val favoriteGenre: String? = null,

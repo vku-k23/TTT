@@ -7,6 +7,7 @@ import java.time.LocalDateTime
 data class UserResponse(
     val firebaseUid: String,
     val displayName: String,
+    val username: String,
     val email: String,
     val profileImageUrl: String? = null,
     val bio: String? = null,

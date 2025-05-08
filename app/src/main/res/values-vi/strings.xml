@@ -53,6 +53,8 @@
     <string name="subscription_date">Ngày đăng ký</string>
     <string name="next_billing_date">Ngày thanh toán tiếp theo</string>
     <string name="payment_method">Phương thức thanh toán</string>
+    <string name="bio">Tiểu sử</string>
+    <string name="favorite_genre">Thể loại yêu thích</string>
     
     <!-- Privacy & Terms -->
     <string name="privacy_policy">Chính sách quyền riêng tư</string>

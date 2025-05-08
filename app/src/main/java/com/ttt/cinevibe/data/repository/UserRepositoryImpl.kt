@@ -27,7 +27,8 @@ class UserRepositoryImpl @Inject constructor(
 
     override suspend fun syncUser(
         email: String, 
-        displayName: String, 
+        displayName: String,
+        username: String,
         firebaseUid: String
     ): Flow<Resource<UserResponse>> = flow {
         emit(Resource.Loading())
@@ -35,6 +36,7 @@ class UserRepositoryImpl @Inject constructor(
             val userRequest = UserRequest(
                 email = email,
                 displayName = displayName,
+                username = username,
                 firebaseUid = firebaseUid
             )
             val response = userApiService.syncUser(userRequest)

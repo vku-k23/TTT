@@ -88,6 +88,7 @@ fun EditProfileScreen(
     val avatarUploadState by profileViewModel.avatarUploadState.collectAsState()
 
     // Form fields
+    var username by remember { mutableStateOf(profileViewModel.getUserUsername()) }
     var displayName by remember { mutableStateOf(profileViewModel.getUserDisplayName()) }
     var bio by remember { mutableStateOf(profileViewModel.getUserBio()) }
     var favoriteGenre by remember { mutableStateOf(profileViewModel.getUserFavoriteGenre()) }
@@ -120,6 +121,7 @@ fun EditProfileScreen(
         if (userProfileState is Resource.Success) {
             val user = (userProfileState as Resource.Success).data
             if (user != null) {
+                username = user.username
                 displayName = user.displayName
                 bio = user.bio ?: ""
                 favoriteGenre = user.favoriteGenre ?: ""
@@ -269,6 +271,15 @@ fun EditProfileScreen(
 
                 // Form Fields
                 ProfileTextField(
+                    value = username,
+                    onValueChange = { username = it },
+                    label = stringResource(R.string.username),
+                    keyboardType = KeyboardType.Text,
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                ProfileTextField(
                     value = displayName,
                     onValueChange = { displayName = it },
                     label = stringResource(R.string.full_name),
@@ -280,7 +291,7 @@ fun EditProfileScreen(
                 ProfileTextField(
                     value = bio,
                     onValueChange = { bio = it },
-                    label = "Bio",
+                    label = stringResource(R.string.bio),
                     keyboardType = KeyboardType.Text,
                     singleLine = false,
                     modifier = Modifier.height(120.dp).fillMaxWidth()
@@ -291,7 +302,7 @@ fun EditProfileScreen(
                 ProfileTextField(
                     value = favoriteGenre,
                     onValueChange = { favoriteGenre = it },
-                    label = "Favorite Genre",
+                    label = stringResource(R.string.favorite_genre),
                     keyboardType = KeyboardType.Text
                 )
 
@@ -301,6 +312,7 @@ fun EditProfileScreen(
                 Button(
                     onClick = {
                         profileViewModel.updateUserProfile(
+                            username = username,
                             displayName = displayName,
                             bio = bio.ifEmpty { null },
                             favoriteGenre = favoriteGenre.ifEmpty { null },

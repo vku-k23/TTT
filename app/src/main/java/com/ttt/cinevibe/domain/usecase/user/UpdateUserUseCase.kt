@@ -13,6 +13,7 @@ class UpdateUserUseCase @Inject constructor(
     suspend operator fun invoke(
         firebaseUid: String? = null,
         displayName: String? = null,
+        username: String? = null,
         profileImageUrl: String? = null,
         bio: String? = null,
         favoriteGenre: String? = null,
@@ -23,6 +24,7 @@ class UpdateUserUseCase @Inject constructor(
         val profileRequest = UserProfileRequest(
             firebaseUid = firebaseUid,
             displayName = displayName,
+            username = username,
             profileImageUrl = profileImageUrl,
             bio = bio,
             favoriteGenre = favoriteGenre,

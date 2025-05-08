@@ -75,12 +75,10 @@ import com.ttt.cinevibe.ui.theme.White
 
 @Composable
 fun ProfileScreen(
-    viewModel: AuthViewModel = hiltViewModel(),
     profileViewModel: ProfileViewModel = hiltViewModel(),
     onNavigateToGeneralSetting: () -> Unit = {},
     onNavigateToEditProfile: () -> Unit = {},
 ) {
-    val logoutState by viewModel.logoutState.collectAsState()
     val userProfileState by profileViewModel.userProfileState.collectAsState()
     val scrollState = rememberScrollState()
     
@@ -94,7 +92,6 @@ fun ProfileScreen(
     
     val user = (userProfileState as? Resource.Success)?.data
     
-    // Hiển thị dialog xem trước avatar khi showAvatarPreview = true
     if (showAvatarPreview && user?.profileImageUrl != null) {
         AvatarPreviewDialog(
             avatarUrl = user.profileImageUrl,
@@ -119,7 +116,6 @@ fun ProfileScreen(
                     .verticalScroll(scrollState),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Row chỉ chứa icon setting ở góc phải phía trên
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -137,15 +133,12 @@ fun ProfileScreen(
                     )
                 }
                 
-                // Profile Header Section với user information
-                
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // Profile Picture ở giữa với khả năng click để xem trước
                     Box(
                         modifier = Modifier
                             .size(96.dp)
@@ -303,19 +296,6 @@ fun ProfileScreen(
                         .fillMaxWidth()
                         .padding(vertical = 8.dp)
                 )
-                
-                // Menu Items are now moved to Settings screen
-                
-                // Show loading indicator if logout is in progress
-                if (logoutState is AuthState.Loading) {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    LinearProgressIndicator(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp),
-                        color = NetflixRed
-                    )
-                }
             }
         }
     }
