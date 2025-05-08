@@ -40,6 +40,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -69,40 +70,39 @@ fun RegisterScreen(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
+    
     val registerState by viewModel.registerState.collectAsState()
+    val firebaseAuthState by viewModel.firebaseAuthState.collectAsState()
+    val backendSyncState by viewModel.backendSyncState.collectAsState()
     
     val snackbarHostState = remember { SnackbarHostState() }
     
-    // Track if we've already performed the navigation
-    val hasNavigated = remember { mutableStateOf(false) }
-
+    // Monitor registration state and handle navigation/errors
     LaunchedEffect(key1 = registerState) {
         when (registerState) {
             is AuthState.Success -> {
-                // Only navigate if we haven't already
-                if (!hasNavigated.value) {
-                    hasNavigated.value = true
-                    
-                    // Reset state first
-                    viewModel.resetAuthStates()
-                    
-                    // Navigate using a slight delay to ensure state resets properly
-                    kotlinx.coroutines.delay(200)
-                    onRegisterSuccess()
-                }
+                android.util.Log.d("RegisterScreen", "Registration successful, navigating")
+                onRegisterSuccess()
+                viewModel.resetAuthStates()
             }
             is AuthState.Error -> {
-                snackbarHostState.showSnackbar(
-                    message = (registerState as AuthState.Error).message
-                )
-                viewModel.resetAuthStates()
-                hasNavigated.value = false
+                val errorMessage = (registerState as AuthState.Error).message
+                android.util.Log.e("RegisterScreen", "Registration error: $errorMessage")
+                snackbarHostState.showSnackbar(message = errorMessage)
             }
-            is AuthState.Idle -> {
-                // Reset navigation flag when state is idle
-                hasNavigated.value = false
-            }
-            else -> {}
+            else -> { /* No action needed for other states */ }
+        }
+    }
+    
+    // Show meaningful feedback about backend registration status
+    LaunchedEffect(key1 = backendSyncState) {
+        // Only show backend error messages if Firebase auth was successful
+        if (firebaseAuthState is FirebaseAuthState.Success && 
+            backendSyncState is BackendSyncState.Error) {
+            
+            val message = "Registration completed with Firebase but couldn't connect to app server. " +
+                          "Some features may be limited until next login."
+            snackbarHostState.showSnackbar(message = message)
         }
     }
 
@@ -149,7 +149,7 @@ fun RegisterScreen(
             ) {
                 // Logo and Header Section
                 Text(
-                    text = "CINEVIBE",
+                    text = stringResource(R.string.app_name),
                     fontWeight = FontWeight.Bold,
                     fontSize = 36.sp,
                     color = NetflixRed,
@@ -161,7 +161,7 @@ fun RegisterScreen(
                 
                 // Register Form Section
                 Text(
-                    text = "Sign Up",
+                    text = stringResource(R.string.sign_up),
                     fontWeight = FontWeight.Bold,
                     fontSize = 24.sp,
                     color = White,
@@ -169,7 +169,7 @@ fun RegisterScreen(
                 )
                 
                 Text(
-                    text = "Create your CineVibe account",
+                    text = stringResource(R.string.register),
                     fontSize = 14.sp,
                     color = LightGray,
                     modifier = Modifier.align(Alignment.Start)
@@ -181,7 +181,7 @@ fun RegisterScreen(
                 TextField(
                     value = username,
                     onValueChange = { username = it },
-                    placeholder = { Text("Username", color = LightGray) },
+                    placeholder = { Text(stringResource(R.string.username), color = LightGray) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),
@@ -207,7 +207,7 @@ fun RegisterScreen(
                 TextField(
                     value = email,
                     onValueChange = { email = it },
-                    placeholder = { Text("Email", color = LightGray) },
+                    placeholder = { Text(stringResource(R.string.email), color = LightGray) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),
@@ -233,7 +233,7 @@ fun RegisterScreen(
                 TextField(
                     value = password,
                     onValueChange = { password = it },
-                    placeholder = { Text("Password", color = LightGray) },
+                    placeholder = { Text(stringResource(R.string.password), color = LightGray) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),
@@ -262,7 +262,7 @@ fun RegisterScreen(
                     TextField(
                         value = confirmPassword,
                         onValueChange = { confirmPassword = it },
-                        placeholder = { Text("Confirm Password", color = LightGray) },
+                        placeholder = { Text(stringResource(R.string.confirm_password), color = LightGray) },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(56.dp),
@@ -281,14 +281,13 @@ fun RegisterScreen(
                             imeAction = ImeAction.Done
                         ),
                         singleLine = true,
-                        isError = !passwordsMatch,
-                        supportingText = null // Remove the supporting text from inside the TextField
+                        isError = !passwordsMatch
                     )
                     
                     // Display error message outside of TextField to maintain consistent field height
                     if (!passwordsMatch) {
                         Text(
-                            "Passwords don't match", 
+                            stringResource(R.string.error_passwords_dont_match), 
                             color = NetflixRed,
                             fontSize = 12.sp,
                             modifier = Modifier.padding(start = 4.dp, top = 2.dp)
@@ -297,6 +296,19 @@ fun RegisterScreen(
                 }
                 
                 Spacer(modifier = Modifier.height(if (passwordsMatch) 32.dp else 16.dp))
+                
+                // Registration Status (optional)
+                when {
+                    firebaseAuthState is FirebaseAuthState.Success && backendSyncState is BackendSyncState.Loading -> {
+                        Text(
+                            text = "Account created! Connecting to server...",
+                            color = White,
+                            fontSize = 14.sp,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(bottom = 16.dp)
+                        )
+                    }
+                }
                 
                 // Sign Up Button
                 Button(
@@ -319,7 +331,7 @@ fun RegisterScreen(
                             registerState !is AuthState.Loading
                 ) {
                     Text(
-                        "Sign Up",
+                        stringResource(R.string.sign_up),
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -329,7 +341,7 @@ fun RegisterScreen(
                 
                 // Login Section
                 Text(
-                    "Already have an account?",
+                    stringResource(R.string.already_have_account),
                     color = LightGray,
                     fontSize = 14.sp
                 )
@@ -339,7 +351,7 @@ fun RegisterScreen(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
-                        "Sign in now",
+                        stringResource(R.string.sign_in),
                         color = White,
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp
@@ -347,7 +359,7 @@ fun RegisterScreen(
                 }
             }
             
-            // Loading Indicator
+            // Improved Loading Indicator with Status Text
             if (registerState is AuthState.Loading) {
                 Box(
                     modifier = Modifier
@@ -355,7 +367,28 @@ fun RegisterScreen(
                         .background(Color.Black.copy(alpha = 0.7f)),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator(color = NetflixRed)
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        CircularProgressIndicator(color = NetflixRed)
+                        Spacer(modifier = Modifier.height(16.dp))
+                        
+                        // Show appropriate status message based on current state
+                        val statusText = when {
+                            firebaseAuthState is FirebaseAuthState.Loading -> 
+                                "Creating your account..."
+                            firebaseAuthState is FirebaseAuthState.Success && 
+                            backendSyncState is BackendSyncState.Loading -> 
+                                "Connecting to server..."
+                            else -> "Registering..."
+                        }
+                        
+                        Text(
+                            text = statusText,
+                            color = White,
+                            fontSize = 16.sp
+                        )
+                    }
                 }
             }
         }

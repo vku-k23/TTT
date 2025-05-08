@@ -1,0 +1,240 @@
+<resources>
+    <!-- App name -->
+    <string name="app_name">CineVibe</string>
+    
+    <!-- Navigation -->
+    <string name="home">ホーム</string>
+    <string name="feed">フィード</string>
+    <string name="search">検索</string>
+    <string name="profile">プロフィール</string>
+    <string name="back">戻る</string>
+    
+    <!-- Authentication -->
+    <string name="login">ログイン</string>
+    <string name="register">登録</string>
+    <string name="forgot_password">パスワードを忘れた</string>
+    <string name="email">メール</string>
+    <string name="password">パスワード</string>
+    <string name="confirm_password">パスワードを確認</string>
+    <string name="reset_password">パスワードをリセット</string>
+    <string name="login_with_google">Googleでログイン</string>
+    <string name="dont_have_account">アカウントをお持ちでないですか？</string>
+    <string name="already_have_account">すでにアカウントをお持ちですか？</string>
+    <string name="sign_up">登録</string>
+    <string name="sign_in">サインイン</string>
+    <string name="sign_up_now">今すぐ登録</string>
+    <string name="logout">ログアウト</string>
+    <string name="background_image">背景画像</string>
+    <string name="forgot_password_instructions">メールアドレスを入力すると、パスワードをリセットするためのリンクをお送りします。</string>
+    <string name="send_reset_link">リセットリンクを送信</string>
+    <string name="email_sent">メールを送信しました！</string>
+    <string name="reset_link_sent_to_email">パスワードリセットリンクが %1$s に送信されました</string>
+    <string name="check_inbox_instructions">受信トレイを確認し、パスワードをリセットする手順に従ってください。</string>
+    <string name="back_to_login">ログイン画面に戻る</string>
+    
+    <!-- Profile -->
+    <string name="account_information">アカウント情報</string>
+    <string name="app_settings">アプリ設定</string>
+    <string name="change_language">言語を変更</string>
+    <string name="help_support">ヘルプ＆サポート</string>
+    <string name="edit_profile">プロフィールを編集</string>
+    <string name="language_settings">言語設定</string>
+    <string name="select_app_language">アプリの言語を選択</string>
+    <string name="full_name">氏名</string>
+    <string name="username">ユーザー名</string>
+    <string name="phone_number">電話番号（任意）</string>
+    <string name="save_changes">変更を保存</string>
+    <string name="privacy_terms">プライバシーと利用規約</string>
+    <string name="user_agreement">ユーザー同意書</string>
+    <string name="account_id">アカウントID</string>
+    <string name="subscription_information">サブスクリプション情報</string>
+    <string name="account_type">アカウント種類</string>
+    <string name="subscription_date">契約日</string>
+    <string name="next_billing_date">次回請求日</string>
+    <string name="payment_method">お支払い方法</string>
+    
+    <!-- Privacy & Terms -->
+    <string name="privacy_policy">プライバシーポリシー</string>
+    <string name="privacy_last_updated">最終更新日：2025年4月15日</string>
+    <string name="terms_of_service">利用規約</string>
+    <string name="terms_effective_date">発効日：2025年4月20日</string>
+    
+    <!-- Privacy Policy Sections -->
+    <string name="privacy_section_info_collect_title">収集する情報</string>
+    <string name="privacy_section_info_collect_content">当社は、アカウントの作成や変更、カスタマーサービスのリクエスト、その他の方法での当社とのコミュニケーションなど、お客様が直接提供する情報を収集します。この情報には、お名前、メールアドレス、パスワード、郵便住所、電話番号、支払い方法、およびお客様が提供することを選択したその他の情報が含まれる場合があります。</string>
+    
+    <string name="privacy_section_info_use_title">情報の使用方法</string>
+    <string name="privacy_section_info_use_content">当社は収集した情報を、サービスの提供、パーソナライズ、改善、取引の処理、更新やプロモーションについてのコミュニケーション、不正または違法な活動からの保護、およびこのプライバシーポリシーで説明されているその他の目的に使用します。</string>
+    
+    <string name="privacy_section_info_share_title">情報の共有</string>
+    <string name="privacy_section_info_share_content">当社は、支払い処理、データ分析、メール配信、ホスティングサービス、カスタマーサービスなど、当社の代わりにサービスを提供する第三者と収集した情報を共有することがあります。また、ビジネスパートナー、関連会社、または重要な企業取引に関連して情報を共有することもあります。</string>
+    
+    <string name="privacy_section_choices_title">お客様の選択肢</string>
+    <string name="privacy_section_choices_content">お客様は、アカウント情報の変更、通信設定の更新、またはいつでもアカウントの削除を行うことができます。また、デバイスの設定を調整することで、特定のデータ収集慣行からオプトアウトすることもできます。</string>
+    
+    <string name="privacy_section_security_title">セキュリティ</string>
+    <string name="privacy_section_security_content">当社は、収集した情報を紛失、盗難、誤用、不正アクセス、開示、変更、破壊から保護するために合理的な対策を講じています。</string>
+    
+    <string name="privacy_section_contact_title">お問い合わせ</string>
+    <string name="privacy_section_contact_content">このプライバシーポリシーについてご質問がある場合は、privacy@cinevibe.comまでお問い合わせください。</string>
+    
+    <!-- User Agreement Sections -->
+    <string name="agreement_section_acceptance_title">1. 利用規約の同意</string>
+    <string name="agreement_section_acceptance_content">CineVibeのサービスにアクセスまたは使用することにより、お客様はこれらの利用規約に同意するものとします。これらの条件に同意しない場合は、サービスを使用しないでください。</string>
+    
+    <string name="agreement_section_changes_title">2. 利用規約の変更</string>
+    <string name="agreement_section_changes_content">CineVibeはこれらの条件をいつでも修正することがあります。当社は、ウェブサイトまたはアプリに更新された条件を掲載することにより、変更についてお知らせします。そのような変更後も当社のサービスを継続して使用することは、修正された条件に同意したことを示します。</string>
+    
+    <string name="agreement_section_using_title">3. サービスの使用</string>
+    <string name="agreement_section_using_content">当社のサービスを使用するには、13歳以上またはお住まいの国で必要な最低年齢に達している必要があります。登録時に正確な情報を提供し、その情報を最新の状態に保つことに同意するものとします。お客様はアカウントの下で発生するすべての活動に責任を負います。</string>
+    
+    <string name="agreement_section_subscription_title">4. サブスクリプションと請求</string>
+    <string name="agreement_section_subscription_content">当社のサービスの一部の側面には料金の支払いが必要です。サブスクリプションプランに従って、定期的に料金が請求されます。すべての料金は、法律で義務付けられている場合、またはこれらの条件で明示的に規定されている場合を除き、返金不可です。</string>
+    
+    <string name="agreement_section_content_title">5. コンテンツとライセンス</string>
+    <string name="agreement_section_content_content">当社のサービスを通じて利用可能なすべてのコンテンツは、CineVibeまたはそのライセンサーの所有物であり、知的財産権によって保護されています。お客様は、CineVibeによって明示的に承認されていない方法でコンテンツを複製、配布、変更、表示、または使用しないことに同意するものとします。</string>
+    
+    <string name="agreement_section_disclaimers_title">6. 免責事項と責任制限</string>
+    <string name="agreement_section_disclaimers_content">サービスおよびすべてのコンテンツは、いかなる種類の保証もなく「現状のまま」提供されます。適用法で許可される最大限の範囲で、CINEVIBEは間接的、偶発的、特別、結果的、または懲罰的損害に対して責任を負いません。</string>
+    
+    <string name="agreement_section_law_title">7. 準拠法</string>
+    <string name="agreement_section_law_content">これらの条件は、その法の抵触に関する規定に関わらず、お客様が居住する管轄区域の法律に準拠するものとします。</string>
+    
+    <!-- Settings -->
+    <string name="notifications">通知</string>
+    <string name="push_notifications">プッシュ通知</string>
+    <string name="push_notifications_description">新着リリースとおすすめについての通知を受け取る</string>
+    <string name="download">ダウンロード</string>
+    <string name="downloads">ダウンロード</string>
+    <string name="download_wifi_only">Wi-Fi接続時のみダウンロード</string>
+    <string name="download_wifi_description">Wi-Fi経由でのみダウンロードすることでモバイルデータを節約</string>
+    <string name="playback">再生</string>
+    <string name="autoplay_next_episode">次のエピソードを自動再生</string>
+    <string name="autoplay_description">シリーズの次のエピソードを自動的に再生する</string>
+    <string name="subtitles">字幕</string>
+    <string name="subtitles_description">再生中に字幕を表示する</string>
+    <string name="app_information">アプリ情報</string>
+    <string name="app_version">アプリバージョン</string>
+    <string name="build_number">ビルド番号</string>
+    
+    <!-- Movies -->
+    <string name="movies">映画</string>
+    <string name="tv_shows">テレビ番組</string>
+    <string name="my_list">私のリスト</string>
+    <string name="continue_watching">視聴を続ける</string>
+    <string name="popular">人気</string>
+    <string name="top_rated">高評価</string>
+    <string name="now_playing">上映中</string>
+    <string name="upcoming">近日公開</string>
+    <string name="similar">類似の映画</string>
+    <string name="recommendations">おすすめ</string>
+    <string name="trending">トレンド</string>
+    <string name="watch_now">今すぐ見る</string>
+    <string name="add_to_list">リストに追加</string>
+    <string name="share">共有</string>
+    <string name="rate">評価する</string>
+    <string name="border">ボーダー</string>
+    <string name="more_like_this">類似作品</string>
+    <string name="trailers_and_more">予告編など</string>
+    <string name="genres">ジャンル</string>
+    <string name="cast">キャスト</string>
+    <string name="director">監督</string>
+    <string name="release_date">公開日</string>
+    <string name="runtime">上映時間</string>
+    <string name="overview">概要</string>
+    <string name="synopsis">あらすじ</string>
+    <string name="read_more">もっと読む</string>
+    <string name="no_synopsis_available">この映画のあらすじはありません</string>
+    
+    <!-- Movie detail dialog -->
+    <string name="play">再生</string>
+    <string name="play_trailer">予告編を再生</string>
+    <string name="stop_trailer">予告編を停止</string>
+    <string name="preview">プレビュー</string>
+    <string name="details_and_more">詳細など</string>
+    <string name="more_info">詳細情報</string>
+    <string name="no_trailer_available">予告編がありません</string>
+    
+    <!-- Search -->
+    <string name="search_hint">映画またはTVを検索</string>
+    <string name="no_results">結果が見つかりません</string>
+    <string name="search_results">検索結果</string>
+    
+    <!-- Help & Support -->
+    <string name="common_issues">一般的な問題</string>
+    <string name="streaming_quality_problems">ストリーミングまたはビデオ品質の問題</string>
+    <string name="account_billing_questions">アカウントと請求に関する質問</string>
+    <string name="app_not_working">アプリが正常に動作しない</string>
+    <string name="content_availability">コンテンツの可用性</string>
+    <string name="playback_issues">再生の問題</string>
+    <string name="contact_us">お問い合わせ</string>
+    <string name="live_chat_support">ライブチャットサポート</string>
+    <string name="email_support">メールサポート</string>
+    <string name="call_center">コールセンター</string>
+    <string name="submit_feedback">フィードバックを送信</string>
+    <string name="faq">よくある質問</string>
+    <string name="account_management">アカウント管理</string>
+    <string name="subscription_billing">サブスクリプションと請求</string>
+    <string name="device_compatibility">デバイスの互換性</string>
+    <string name="content_questions">コンテンツに関する質問</string>
+    <string name="network_requirements">ネットワーク要件</string>
+    
+    <!-- General -->
+    <string name="loading">読み込み中…</string>
+    <string name="error">エラー</string>
+    <string name="retry">再試行</string>
+    <string name="cancel">キャンセル</string>
+    <string name="ok">OK</string>
+    <string name="yes">はい</string>
+    <string name="no">いいえ</string>
+    <string name="changing_language_to">言語を%1$sに変更中…</string>
+    <string name="error_passwords_dont_match">パスワードが一致しません</string>
+    <string name="view">表示</string>
+    <string name="navigate">移動</string>
+    
+    <!-- Favorites -->
+    <string name="add_to_favorites">お気に入りに追加</string>
+    <string name="remove_from_favorites">お気に入りから削除</string>
+    <string name="favorites">お気に入り</string>
+    <string name="favorite_added">お気に入りに追加しました</string>
+    <string name="favorite_removed">お気に入りから削除しました</string>
+    <string name="empty_favorites">お気に入りリストが空です</string>
+    <string name="find_something">視聴する作品を探す</string>
+    <string name="remove">削除</string>
+    
+    <!-- Feed -->
+    <string name="following">フォロー中</string>
+    <string name="discover">発見</string>
+    <string name="movie_reviews">映画レビュー</string>
+    <string name="no_reviews">レビューはまだありません</string>
+    <string name="user_activity">ユーザーアクティビティ</string>
+    <string name="popular_reviews">人気のレビュー</string>
+    <string name="trending_discussions">トレンドの議論</string>
+    <string name="write_review">レビューを書く</string>
+    <string name="lists">リスト</string>
+    <string name="shared_lists">共有リスト</string>
+    <string name="my_created_lists">作成したリスト</string>
+    <string name="create_new_list">新しいリストを作成</string>
+    <string name="popular_lists">人気のリスト</string>
+    <string name="following_desc">フォローしている人のレビューとアクティビティ</string>
+    <string name="discover_desc">人気のレビューとアクティビティを発見</string>
+    <string name="movie_reviews_desc">すべての映画レビューを見る</string>
+    <string name="lists_desc">ユーザーが共有する映画リスト</string>
+    <string name="create_first_list">最初のリストを作成</string>
+    <string name="no_popular_lists">人気のリストが見つかりません</string>
+    <string name="no_created_lists">作成したリストがありません</string>
+    <string name="no_created_lists_desc">最初の映画コレクションを作成しましょう</string>
+    <string name="movies_count">%1$d本の映画</string>
+    
+    <!-- Notifications -->
+    <string name="all_notifications">すべての通知</string>
+    <string name="mentions">メンション</string>
+    <string name="likes">いいね</string>
+    <string name="comments">コメント</string>
+    <string name="follows">フォロー</string>
+    <string name="follow_requests">フォローリクエスト</string>
+    <string name="follow_accepted">フォローが承認されました</string>
+    <string name="mark_all_as_read">すべて既読にする</string>
+    <string name="no_notifications">通知はまだありません</string>
+    <string name="clear_all">すべてクリア</string>
+</resources>

@@ -5,7 +5,7 @@ object Constants {
     const val APP_ENTRY = "appEntry"
     
     // API key hardcoded for demo purposes, in production this should be in BuildConfig
-    const val API_KEY = "1ee82cdfe968c67bdb6c59307e933537"
+    const val API_KEY = "f67177b15249af78a11e0d2d67b53295"
     const val BASE_URL = "https://api.themoviedb.org/3/"
     
     // Image URL constants

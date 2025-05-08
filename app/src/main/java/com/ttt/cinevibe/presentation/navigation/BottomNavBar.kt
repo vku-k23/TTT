@@ -44,7 +44,7 @@ fun BottomNavBar(
                 },
                 label = {
                     Text(
-                        text = item.title,
+                        text = item.title ?: "",
                         fontSize = 10.sp,
                         fontWeight = if (isSelected) FontWeight.Medium else FontWeight.Normal,
                         color = if (isSelected) NetflixRed else LightGray

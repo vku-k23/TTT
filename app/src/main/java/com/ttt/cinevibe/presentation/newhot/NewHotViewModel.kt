@@ -3,8 +3,8 @@ package com.ttt.cinevibe.presentation.newhot
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ttt.cinevibe.domain.model.Movie
-import com.ttt.cinevibe.domain.usecases.movies.GetTrendingMoviesUseCase
-import com.ttt.cinevibe.domain.usecases.movies.GetUpcomingMoviesUseCase
+import com.ttt.cinevibe.domain.usecase.movies.GetTrendingMoviesUseCase
+import com.ttt.cinevibe.domain.usecase.movies.GetUpcomingMoviesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

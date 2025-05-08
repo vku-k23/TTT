@@ -1,56 +1,137 @@
 package com.ttt.cinevibe.presentation.mainActivity
 
+import android.content.Context
+import android.content.Intent
+import android.content.res.Configuration
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.view.WindowCompat
-import com.ttt.cinevibe.ui.theme.CineVibeTheme
-import dagger.hilt.android.AndroidEntryPoint
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.ttt.cinevibe.domain.model.Movie
+import com.ttt.cinevibe.data.manager.LanguageManager
 import com.ttt.cinevibe.presentation.NavDestinations
 import com.ttt.cinevibe.presentation.auth.AUTH_GRAPH_ROUTE
 import com.ttt.cinevibe.presentation.auth.authNavGraph
 import com.ttt.cinevibe.presentation.detail.MovieDetailScreen
-import com.ttt.cinevibe.presentation.home.HomeScreen
 import com.ttt.cinevibe.presentation.main.MainScreen
 import com.ttt.cinevibe.presentation.splash.SplashScreen
+import com.ttt.cinevibe.ui.theme.CineVibeTheme
+import com.ttt.cinevibe.utils.LanguageContextWrapper
+import com.ttt.cinevibe.utils.LocalAppLocale
+import com.ttt.cinevibe.utils.LocaleConfigurationProvider
+import com.ttt.cinevibe.utils.LocaleHelper
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import java.util.Locale
+import javax.inject.Inject
 
 // Define a constant for the splash route
 private const val SPLASH_ROUTE = "splash"
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    
+    @Inject
+    lateinit var languageManager: LanguageManager
+    
+    // Track current language to prevent unnecessary recreations
+    private var currentLanguage = ""
+
+    // Use a safer approach for attachBaseContext that doesn't depend early on dependency injection
+    override fun attachBaseContext(newBase: Context) {
+        // Use the system's default language instead of reading from languageManager
+        // Language will be applied correctly in onCreate after languageManager is injected
+        super.attachBaseContext(LocaleHelper.setLocale(newBase, Locale.getDefault()))
+    }
+    
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
-
-        setContent {
-            val navController = rememberNavController()
-            CineVibeTheme {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    CineVibeApp()
+        
+        // Make the app immersive for the splash screen
+        window.setFlags(
+            android.view.WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
+            android.view.WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
+        )
+        
+        lifecycleScope.launch {
+            try {
+                // Load language settings
+                val locale = languageManager.getAppLanguage().first()
+                currentLanguage = locale.language
+                
+                val currentUiMode = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
+                
+                // Set content with the application theme
+                setContent {
+                    CineVibeTheme(
+                        darkTheme = currentUiMode == Configuration.UI_MODE_NIGHT_YES
+                    ) {
+                        // Observe locale changes
+                        val appLocale by languageManager.getAppLanguage().collectAsState(locale)
+                        
+                        // Use key to monitor actual language changes
+                        val language = appLocale.language
+                        
+                        // Only trigger recreation if the language actually changed
+                        LaunchedEffect(language) {
+                            if (currentLanguage.isNotEmpty() && language != currentLanguage) {
+                                Log.d("MainActivity", "Locale changed from $currentLanguage to $language")
+                                
+                                // Force activity recreation with proper flags
+                                val intent = intent.apply { 
+                                    addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                    addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                                }
+                                finish()
+                                startActivity(intent)
+                                overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
+                                
+                                // Update tracked language
+                                currentLanguage = language
+                            }
+                        }
+                        
+                        CineVibeApp(appLocale = appLocale)
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("MainActivity", "Error initializing app", e)
+                // Fallback to default locale
+                setContent {
+                    CineVibeTheme {
+                        CineVibeApp(appLocale = Locale.getDefault())
+                    }
                 }
             }
         }
@@ -58,73 +139,93 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun CineVibeApp() {
+fun CineVibeApp(appLocale: Locale = Locale.getDefault()) {
     val navController = rememberNavController()
+    val context = LocalContext.current
     
-    // Start with the splash screen route
-    NavHost(navController = navController, startDestination = SPLASH_ROUTE) {
-        // Splash screen
-        composable(route = SPLASH_ROUTE) {
-            SplashScreen(
-                onSplashFinished = {
-                    // Navigate to auth flow when splash is done and user is NOT logged in
-                    navController.navigate(AUTH_GRAPH_ROUTE) {
-                        popUpTo(SPLASH_ROUTE) { inclusive = true }
+    // Track whether navigation has occurred from SplashScreen 
+    var navigatedFromSplash by remember { mutableStateOf(false) }
+    
+    // Apply the app locale immediately and whenever it changes
+    SideEffect {
+        LocaleConfigurationProvider.applyLocaleToContext(context, appLocale)
+    }
+    
+    // Provide the locale to all child composables
+    CompositionLocalProvider(LocalAppLocale provides appLocale) {
+        // Start with the enhanced splash screen as the launcher
+        NavHost(navController = navController, startDestination = SPLASH_ROUTE) {
+            // Splash screen acts as launcher
+            composable(route = SPLASH_ROUTE) {
+                SplashScreen(
+                    onSplashFinished = {
+                        if (!navigatedFromSplash) {
+                            navigatedFromSplash = true
+                            // Navigate to auth flow when user is not logged in
+                            navController.navigate(AUTH_GRAPH_ROUTE) {
+                                // Remove splash from back stack
+                                popUpTo(SPLASH_ROUTE) { inclusive = true }
+                            }
+                        }
+                    },
+                    onNavigateToHome = {
+                        if (!navigatedFromSplash) {
+                            navigatedFromSplash = true
+                            // Navigate directly to main flow when user is already logged in
+                            navController.navigate(NavDestinations.MAIN_FLOW) {
+                                // Remove splash from back stack
+                                popUpTo(SPLASH_ROUTE) { inclusive = true }
+                            }
+                        }
                     }
-                },
-                onNavigateToHome = {
-                    // Navigate directly to main flow if user is already logged in
+                )
+            }
+            
+            // Auth flow
+            authNavGraph(
+                navController = navController,
+                onAuthSuccess = {
                     navController.navigate(NavDestinations.MAIN_FLOW) {
-                        popUpTo(SPLASH_ROUTE) { inclusive = true }
+                        popUpTo(AUTH_GRAPH_ROUTE) { inclusive = true }
                     }
                 }
             )
-        }
-        
-        // Firebase Auth flow using our new components
-        authNavGraph(
-            navController = navController,
-            onAuthSuccess = {
-                // Navigate to main flow after successful authentication
-                navController.navigate(NavDestinations.MAIN_FLOW) {
-                    popUpTo(AUTH_GRAPH_ROUTE) { inclusive = true }
-                }
-            }
-        )
-        
-        // Main app flow
-        navigation(
-            startDestination = NavDestinations.HOME_ROUTE, 
-            route = NavDestinations.MAIN_FLOW
-        ) {
-            composable(NavDestinations.HOME_ROUTE) {
-                MainScreen(rootNavController = navController)
-            }
             
-            composable(
-                route = NavDestinations.MOVIE_DETAIL_WITH_ARGS,
-                arguments = listOf(
-                    navArgument("movieId") { type = NavType.IntType }
-                )
-            ) { backStackEntry ->
-                val movieId = backStackEntry.arguments?.getInt("movieId") ?: -1
+            // Main app flow
+            navigation(
+                startDestination = NavDestinations.HOME_ROUTE, 
+                route = NavDestinations.MAIN_FLOW
+            ) {
+                composable(NavDestinations.HOME_ROUTE) {
+                    MainScreen(rootNavController = navController)
+                }
                 
-                val dummyMovie = Movie(
-                    id = movieId,
-                    title = "Movie #$movieId",
-                    overview = "This is a sample movie description. In a real application, you would fetch this data from the API based on the movie ID.",
-                    posterPath = null,
-                    backdropPath = null,
-                    releaseDate = "2025-04-23",
-                    voteAverage = 4.5
-                )
-                
-                MovieDetailScreen(
-                    movie = dummyMovie,
-                    onBackClick = {
-                        navController.popBackStack()
+                composable(
+                    route = NavDestinations.MOVIE_DETAIL_WITH_ARGS,
+                    arguments = listOf(
+                        navArgument("movieId") { type = NavType.IntType }
+                    )
+                ) { backStackEntry ->
+                    val movieId = backStackEntry.arguments?.getInt("movieId") ?: -1
+                    val detailContext = LocalContext.current
+                    
+                    // Force locale application on each navigation to detail screen
+                    LaunchedEffect(appLocale) {
+                        Log.d("MovieDetail", "Applying locale: ${appLocale.language} on Movie Detail")
+                        Locale.setDefault(appLocale) // Set JVM default locale
+                        LocaleConfigurationProvider.applyLocaleToContext(detailContext, appLocale)
                     }
-                )
+                    
+                    // Use our improved LanguageContextWrapper
+                    LanguageContextWrapper(locale = appLocale) {
+                        MovieDetailScreen(
+                            movieId = movieId,
+                            onBackClick = {
+                                navController.popBackStack()
+                            }
+                        )
+                    }
+                }
             }
         }
     }

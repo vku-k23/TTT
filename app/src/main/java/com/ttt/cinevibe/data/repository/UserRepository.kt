@@ -1,0 +1,12 @@
+package com.ttt.cinevibe.data.repository
+
+import com.ttt.cinevibe.data.remote.models.UserResponse
+import com.ttt.cinevibe.data.remote.models.UserProfileRequest
+import com.ttt.cinevibe.domain.model.Resource
+import kotlinx.coroutines.flow.Flow
+
+interface UserRepository {
+    suspend fun getCurrentUser(): Flow<Resource<UserResponse>>
+    suspend fun syncUser(email: String, displayName: String, firebaseUid: String): Flow<Resource<UserResponse>>
+    suspend fun updateUserProfile(profileRequest: UserProfileRequest): Flow<Resource<UserResponse>>
+}

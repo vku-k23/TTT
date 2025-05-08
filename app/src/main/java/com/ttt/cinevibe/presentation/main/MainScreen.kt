@@ -2,6 +2,7 @@ package com.ttt.cinevibe.presentation.main
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -14,6 +15,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
@@ -22,44 +24,64 @@ import androidx.navigation.compose.rememberNavController
 import com.ttt.cinevibe.R
 import com.ttt.cinevibe.presentation.navigation.BottomNavItem
 import com.ttt.cinevibe.presentation.navigation.NavGraph
+import com.ttt.cinevibe.presentation.navigation.NavigationState
 import com.ttt.cinevibe.presentation.navigation.Screens
+import com.ttt.cinevibe.presentation.navigation.TopNavigationTab
+import com.ttt.cinevibe.presentation.navigation.rememberNavigationState
+import androidx.compose.ui.graphics.Color
+
+// Material Icons
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.outlined.Person
 
 @Composable
 fun MainScreen(
-    rootNavController: NavHostController // Add this parameter for the top-level navigation
+    rootNavController: NavHostController
 ) {
     val navController = rememberNavController()
+    val navigationState = rememberNavigationState()
 
+    // Bottom navigation items (updated with Feed and Notifications)
     val bottomNavItems = listOf(
         BottomNavItem(
             route = Screens.HOME_ROUTE,
             title = "Home",
-            selectedIcon = R.drawable.ic_home_filled,
-            unselectedIcon = R.drawable.ic_home_outlined
+            selectedImageVector = Icons.Filled.Home,
+            unselectedImageVector = Icons.Outlined.Home,
+            useImageVector = true
         ),
         BottomNavItem(
-            route = Screens.NEW_HOT_ROUTE,
-            title = "New & Hot",
-            selectedIcon = R.drawable.ic_new_hot_filled,
-            unselectedIcon = R.drawable.ic_new_hot_outlined
+            route = Screens.FEED_ROUTE,
+            title = "Feed",
+            selectedIcon = R.drawable.ic_feed_filled,
+            unselectedIcon = R.drawable.ic_feed_outlined,
+            useImageVector = false
         ),
         BottomNavItem(
             route = Screens.SEARCH_ROUTE,
             title = "Search",
-            selectedIcon = R.drawable.ic_search_filled,
-            unselectedIcon = R.drawable.ic_search_outlined
+            selectedImageVector = Icons.Filled.Search,
+            unselectedImageVector = Icons.Outlined.Search,
+            useImageVector = true
         ),
         BottomNavItem(
-            route = Screens.DOWNLOADS_ROUTE,
-            title = "Downloads",
-            selectedIcon = R.drawable.ic_downloads_filled,
-            unselectedIcon = R.drawable.ic_downloads_outlined
+            route = Screens.NOTIFICATIONS_ROUTE,
+            title = "Notifications",
+            selectedIcon = R.drawable.ic_notifications_filled,
+            unselectedIcon = R.drawable.ic_notifications_outlined,
+            useImageVector = false
         ),
         BottomNavItem(
             route = Screens.PROFILE_ROUTE,
             title = "Profile",
-            selectedIcon = R.drawable.ic_profile_filled,
-            unselectedIcon = R.drawable.ic_profile_outlined
+            selectedImageVector = Icons.Filled.Person,
+            unselectedImageVector = Icons.Outlined.Person,
+            useImageVector = true
         )
     )
 
@@ -67,14 +89,15 @@ fun MainScreen(
         bottomBar = {
             BottomNavigationBar(
                 navController = navController,
-                items = bottomNavItems
+                items = bottomNavItems,
+                navigationState = navigationState // Pass the navigation state
             )
         }
     ) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding)) {
             NavGraph(
                 navController = navController,
-                rootNavController = rootNavController // Pass the root NavController to NavGraph
+                rootNavController = rootNavController
             )
         }
     }
@@ -83,7 +106,8 @@ fun MainScreen(
 @Composable
 fun BottomNavigationBar(
     navController: NavHostController,
-    items: List<BottomNavItem>
+    items: List<BottomNavItem>,
+    navigationState: NavigationState // Add navigation state parameter
 ) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
@@ -93,26 +117,47 @@ fun BottomNavigationBar(
 
     if (isMainScreen) {
         NavigationBar(
-            containerColor = MaterialTheme.colorScheme.surface,
+            containerColor = Color.Black,
         ) {
             items.forEach { item ->
-                val selected = currentDestination?.hierarchy?.any { it.route == item.route } == true
+                // Use the navigation state to determine selection
+                val selected = navigationState.bottomNavRoute.value == item.route
+                
                 NavigationBarItem(
                     icon = {
-                        Icon(
-                            painter = painterResource(id = if (selected) item.selectedIcon else item.unselectedIcon),
-                            contentDescription = item.title
-                        )
+                        if (item.useImageVector && item.selectedImageVector != null && item.unselectedImageVector != null) {
+                            Icon(
+                                imageVector = if (selected) item.selectedImageVector else item.unselectedImageVector,
+                                contentDescription = item.title,
+                                tint = Color.White,
+                                modifier = Modifier.size(if (selected) 32.dp else 28.dp)
+                            )
+                        } else {
+                            Icon(
+                                painter = painterResource(id = if (selected) item.selectedIcon else item.unselectedIcon),
+                                contentDescription = item.title,
+                                tint = Color.White,
+                                modifier = Modifier.size(if (selected) 32.dp else 28.dp)
+                            )
+                        }
                     },
-                    label = { Text(text = item.title) },
                     selected = selected,
                     colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = MaterialTheme.colorScheme.primary,
-                        selectedTextColor = MaterialTheme.colorScheme.primary,
-                        unselectedIconColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                        unselectedTextColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                        selectedIconColor = Color.White,
+                        selectedTextColor = Color.White,
+                        unselectedIconColor = Color.White.copy(alpha = 0.6f),
+                        unselectedTextColor = Color.White.copy(alpha = 0.6f),
+                        indicatorColor = Color.Transparent // Hide the indicator background
                     ),
                     onClick = {
+                        // Update our navigation state
+                        navigationState.bottomNavRoute.value = item.route
+                        
+                        // If we're on My List screen and click Home, reset top nav
+                        if (item.route == Screens.HOME_ROUTE && currentDestination?.route == Screens.MY_LIST_ROUTE) {
+                            navigationState.topNavTab.value = TopNavigationTab.MOVIES
+                        }
+                        
                         navController.navigate(item.route) {
                             // Pop up to the start destination of the graph to
                             // avoid building up a large stack of destinations

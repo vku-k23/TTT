@@ -40,6 +40,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -131,7 +132,7 @@ fun LoginScreen(
             ) {
                 // Logo and Header Section
                 Text(
-                    text = "CINEVIBE",
+                    text = stringResource(R.string.app_name),
                     fontWeight = FontWeight.Bold,
                     fontSize = 36.sp,
                     color = NetflixRed,
@@ -143,7 +144,7 @@ fun LoginScreen(
                 
                 // Login Form Section
                 Text(
-                    text = "Sign In",
+                    text = stringResource(R.string.sign_in),
                     fontWeight = FontWeight.Bold,
                     fontSize = 24.sp,
                     color = White,
@@ -156,7 +157,7 @@ fun LoginScreen(
                 TextField(
                     value = email,
                     onValueChange = { email = it },
-                    placeholder = { Text("Email or phone number", color = LightGray) },
+                    placeholder = { Text(stringResource(R.string.email), color = LightGray) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),
@@ -182,7 +183,7 @@ fun LoginScreen(
                 TextField(
                     value = password,
                     onValueChange = { password = it },
-                    placeholder = { Text("Password", color = LightGray) },
+                    placeholder = { Text(stringResource(R.string.password), color = LightGray) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),
@@ -221,7 +222,7 @@ fun LoginScreen(
                     enabled = email.isNotEmpty() && password.isNotEmpty() && loginState !is AuthState.Loading
                 ) {
                     Text(
-                        "Sign In",
+                        stringResource(R.string.sign_in),
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -238,14 +239,14 @@ fun LoginScreen(
                         modifier = Modifier.align(Alignment.CenterStart)
                     ) {
                         Text(
-                            "Forgot Password?",
+                            stringResource(R.string.forgot_password),
                             color = LightGray,
                             fontSize = 14.sp
                         )
                     }
                     
                     Text(
-                        "Need help?",
+                        stringResource(R.string.help_support),
                         color = LightGray,
                         fontSize = 14.sp,
                         modifier = Modifier.align(Alignment.CenterEnd)
@@ -256,7 +257,7 @@ fun LoginScreen(
                 
                 // Register Section
                 Text(
-                    "New to CineVibe?",
+                    stringResource(R.string.dont_have_account),
                     color = LightGray,
                     fontSize = 14.sp
                 )
@@ -266,7 +267,7 @@ fun LoginScreen(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
-                        "Sign up now",
+                        stringResource(R.string.sign_up_now),
                         color = White,
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp
