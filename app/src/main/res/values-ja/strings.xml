@@ -33,6 +33,7 @@
     <string name="back_to_login">ログイン画面に戻る</string>
     
     <!-- Profile -->
+    <string name="general_setting">一般設定</string>
     <string name="account_information">アカウント情報</string>
     <string name="app_settings">アプリ設定</string>
     <string name="change_language">言語を変更</string>

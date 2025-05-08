@@ -13,6 +13,7 @@ const val PROFILE_GRAPH_ROUTE = "profile_graph"
 // Profile screen routes
 private object ProfileScreens {
     const val MAIN = Screens.PROFILE_ROUTE
+    const val GENERAL_SETTING = "general_setting"
     const val ACCOUNT_INFO = "account_info"
     const val APP_SETTINGS = "app_settings"
     const val LANGUAGE_SETTINGS = "language_settings"
@@ -34,17 +35,25 @@ fun NavGraphBuilder.profileNavGraph(
         // Main profile screen
         composable(route = ProfileScreens.MAIN) {
             ProfileScreen(
+                onNavigateToGeneralSetting = { navController.navigate(ProfileScreens.GENERAL_SETTING) },
+                onNavigateToEditProfile = { navController.navigate(ProfileScreens.EDIT_PROFILE) },
+            )
+        }
+
+        // General Settings screen (SettingsScreen)
+        composable(route = ProfileScreens.GENERAL_SETTING) {
+            SettingsScreen(
                 onNavigateToAccountInfo = { navController.navigate(ProfileScreens.ACCOUNT_INFO) },
                 onNavigateToAppSettings = { navController.navigate(ProfileScreens.APP_SETTINGS) },
                 onNavigateToLanguageSettings = { navController.navigate(ProfileScreens.LANGUAGE_SETTINGS) },
                 onNavigateToHelpSupport = { navController.navigate(ProfileScreens.HELP_SUPPORT) },
-                onNavigateToEditProfile = { navController.navigate(ProfileScreens.EDIT_PROFILE) },
                 onNavigateToPrivacyTerms = { navController.navigate(ProfileScreens.PRIVACY_TERMS) },
                 onNavigateToUserAgreement = { navController.navigate(ProfileScreens.USER_AGREEMENT) },
+                onBackPressed = { navController.popBackStack() },
                 onLogout = onLogout
             )
         }
-        
+
         // Account information screen
         composable(route = ProfileScreens.ACCOUNT_INFO) {
             AccountInfoScreen(

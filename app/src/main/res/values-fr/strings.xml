@@ -33,6 +33,7 @@
     <string name="back_to_login">Retour à la connexion</string>
     
     <!-- Profile -->
+    <string name="general_setting">Paramètres généraux</string>
     <string name="account_information">Informations du compte</string>
     <string name="app_settings">Paramètres de l\'application</string>
     <string name="change_language">Changer de langue</string>

@@ -20,6 +20,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Language
@@ -33,21 +34,33 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.BlurredEdgeTreatment
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
 import com.ttt.cinevibe.R
@@ -64,36 +77,29 @@ import com.ttt.cinevibe.ui.theme.White
 fun ProfileScreen(
     viewModel: AuthViewModel = hiltViewModel(),
     profileViewModel: ProfileViewModel = hiltViewModel(),
-    onNavigateToAccountInfo: () -> Unit = {},
-    onNavigateToAppSettings: () -> Unit = {},
-    onNavigateToLanguageSettings: () -> Unit = {},
-    onNavigateToHelpSupport: () -> Unit = {},
+    onNavigateToGeneralSetting: () -> Unit = {},
     onNavigateToEditProfile: () -> Unit = {},
-    onNavigateToPrivacyTerms: () -> Unit = {},
-    onNavigateToUserAgreement: () -> Unit = {},
-    onLogout: () -> Unit
 ) {
     val logoutState by viewModel.logoutState.collectAsState()
     val userProfileState by profileViewModel.userProfileState.collectAsState()
     val scrollState = rememberScrollState()
     
-    // Effect to handle logout state
-    LaunchedEffect(key1 = logoutState) {
-        when (logoutState) {
-            is AuthState.Success -> {
-                viewModel.resetAuthStates()
-                onLogout()
-            }
-            is AuthState.Error -> {
-                viewModel.resetAuthStates()
-            }
-            else -> {}
-        }
-    }
+    // Quản lý trạng thái hiển thị xem trước avatar
+    var showAvatarPreview by remember { mutableStateOf(false) }
     
     // Refresh user data when screen is shown
     LaunchedEffect(Unit) {
         profileViewModel.fetchCurrentUser()
+    }
+    
+    val user = (userProfileState as? Resource.Success)?.data
+    
+    // Hiển thị dialog xem trước avatar khi showAvatarPreview = true
+    if (showAvatarPreview && user?.profileImageUrl != null) {
+        AvatarPreviewDialog(
+            avatarUrl = user.profileImageUrl,
+            onDismiss = { showAvatarPreview = false }
+        )
     }
     
     Box(
@@ -113,21 +119,43 @@ fun ProfileScreen(
                     .verticalScroll(scrollState),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Profile Header Section with user information
-                val user = (userProfileState as? Resource.Success)?.data
+                // Row chỉ chứa icon setting ở góc phải phía trên
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Settings,
+                        contentDescription = stringResource(R.string.app_settings),
+                        tint = White,
+                        modifier = Modifier
+                            .size(24.dp)
+                            .clickable { onNavigateToGeneralSetting() }
+                    )
+                }
+                
+                // Profile Header Section với user information
                 
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                        .padding(horizontal = 16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // Profile Picture
+                    // Profile Picture ở giữa với khả năng click để xem trước
                     Box(
                         modifier = Modifier
                             .size(96.dp)
                             .clip(CircleShape)
-                            .background(DarkGray),
+                            .background(DarkGray)
+                            .clickable { 
+                                if (user?.profileImageUrl != null) {
+                                    showAvatarPreview = true
+                                }
+                            },
                         contentAlignment = Alignment.Center
                     ) {
                         if (user?.profileImageUrl != null) {
@@ -276,90 +304,7 @@ fun ProfileScreen(
                         .padding(vertical = 8.dp)
                 )
                 
-                // Menu Items
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                ) {
-                    ProfileMenuItem(
-                        icon = Icons.Filled.Person,
-                        title = stringResource(R.string.account_information),
-                        onClick = onNavigateToAccountInfo
-                    )
-                    
-                    ProfileMenuItem(
-                        icon = Icons.Filled.Settings,
-                        title = stringResource(R.string.app_settings),
-                        onClick = onNavigateToAppSettings
-                    )
-                    
-                    ProfileMenuItem(
-                        icon = Icons.Filled.Language,
-                        title = stringResource(R.string.change_language),
-                        onClick = onNavigateToLanguageSettings
-                    )
-                    
-                    ProfileMenuItem(
-                        icon = Icons.Filled.Info,
-                        title = stringResource(R.string.help_support),
-                        onClick = onNavigateToHelpSupport
-                    )
-                }
-                
-                Spacer(modifier = Modifier.height(24.dp))
-                
-                // Logout Button
-                Button(
-                    onClick = {
-                        viewModel.logout()
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                        .height(48.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = NetflixRed,
-                        contentColor = White
-                    ),
-                    shape = RoundedCornerShape(4.dp),
-                    enabled = logoutState !is AuthState.Loading
-                ) {
-                    Text(
-                        text = stringResource(R.string.logout),
-                        color = White,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp
-                    )
-                }
-                
-                Spacer(modifier = Modifier.height(32.dp))
-                
-                // Footer Links
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 16.dp),
-                    horizontalAlignment = Alignment.Start
-                ) {
-                    Text(
-                        text = stringResource(R.string.privacy_terms),
-                        color = LightGray,
-                        fontSize = 14.sp,
-                        modifier = Modifier
-                            .padding(vertical = 4.dp)
-                            .clickable { onNavigateToPrivacyTerms() }
-                    )
-                    
-                    Text(
-                        text = stringResource(R.string.user_agreement),
-                        color = LightGray,
-                        fontSize = 14.sp,
-                        modifier = Modifier
-                            .padding(vertical = 4.dp)
-                            .clickable { onNavigateToUserAgreement() }
-                    )
-                }
+                // Menu Items are now moved to Settings screen
                 
                 // Show loading indicator if logout is in progress
                 if (logoutState is AuthState.Loading) {
@@ -440,4 +385,93 @@ fun ProfileMenuItem(
         thickness = 0.5.dp,
         modifier = Modifier.fillMaxWidth()
     )
+}
+
+@Composable
+fun AvatarPreviewDialog(
+    avatarUrl: String?,
+    onDismiss: () -> Unit
+) {
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(
+            usePlatformDefaultWidth = false,
+            dismissOnBackPress = false, // Không đóng khi nhấn nút back
+            dismissOnClickOutside = false // Không đóng khi nhấp vào bên ngoài
+        )
+    ) {
+        // Toàn bộ màn hình với background blur
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.7f)),
+            contentAlignment = Alignment.Center
+        ) {
+            // Background avatar blur hiệu ứng
+            if (avatarUrl != null) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .zIndex(-1f) // Đảm bảo nằm dưới avatar chính
+                ) {
+                    AsyncImage(
+                        model = avatarUrl,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .blur(radius = 25.dp)
+                            .alpha(0.8f),
+                        contentScale = ContentScale.Crop
+                    )
+                }
+            }
+            
+            // Avatar chính phóng to ở giữa màn hình
+            Box(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .size(280.dp)
+                    .clip(CircleShape)
+            ) {
+                if (avatarUrl != null) {
+                    AsyncImage(
+                        model = avatarUrl,
+                        contentDescription = "Avatar Preview",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(DarkGray),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "No Image",
+                            color = White,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 22.sp
+                        )
+                    }
+                }
+            }
+            
+            // Nút đóng ở góc trên bên phải
+            IconButton(
+                onClick = onDismiss,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(16.dp)
+                    .background(Color.Black.copy(alpha = 0.5f), CircleShape)
+                    .size(36.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = "Close",
+                    tint = White
+                )
+            }
+        }
+    }
 }

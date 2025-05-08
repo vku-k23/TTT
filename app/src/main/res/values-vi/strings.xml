@@ -33,6 +33,7 @@
     <string name="back_to_login">Quay lại đăng nhập</string>
     
     <!-- Profile -->
+    <string name="general_setting">Cài đặt chung</string>
     <string name="account_information">Thông tin tài khoản</string>
     <string name="app_settings">Cài đặt ứng dụng</string>
     <string name="change_language">Thay đổi ngôn ngữ</string>
