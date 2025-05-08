@@ -2,7 +2,7 @@ package com.ttt.cinevibe.data.remote
 
 object BackendApiConstants {
     // Replace with your actual backend URL
-    const val BASE_URL = "http://47.129.34.182:8081/"
+    const val BASE_URL = "https://catcosy.shop:8081/"
     
     // API endpoints
     const val USER_ENDPOINT = "api/user"

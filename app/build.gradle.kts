@@ -107,8 +107,8 @@ dependencies {
 
     //Accompanist
     implementation("com.google.accompanist:accompanist-systemuicontroller:0.36.0")
-    implementation("com.google.accompanist:accompanist-permissions:0.34.0") // Added for permission handling
-
+    implementation("com.google.accompanist:accompanist-permissions:0.34.0") // Added permissions library
+    
     //Paging
     val paging_version = "3.3.5"
     implementation("androidx.paging:paging-runtime:$paging_version")
