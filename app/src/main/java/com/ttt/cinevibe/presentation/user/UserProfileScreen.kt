@@ -33,7 +33,6 @@ import com.ttt.cinevibe.data.remote.models.UserResponse
 fun UserProfileScreen(
     viewModel: UserViewModel = hiltViewModel(),
     onLogout: () -> Unit,
-    onDeleteSuccess: () -> Unit
 ) {
     // UI state for the profile form
     var displayName by remember { mutableStateOf("") }
@@ -44,7 +43,6 @@ fun UserProfileScreen(
     
     // Collect user state from the ViewModel
     val userState by viewModel.userState.collectAsState()
-    val deleteAccountState by viewModel.deleteAccountState.collectAsState()
     
     // Initialize by loading the current user profile
     LaunchedEffect(key1 = Unit) {
@@ -63,18 +61,6 @@ fun UserProfileScreen(
             )
         }
     }
-    
-    // Handle delete account state changes
-    LaunchedEffect(key1 = deleteAccountState) {
-        if (deleteAccountState is UserState.Success) {
-            onDeleteSuccess()
-            viewModel.resetUserStates()
-        } else if (deleteAccountState is UserState.Error) {
-            snackbarHostState.showSnackbar(
-                message = (deleteAccountState as UserState.Error).message
-            )
-        }
-    }
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) }
@@ -85,7 +71,7 @@ fun UserProfileScreen(
                 .padding(paddingValues)
         ) {
             // Show loading indicator
-            if (userState is UserState.Loading || deleteAccountState is UserState.Loading) {
+            if (userState is UserState.Loading) {
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
             } else {
                 Column(
@@ -122,7 +108,7 @@ fun UserProfileScreen(
                     // Update Profile Button
                     Button(
                         onClick = {
-                            viewModel.updateUser(displayName = displayName, bio = bio)
+                            viewModel.updateUserProfile(displayName = displayName, bio = bio)
                         },
                         modifier = Modifier.fillMaxWidth()
                     ) {
@@ -137,18 +123,6 @@ fun UserProfileScreen(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text("Logout")
-                    }
-                    
-                    Spacer(modifier = Modifier.height(32.dp))
-                    
-                    // Delete Account Button
-                    Button(
-                        onClick = {
-                            viewModel.deleteAccount()
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text("Delete Account")
                     }
                 }
             }

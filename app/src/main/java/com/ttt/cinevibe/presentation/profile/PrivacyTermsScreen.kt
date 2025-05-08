@@ -1,4 +1,3 @@
-package com.ttt.cinevibe.presentation.profile
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
@@ -6,10 +5,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -21,28 +19,27 @@ import com.ttt.cinevibe.ui.theme.Black
 import com.ttt.cinevibe.ui.theme.LightGray
 import com.ttt.cinevibe.ui.theme.White
 import com.ttt.cinevibe.R
+import com.ttt.cinevibe.presentation.profile.ProfileTopBar
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PrivacyTermsScreen(
     onBackPressed: () -> Unit
 ) {
     val scrollState = rememberScrollState()
     
-    Scaffold(
-        containerColor = Black,
-        topBar = {
-            ProfileTopBar(
-                title = stringResource(R.string.privacy_terms),
-                onBackPressed = onBackPressed
-            )
-        }
-    ) { paddingValues ->
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Black)
+    ) {
+        ProfileTopBar(
+            title = stringResource(R.string.privacy_terms),
+            onBackPressed = onBackPressed
+        )
+        
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Black)
-                .padding(paddingValues)
                 .verticalScroll(scrollState)
                 .padding(16.dp)
         ) {

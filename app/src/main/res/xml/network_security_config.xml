@@ -1,8 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
+    <!-- Keep secure communications as the default -->
     <base-config cleartextTrafficPermitted="false">
         <trust-anchors>
             <certificates src="system" />
         </trust-anchors>
     </base-config>
+
+    <!-- Allow cleartext traffic to the specific backend server -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">47.129.34.182</domain>
+        <!-- Add your actual domain name if you have one -->
+        <!-- <domain includeSubdomains="true">your-backend-domain.com</domain> -->
+    </domain-config>
 </network-security-config>

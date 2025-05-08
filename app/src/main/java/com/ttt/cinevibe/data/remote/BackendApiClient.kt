@@ -27,7 +27,7 @@ class BackendApiClient @Inject constructor(
     }
     
     /**
-     * Registers the user with the backend after successful Firebase authentication.
+     * Syncs the user with the backend after successful Firebase authentication.
      */
     suspend fun registerWithBackend(username: String): Result<UserResponse> {
         val currentUser = firebaseAuth.currentUser ?: return Result.failure(
@@ -45,7 +45,7 @@ class BackendApiClient @Inject constructor(
                 displayName = username,
                 firebaseUid = firebaseUid
             )
-            userApiService.registerUser(userRequest)
+            userApiService.syncUser(userRequest)
         }
     }
     

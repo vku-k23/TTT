@@ -6,7 +6,7 @@ import com.ttt.cinevibe.domain.model.Resource
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
-class RegisterUserUseCase @Inject constructor(
+class SyncUserUseCase @Inject constructor(
     private val userRepository: UserRepository
 ) {
     suspend operator fun invoke(
@@ -14,6 +14,6 @@ class RegisterUserUseCase @Inject constructor(
         displayName: String,
         firebaseUid: String
     ): Flow<Resource<UserResponse>> {
-        return userRepository.registerUser(email, displayName, firebaseUid)
+        return userRepository.syncUser(email, displayName, firebaseUid)
     }
 }

@@ -11,6 +11,9 @@ data class UserResponse(
     val profileImageUrl: String? = null,
     val bio: String? = null,
     val favoriteGenre: String? = null,
-    val createdAt: String? = null, // Using String for serialization compatibility
-    val lastLogin: String? = null  // Using String for serialization compatibility
+    val reviewCount: Int? = null,
+    val followersCount: Int? = null,
+    val followingCount: Int? = null,
+    val createdAt: String? = null, 
+    val lastLogin: String? = null 
 )

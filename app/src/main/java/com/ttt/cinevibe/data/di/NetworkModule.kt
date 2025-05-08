@@ -3,6 +3,7 @@ package com.ttt.cinevibe.data.di
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import com.ttt.cinevibe.data.remote.ApiConstants
 import com.ttt.cinevibe.data.remote.BackendApiConstants
+import com.ttt.cinevibe.data.remote.CloudinaryService
 import com.ttt.cinevibe.data.remote.MovieApi
 import com.ttt.cinevibe.data.remote.api.MovieApiService
 import com.ttt.cinevibe.data.remote.api.UserApiService
@@ -80,6 +81,19 @@ object NetworkModule {
     
     @Provides
     @Singleton
+    fun provideCloudinaryOkHttpClient(
+        loggingInterceptor: HttpLoggingInterceptor
+    ): OkHttpClient {
+        return OkHttpClient.Builder()
+            .addInterceptor(loggingInterceptor)
+            .connectTimeout(60, TimeUnit.SECONDS)
+            .readTimeout(60, TimeUnit.SECONDS)
+            .writeTimeout(60, TimeUnit.SECONDS)
+            .build()
+    }
+
+    @Provides
+    @Singleton
     fun provideJson() = Json { 
         ignoreUnknownKeys = true 
         coerceInputValues = true
@@ -128,5 +142,11 @@ object NetworkModule {
     @Singleton
     fun provideUserApiService(@BackendRetrofit retrofit: Retrofit): UserApiService {
         return retrofit.create(UserApiService::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideCloudinaryService(okHttpClient: OkHttpClient): CloudinaryService {
+        return CloudinaryService(okHttpClient)
     }
 }

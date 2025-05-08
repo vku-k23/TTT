@@ -2,11 +2,15 @@ package com.ttt.cinevibe.data.remote
 
 object BackendApiConstants {
     // Replace with your actual backend URL
-    const val BASE_URL = "https://a714-2a09-bac5-d5cb-e6-00-17-26b.ngrok-free.app/"
+    const val BASE_URL = "http://47.129.34.182:8081/"
     
     // API endpoints
     const val USER_ENDPOINT = "api/user"
     const val ME_ENDPOINT = "api/user/me"
-    const val REGISTER_ENDPOINT = "api/user/register"  // Ensure this endpoint is correct
+    const val SYNC_USER_ENDPOINT = "api/user/sync"  // Fixed to match backend endpoint
     const val PROFILE_ENDPOINT = "api/user/profile"
+    
+    // Auth header for Firebase JWT
+    const val AUTH_HEADER = "Authorization"
+    const val AUTH_BEARER_PREFIX = "Bearer "
 }
