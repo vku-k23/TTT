@@ -35,6 +35,7 @@ fun NavGraphBuilder.profileNavGraph(
         // Main profile screen
         composable(route = ProfileScreens.MAIN) {
             ProfileScreen(
+                navController = navController,
                 onNavigateToGeneralSetting = { navController.navigate(ProfileScreens.GENERAL_SETTING) },
                 onNavigateToEditProfile = { navController.navigate(ProfileScreens.EDIT_PROFILE) },
             )

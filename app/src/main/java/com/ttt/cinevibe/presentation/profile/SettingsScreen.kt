@@ -123,7 +123,7 @@ fun SettingsScreen(
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(48.dp),
+                    .height(42.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = NetflixRed,
                     contentColor = White
