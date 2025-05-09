@@ -178,6 +178,12 @@ fun NavGraph(
                 },
                 onFollowUser = { targetUserId ->
                     // Handle follow action in future implementation
+                },
+                onShareProfile = { targetUserId ->
+                    // Handle sharing user profile
+                },
+                onMessageUser = { targetUserId ->
+                    // Navigate to chat/messaging in future implementation
                 }
             )
         }

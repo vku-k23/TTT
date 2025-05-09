@@ -58,7 +58,7 @@ fun UserProfileCard(
                 modifier = Modifier
                     .size(50.dp)
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primaryContainer)
+                    .background(MaterialTheme.colorScheme.primary)
             ) {
                 Image(
                     painter = painter,
