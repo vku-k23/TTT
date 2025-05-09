@@ -33,6 +33,7 @@
     <string name="back_to_login">ログイン画面に戻る</string>
     
     <!-- Profile -->
+    <string name="general_setting">一般設定</string>
     <string name="account_information">アカウント情報</string>
     <string name="app_settings">アプリ設定</string>
     <string name="change_language">言語を変更</string>
@@ -52,7 +53,9 @@
     <string name="subscription_date">契約日</string>
     <string name="next_billing_date">次回請求日</string>
     <string name="payment_method">お支払い方法</string>
-    
+    <string name="bio">自己紹介</string>
+    <string name="favorite_genre">好きなジャンル</string>
+
     <!-- Privacy & Terms -->
     <string name="privacy_policy">プライバシーポリシー</string>
     <string name="privacy_last_updated">最終更新日：2025年4月15日</string>

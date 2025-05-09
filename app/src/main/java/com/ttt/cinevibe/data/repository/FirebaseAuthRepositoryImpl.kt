@@ -37,7 +37,7 @@ class FirebaseAuthRepositoryImpl @Inject constructor(
         }
     }
 
-    override fun registerUser(email: String, password: String, username: String): Flow<Resource<Boolean>> = flow {
+    override fun registerUser(email: String, password: String, displayName: String, username: String): Flow<Resource<Boolean>> = flow {
         try {
             emit(Resource.Loading())
             val result = firebaseAuth.createUserWithEmailAndPassword(email, password).await()
@@ -45,7 +45,7 @@ class FirebaseAuthRepositoryImpl @Inject constructor(
             result.user?.let { user ->
                 // Update display name
                 val profileUpdates = UserProfileChangeRequest.Builder()
-                    .setDisplayName(username)
+                    .setDisplayName(displayName)
                     .build()
                 user.updateProfile(profileUpdates).await()
                 
@@ -53,9 +53,13 @@ class FirebaseAuthRepositoryImpl @Inject constructor(
                 val userData = hashMapOf(
                     "userId" to user.uid,
                     "email" to email,
+                    "displayName" to displayName,
                     "username" to username,
                     "createdAt" to System.currentTimeMillis()
                 )
+                
+                // Log what we're saving to debug if needed
+                android.util.Log.d("FirebaseAuthRepo", "Storing user data in Firestore: userId=${user.uid}, username=$username")
                 
                 firestore.collection("users")
                     .document(user.uid)

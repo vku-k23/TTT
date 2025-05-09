@@ -33,6 +33,7 @@
     <string name="back_to_login">Retour à la connexion</string>
     
     <!-- Profile -->
+    <string name="general_setting">Paramètres généraux</string>
     <string name="account_information">Informations du compte</string>
     <string name="app_settings">Paramètres de l\'application</string>
     <string name="change_language">Changer de langue</string>
@@ -52,6 +53,8 @@
     <string name="subscription_date">Date d\'abonnement</string>
     <string name="next_billing_date">Prochaine date de facturation</string>
     <string name="payment_method">Mode de paiement</string>
+    <string name="bio">Biographie</string>
+    <string name="favorite_genre">Genre préféré</string>
     
     <!-- Privacy & Terms -->
     <string name="privacy_policy">Politique de Confidentialité</string>

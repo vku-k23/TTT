@@ -25,37 +25,38 @@ class BackendApiClient @Inject constructor(
     suspend fun getCurrentUser(): Result<UserResponse> = runCatching {
         userApiService.getCurrentUser()
     }
-    
+
     /**
      * Syncs the user with the backend after successful Firebase authentication.
      */
-    suspend fun registerWithBackend(username: String): Result<UserResponse> {
+    suspend fun registerWithBackend(displayName: String, username: String): Result<UserResponse> {
         val currentUser = firebaseAuth.currentUser ?: return Result.failure(
             IllegalStateException("No authenticated user found")
         )
-        
+
         val firebaseUid = currentUser.uid
         val email = currentUser.email ?: return Result.failure(
             IllegalStateException("User email not available")
         )
-        
+
         return runCatching {
-            val userRequest = UserRequest(
+            val user = UserRequest(
                 email = email,
-                displayName = username,
+                displayName = displayName,
+                username = username,
                 firebaseUid = firebaseUid
             )
-            userApiService.syncUser(userRequest)
+            userApiService.syncUser(user)
         }
     }
-    
+
     /**
      * Example method for retrieving a Firebase token for manual API calls.
      * Note: Normally you should use the [FirebaseTokenInterceptor] instead.
      */
     suspend fun getFirebaseToken(forceRefresh: Boolean = false): Result<String> = runCatching {
         val user = firebaseAuth.currentUser ?: throw IllegalStateException("No authenticated user")
-        user.getIdToken(forceRefresh).await().token 
+        user.getIdToken(forceRefresh).await().token
             ?: throw IllegalStateException("Could not retrieve Firebase token")
     }
 }

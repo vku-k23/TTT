@@ -79,17 +79,26 @@ class ProfileViewModel @Inject constructor(
     fun fetchCurrentUser() {
         viewModelScope.launch {
             try {
+                _userProfileState.value = Resource.Loading()
+                android.util.Log.d("ProfileViewModel", "Fetching current user data")
                 userRepository.getCurrentUser().collect { result ->
                     _userProfileState.value = result
+                    if (result is Resource.Success) {
+                        android.util.Log.d("ProfileViewModel", "User data fetched successfully: ${result.data}")
+                    } else if (result is Resource.Error) {
+                        android.util.Log.e("ProfileViewModel", "Error fetching user data: ${result.message}")
+                    }
                 }
             } catch (e: Exception) {
                 if (e is CancellationException) throw e
+                android.util.Log.e("ProfileViewModel", "Exception fetching user data", e)
                 _userProfileState.value = Resource.Error(e.message ?: "Failed to load user profile")
             }
         }
     }
     
     fun updateUserProfile(
+        username: String,
         displayName: String,
         bio: String?,
         favoriteGenre: String?,
@@ -106,6 +115,7 @@ class ProfileViewModel @Inject constructor(
                 
                 val request = UserProfileRequest(
                     firebaseUid = uid,
+                    username = username,
                     displayName = displayName,
                     bio = bio,
                     favoriteGenre = favoriteGenre,
@@ -156,6 +166,10 @@ class ProfileViewModel @Inject constructor(
     fun getCurrentUserResponse(): UserResponse? {
         return (userProfileState.value as? Resource.Success)?.data
     }
+
+    fun getUserUsername(): String {
+        return getCurrentUserResponse()?.username ?: ""
+    }
     
     fun getUserDisplayName(): String {
         return getCurrentUserResponse()?.displayName ?: ""
@@ -178,7 +192,7 @@ class ProfileViewModel @Inject constructor(
     }
     
     fun getUserFullName(): String {
-        return getCurrentUserResponse()?.displayName ?: "User"
+        return getCurrentUserResponse()?.displayName ?: "Loading..."
     }
     
     fun getUserAccountType(): String {

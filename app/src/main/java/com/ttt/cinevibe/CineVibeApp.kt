@@ -9,10 +9,14 @@ import android.os.Process
 import android.util.Log
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
+import com.google.android.gms.common.GoogleApiAvailability
+import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.messaging.FirebaseMessaging
 import com.ttt.cinevibe.data.manager.LanguageManager
+import com.ttt.cinevibe.utils.FirebaseInitializer
 import com.ttt.cinevibe.utils.LocaleHelper
+import com.ttt.cinevibe.utils.SecurityProviderUpdater
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -40,6 +44,9 @@ class CineVibeApp : Application() {
     override fun onCreate() {
         super.onCreate()
         
+        // Update Android Security Provider first
+        SecurityProviderUpdater.updateSecurityProvider(this)
+        
         // Initialize with stored language immediately
         initializeAppLanguage()
         
@@ -49,12 +56,26 @@ class CineVibeApp : Application() {
         // Register for configuration changes
         registerActivityLifecycleCallbacks(LocaleActivityLifecycleCallbacks(this))
         
-        // Set up Firebase auth listener to log token
-        setupFirebaseAuthListener()
-        
-        // Get current FCM token if user is already logged in
-        if (FirebaseAuth.getInstance().currentUser != null) {
-            logFirebaseMessagingToken()
+        // Initialize Firebase properly using our utility
+        if (FirebaseInitializer.initializeFirebase(this)) {
+            Log.d(TAG, "Firebase initialization successful")
+            
+            // Set up Firebase auth listener
+            setupFirebaseAuthListener()
+            
+            // Get current FCM token if user is already logged in
+            if (FirebaseAuth.getInstance().currentUser != null) {
+                logFirebaseMessagingToken()
+            }
+        } else {
+            Log.e(TAG, "Firebase initialization failed")
+            // Try to update security provider asynchronously
+            SecurityProviderUpdater.updateSecurityProviderAsync(this) { success ->
+                if (success) {
+                    Log.d(TAG, "Security provider updated, retrying Firebase initialization")
+                    FirebaseInitializer.initializeFirebase(this)
+                }
+            }
         }
     }
     
@@ -80,12 +101,16 @@ class CineVibeApp : Application() {
      * when user signs in or registers
      */
     private fun setupFirebaseAuthListener() {
-        FirebaseAuth.getInstance().addAuthStateListener { firebaseAuth ->
-            val user = firebaseAuth.currentUser
-            if (user != null) {
-                // User is signed in - log FCM token
-                logFirebaseMessagingToken()
+        try {
+            FirebaseAuth.getInstance().addAuthStateListener { firebaseAuth ->
+                val user = firebaseAuth.currentUser
+                if (user != null) {
+                    // User is signed in - log FCM token
+                    logFirebaseMessagingToken()
+                }
             }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error setting up Firebase auth listener", e)
         }
     }
     

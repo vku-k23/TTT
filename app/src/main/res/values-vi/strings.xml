@@ -33,6 +33,7 @@
     <string name="back_to_login">Quay lại đăng nhập</string>
     
     <!-- Profile -->
+    <string name="general_setting">Cài đặt chung</string>
     <string name="account_information">Thông tin tài khoản</string>
     <string name="app_settings">Cài đặt ứng dụng</string>
     <string name="change_language">Thay đổi ngôn ngữ</string>
@@ -52,6 +53,8 @@
     <string name="subscription_date">Ngày đăng ký</string>
     <string name="next_billing_date">Ngày thanh toán tiếp theo</string>
     <string name="payment_method">Phương thức thanh toán</string>
+    <string name="bio">Tiểu sử</string>
+    <string name="favorite_genre">Thể loại yêu thích</string>
     
     <!-- Privacy & Terms -->
     <string name="privacy_policy">Chính sách quyền riêng tư</string>

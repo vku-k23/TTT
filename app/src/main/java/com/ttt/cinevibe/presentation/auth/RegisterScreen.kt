@@ -67,16 +67,17 @@ fun RegisterScreen(
     onNavigateToLogin: () -> Unit
 ) {
     var username by remember { mutableStateOf("") }
+    var displayName by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
-    
+
     val registerState by viewModel.registerState.collectAsState()
     val firebaseAuthState by viewModel.firebaseAuthState.collectAsState()
     val backendSyncState by viewModel.backendSyncState.collectAsState()
-    
+
     val snackbarHostState = remember { SnackbarHostState() }
-    
+
     // Monitor registration state and handle navigation/errors
     LaunchedEffect(key1 = registerState) {
         when (registerState) {
@@ -85,23 +86,28 @@ fun RegisterScreen(
                 onRegisterSuccess()
                 viewModel.resetAuthStates()
             }
+
             is AuthState.Error -> {
                 val errorMessage = (registerState as AuthState.Error).message
                 android.util.Log.e("RegisterScreen", "Registration error: $errorMessage")
                 snackbarHostState.showSnackbar(message = errorMessage)
             }
-            else -> { /* No action needed for other states */ }
+
+            else -> { /* No action needed for other states */
+            }
         }
     }
-    
+
     // Show meaningful feedback about backend registration status
     LaunchedEffect(key1 = backendSyncState) {
         // Only show backend error messages if Firebase auth was successful
-        if (firebaseAuthState is FirebaseAuthState.Success && 
-            backendSyncState is BackendSyncState.Error) {
-            
-            val message = "Registration completed with Firebase but couldn't connect to app server. " +
-                          "Some features may be limited until next login."
+        if (firebaseAuthState is FirebaseAuthState.Success &&
+            backendSyncState is BackendSyncState.Error
+        ) {
+
+            val message =
+                "Registration completed with Firebase but couldn't connect to app server. " +
+                        "Some features may be limited until next login."
             snackbarHostState.showSnackbar(message = message)
         }
     }
@@ -133,7 +139,7 @@ fun RegisterScreen(
                     )
                 }
         )
-        
+
         Scaffold(
             snackbarHost = { SnackbarHost(snackbarHostState) },
             containerColor = Color.Transparent
@@ -156,9 +162,9 @@ fun RegisterScreen(
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
                 )
-                
+
                 Spacer(modifier = Modifier.height(32.dp))
-                
+
                 // Register Form Section
                 Text(
                     text = stringResource(R.string.sign_up),
@@ -167,20 +173,23 @@ fun RegisterScreen(
                     color = White,
                     modifier = Modifier.align(Alignment.Start)
                 )
-                
+
                 Text(
                     text = stringResource(R.string.register),
                     fontSize = 14.sp,
                     color = LightGray,
                     modifier = Modifier.align(Alignment.Start)
                 )
-                
+
                 Spacer(modifier = Modifier.height(24.dp))
-                
+
                 // Username Field
                 TextField(
                     value = username,
-                    onValueChange = { username = it },
+                    onValueChange = {
+                        username = it
+                        android.util.Log.d("RegisterScreen", "Username updated to: $it")
+                    },
                     placeholder = { Text(stringResource(R.string.username), color = LightGray) },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -200,9 +209,40 @@ fun RegisterScreen(
                     ),
                     singleLine = true
                 )
-                
+
                 Spacer(modifier = Modifier.height(16.dp))
-                
+
+                // Display Name Field
+                TextField(
+                    value = displayName,
+                    onValueChange = { displayName = it },
+                    placeholder = {
+                        Text(
+                            stringResource(R.string.display_name),
+                            color = LightGray
+                        )
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
+                    colors = TextFieldDefaults.colors(
+                        unfocusedContainerColor = DarkGray.copy(alpha = 0.7f),
+                        focusedContainerColor = DarkGray.copy(alpha = 0.7f),
+                        unfocusedIndicatorColor = Color.Transparent,
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedTextColor = White,
+                        focusedTextColor = White
+                    ),
+                    shape = RoundedCornerShape(4.dp),
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Text,
+                        imeAction = ImeAction.Next
+                    ),
+                    singleLine = true
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
                 // Email Field
                 TextField(
                     value = email,
@@ -226,9 +266,9 @@ fun RegisterScreen(
                     ),
                     singleLine = true
                 )
-                
+
                 Spacer(modifier = Modifier.height(16.dp))
-                
+
                 // Password Field
                 TextField(
                     value = password,
@@ -253,16 +293,21 @@ fun RegisterScreen(
                     ),
                     singleLine = true
                 )
-                
+
                 Spacer(modifier = Modifier.height(16.dp))
-                
+
                 // Confirm Password Field
                 val passwordsMatch = password == confirmPassword || confirmPassword.isEmpty()
                 Column(modifier = Modifier.fillMaxWidth()) {
                     TextField(
                         value = confirmPassword,
                         onValueChange = { confirmPassword = it },
-                        placeholder = { Text(stringResource(R.string.confirm_password), color = LightGray) },
+                        placeholder = {
+                            Text(
+                                stringResource(R.string.confirm_password),
+                                color = LightGray
+                            )
+                        },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(56.dp),
@@ -283,20 +328,20 @@ fun RegisterScreen(
                         singleLine = true,
                         isError = !passwordsMatch
                     )
-                    
+
                     // Display error message outside of TextField to maintain consistent field height
                     if (!passwordsMatch) {
                         Text(
-                            stringResource(R.string.error_passwords_dont_match), 
+                            stringResource(R.string.error_passwords_dont_match),
                             color = NetflixRed,
                             fontSize = 12.sp,
                             modifier = Modifier.padding(start = 4.dp, top = 2.dp)
                         )
                     }
                 }
-                
+
                 Spacer(modifier = Modifier.height(if (passwordsMatch) 32.dp else 16.dp))
-                
+
                 // Registration Status (optional)
                 when {
                     firebaseAuthState is FirebaseAuthState.Success && backendSyncState is BackendSyncState.Loading -> {
@@ -309,12 +354,21 @@ fun RegisterScreen(
                         )
                     }
                 }
-                
+
                 // Sign Up Button
                 Button(
                     onClick = {
                         if (password == confirmPassword) {
-                            viewModel.register(email, password, username)
+                            android.util.Log.d(
+                                "RegisterScreen",
+                                "Register button clicked with username: $username, displayName: $displayName"
+                            )
+                            viewModel.register(
+                                email = email,
+                                password = password,
+                                displayName = displayName,
+                                username = username
+                            )
                         }
                     },
                     modifier = Modifier
@@ -326,8 +380,9 @@ fun RegisterScreen(
                         disabledContainerColor = NetflixRed.copy(alpha = 0.5f)
                     ),
                     shape = RoundedCornerShape(4.dp),
-                    enabled = email.isNotEmpty() && password.isNotEmpty() && 
-                            username.isNotEmpty() && password == confirmPassword && 
+                    enabled = email.isNotEmpty() && password.isNotEmpty() &&
+                            username.isNotEmpty() && displayName.isNotEmpty() &&
+                            password == confirmPassword &&
                             registerState !is AuthState.Loading
                 ) {
                     Text(
@@ -336,16 +391,16 @@ fun RegisterScreen(
                         fontWeight = FontWeight.Bold
                     )
                 }
-                
+
                 Spacer(modifier = Modifier.height(24.dp))
-                
+
                 // Login Section
                 Text(
                     stringResource(R.string.already_have_account),
                     color = LightGray,
                     fontSize = 14.sp
                 )
-                
+
                 TextButton(
                     onClick = onNavigateToLogin,
                     modifier = Modifier.fillMaxWidth()
@@ -358,7 +413,7 @@ fun RegisterScreen(
                     )
                 }
             }
-            
+
             // Improved Loading Indicator with Status Text
             if (registerState is AuthState.Loading) {
                 Box(
@@ -372,17 +427,19 @@ fun RegisterScreen(
                     ) {
                         CircularProgressIndicator(color = NetflixRed)
                         Spacer(modifier = Modifier.height(16.dp))
-                        
+
                         // Show appropriate status message based on current state
                         val statusText = when {
-                            firebaseAuthState is FirebaseAuthState.Loading -> 
+                            firebaseAuthState is FirebaseAuthState.Loading ->
                                 "Creating your account..."
-                            firebaseAuthState is FirebaseAuthState.Success && 
-                            backendSyncState is BackendSyncState.Loading -> 
+
+                            firebaseAuthState is FirebaseAuthState.Success &&
+                                    backendSyncState is BackendSyncState.Loading ->
                                 "Connecting to server..."
+
                             else -> "Registering..."
                         }
-                        
+
                         Text(
                             text = statusText,
                             color = White,

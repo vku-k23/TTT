@@ -7,6 +7,6 @@ import kotlinx.coroutines.flow.Flow
 
 interface UserRepository {
     suspend fun getCurrentUser(): Flow<Resource<UserResponse>>
-    suspend fun syncUser(email: String, displayName: String, firebaseUid: String): Flow<Resource<UserResponse>>
+    suspend fun syncUser(email: String, displayName: String, username: String, firebaseUid: String): Flow<Resource<UserResponse>>
     suspend fun updateUserProfile(profileRequest: UserProfileRequest): Flow<Resource<UserResponse>>
 }

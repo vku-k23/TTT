@@ -33,6 +33,7 @@
     <string name="back_to_login">Back to Login</string>
     
     <!-- Profile -->
+    <string name="general_setting">General Settings</string>
     <string name="account_information">Account Information</string>
     <string name="app_settings">App Settings</string>
     <string name="change_language">Change Language</string>
@@ -42,6 +43,7 @@
     <string name="select_app_language">Select App Language</string>
     <string name="full_name">Full Name</string>
     <string name="username">Username</string>
+    <string name="display_name">Display Name</string>
     <string name="phone_number">Phone Number (Optional)</string>
     <string name="save_changes">Save Changes</string>
     <string name="privacy_terms">Privacy &amp; Terms</string>
@@ -52,7 +54,10 @@
     <string name="subscription_date">Subscription Date</string>
     <string name="next_billing_date">Next Billing Date</string>
     <string name="payment_method">Payment Method</string>
-    
+    <string name="bio">Bio</string>
+    <string name="favorite_genre">Favorite genre</string>
+
+
     <!-- Privacy & Terms -->
     <string name="privacy_policy">Privacy Policy</string>
     <string name="privacy_last_updated">Last Updated: April 15, 2025</string>

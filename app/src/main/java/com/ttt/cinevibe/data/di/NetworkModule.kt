@@ -97,6 +97,8 @@ object NetworkModule {
     fun provideJson() = Json { 
         ignoreUnknownKeys = true 
         coerceInputValues = true
+        isLenient = true  // Add lenient parsing to handle different JSON formats
+        encodeDefaults = true  // Encode default values when serializing
     }
 
     @Provides

@@ -16,6 +16,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.ArrowBackIos
+import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -31,6 +34,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ttt.cinevibe.ui.theme.Black
@@ -43,34 +47,55 @@ import com.ttt.cinevibe.ui.theme.White
 @Composable
 fun ProfileTopBar(
     title: String,
-    onBackPressed: () -> Unit
+    onBackPressed: () -> Unit,
+    showSettings: Boolean = false,
+    onSettingsPressed: () -> Unit = {}
 ) {
-    TopAppBar(
-        title = { 
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Back Button
+        Icon(
+            imageVector = Icons.Filled.ArrowBackIosNew,
+            contentDescription = "Back",
+            tint = White,
+            modifier = Modifier
+                .size(24.dp)
+                .clickable { onBackPressed() }
+        )
+        
+        // Title
+        Box(
+            modifier = Modifier.weight(1f),
+            contentAlignment = Alignment.Center
+        ) {
             Text(
-                text = title, 
+                text = title,
                 color = White,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold
-            ) 
-        },
-        navigationIcon = {
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center
+            )
+        }
+        
+        // Settings Button (optional)
+        if (showSettings) {
             Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Back",
+                imageVector = Icons.Filled.Settings,
+                contentDescription = "Settings",
                 tint = White,
                 modifier = Modifier
-                    .padding(start = 8.dp)
-                    .clickable { onBackPressed() }
+                    .size(24.dp)
+                    .clickable { onSettingsPressed() }
             )
-        },
-        colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = Black
-        ),
-        modifier = Modifier
-            .fillMaxWidth(),
-        windowInsets = WindowInsets(0,0,0,0)
-    )
+        } else {
+            // Empty space for alignment
+            Spacer(modifier = Modifier.width(24.dp))
+        }
+    }
 }
 
 @Composable
