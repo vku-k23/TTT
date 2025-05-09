@@ -72,9 +72,12 @@ import com.ttt.cinevibe.ui.theme.DarkGray
 import com.ttt.cinevibe.ui.theme.LightGray
 import com.ttt.cinevibe.ui.theme.NetflixRed
 import com.ttt.cinevibe.ui.theme.White
+import androidx.navigation.NavHostController
+import com.ttt.cinevibe.presentation.navigation.Screens
 
 @Composable
 fun ProfileScreen(
+    navController: NavHostController,
     profileViewModel: ProfileViewModel = hiltViewModel(),
     onNavigateToGeneralSetting: () -> Unit = {},
     onNavigateToEditProfile: () -> Unit = {},
@@ -255,6 +258,29 @@ fun ProfileScreen(
                             value = user?.followingCount?.toString() ?: "0",
                             label = "Following"
                         )
+                    }
+                    
+                    // Discover People Button - NEW
+                    Button(
+                        onClick = { 
+                            navController.navigate(Screens.USER_RECOMMENDATIONS_ROUTE)
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 16.dp, horizontal = 32.dp)
+                            .height(48.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = NetflixRed,
+                            contentColor = White
+                        )
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Person,
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(text = "Discover People")
                     }
                     
                     // Bio and Favorite Genre

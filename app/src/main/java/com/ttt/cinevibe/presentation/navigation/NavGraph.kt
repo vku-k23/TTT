@@ -1,16 +1,8 @@
 package com.ttt.cinevibe.presentation.navigation
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -19,16 +11,14 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
 import com.ttt.cinevibe.presentation.auth.AUTH_GRAPH_ROUTE
 import com.ttt.cinevibe.presentation.detail.MovieDetailScreen
-import com.ttt.cinevibe.presentation.detail.MovieDetailViewModel
 import com.ttt.cinevibe.presentation.feed.FeedScreen
 import com.ttt.cinevibe.presentation.home.HomeScreen
 import com.ttt.cinevibe.presentation.mylist.MyListScreen
 import com.ttt.cinevibe.presentation.notifications.NotificationsScreen
-import com.ttt.cinevibe.presentation.profile.PROFILE_GRAPH_ROUTE
 import com.ttt.cinevibe.presentation.profile.profileNavGraph
 import com.ttt.cinevibe.presentation.search.SearchScreen
-import com.ttt.cinevibe.ui.theme.NetflixRed
-import com.ttt.cinevibe.ui.theme.White
+import com.ttt.cinevibe.presentation.userProfile.discover.UserRecommendationScreen
+import com.ttt.cinevibe.presentation.userProfile.profile.UserProfileScreen
 
 @Composable
 fun NavGraph(
@@ -161,6 +151,33 @@ fun NavGraph(
                 onNavigateToDetails = { similarMovieId ->
                     // Navigate to the detail screen of the similar movie
                     navController.navigate(Screens.movieDetailRoute(similarMovieId.toString()))
+                }
+            )
+        }
+        
+        // User recommendations screen
+        composable(route = Screens.USER_RECOMMENDATIONS_ROUTE) {
+            UserRecommendationScreen(
+                onUserClick = { userId ->
+                    navController.navigate(Screens.userProfileRoute(userId))
+                }
+            )
+        }
+        
+        // User profile screen
+        composable(
+            route = "${Screens.USER_PROFILE_ROUTE}/{${Screens.USER_ID_ARG}}",
+            arguments = listOf(navArgument(Screens.USER_ID_ARG) { type = NavType.StringType })
+        ) { backStackEntry ->
+            val userId = backStackEntry.arguments?.getString(Screens.USER_ID_ARG) ?: ""
+            
+            UserProfileScreen(
+                userId = userId,
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onFollowUser = { targetUserId ->
+                    // Handle follow action in future implementation
                 }
             )
         }

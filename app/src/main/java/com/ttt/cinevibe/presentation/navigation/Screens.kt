@@ -10,6 +10,12 @@ object Screens {
     const val MOVIE_DETAIL_ARG = "movieId"
     const val MY_LIST_ROUTE = "my_list"
     
+    // User recommendations and profiles
+    const val USER_RECOMMENDATIONS_ROUTE = "user_recommendations"
+    const val USER_PROFILE_ROUTE = "user_profile"
+    const val USER_ID_ARG = "userId"
+    
     // Route with arguments
     fun movieDetailRoute(movieId: String): String = "$MOVIE_DETAIL_ROUTE/$movieId"
+    fun userProfileRoute(userId: String): String = "$USER_PROFILE_ROUTE/$userId"
 }
