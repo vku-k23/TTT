@@ -21,6 +21,7 @@ class FirebaseTokenInterceptor @Inject constructor(
     
     companion object {
         private const val TAG = "FirebaseTokenInterceptor"
+        private const val HEADER_USERNAME = "X-Username"
     }
     
     override fun intercept(chain: Interceptor.Chain): Response {
@@ -38,43 +39,31 @@ class FirebaseTokenInterceptor @Inject constructor(
                 // Get username from preferences if available
                 val username = runBlocking { userPreferences.getUsername() }
                 
-                // If we have a username, make sure it's in the token by setting a custom claim
-                if (!username.isNullOrEmpty()) {
-                    Log.d(TAG, "Adding username to token: $username")
-                    // Get token with the username included in the claims
-                    val token = runBlocking { getTokenWithUsername(currentUser, username) }
+                // Get token (force refresh to ensure it's current)
+                val token = runBlocking { 
+                    currentUser.getIdToken(true).await().token 
+                }
+                
+                if (token != null) {
+                    // Create request builder with the Firebase token
+                    val requestBuilder = originalRequest.newBuilder()
+                        .header(BackendApiConstants.AUTH_HEADER, "${BackendApiConstants.AUTH_BEARER_PREFIX}$token")
                     
-                    if (token != null) {
-                        // Add Authorization header with Bearer token
-                        val authenticatedRequest = originalRequest.newBuilder()
-                            .header(BackendApiConstants.AUTH_HEADER, "${BackendApiConstants.AUTH_BEARER_PREFIX}$token")
-                            .build()
-                        Log.d(TAG, "Added Firebase token to request: ${originalRequest.url}")
-                        chain.proceed(authenticatedRequest)
+                    // Add username as a custom header if available
+                    if (!username.isNullOrEmpty()) {
+                        Log.d(TAG, "Adding username header: $username")
+                        requestBuilder.header(HEADER_USERNAME, username)
                     } else {
-                        Log.e(TAG, "Authentication required but couldn't get valid token")
-                        throw IOException("Authentication required but failed to get valid token")
+                        Log.w(TAG, "No username available in preferences")
                     }
+                    
+                    val authenticatedRequest = requestBuilder.build()
+                    Log.d(TAG, "Added authentication to request: ${originalRequest.url}")
+                    
+                    chain.proceed(authenticatedRequest)
                 } else {
-                    // If we don't have username in preferences, just use the regular token
-                    val token = runCatching { 
-                        kotlinx.coroutines.runBlocking { 
-                            Log.d(TAG, "Getting fresh ID token without username...")
-                            currentUser.getIdToken(true).await().token 
-                        }
-                    }.getOrNull()
-                    
-                    if (token != null) {
-                        // Add Authorization header with Bearer token
-                        val authenticatedRequest = originalRequest.newBuilder()
-                            .header(BackendApiConstants.AUTH_HEADER, "${BackendApiConstants.AUTH_BEARER_PREFIX}$token")
-                            .build()
-                        Log.d(TAG, "Added regular Firebase token to request: ${originalRequest.url}")
-                        chain.proceed(authenticatedRequest)
-                    } else {
-                        Log.e(TAG, "Authentication required but couldn't get valid token")
-                        throw IOException("Authentication required but failed to get valid token")
-                    }
+                    Log.e(TAG, "Authentication required but couldn't get valid token")
+                    throw IOException("Authentication required but failed to get valid token")
                 }
             } catch (e: Exception) {
                 // Log error but don't fail the request silently
