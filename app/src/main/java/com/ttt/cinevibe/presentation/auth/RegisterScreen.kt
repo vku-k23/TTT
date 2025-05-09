@@ -186,7 +186,10 @@ fun RegisterScreen(
                 // Username Field
                 TextField(
                     value = username,
-                    onValueChange = { username = it },
+                    onValueChange = {
+                        username = it
+                        android.util.Log.d("RegisterScreen", "Username updated to: $it")
+                    },
                     placeholder = { Text(stringResource(R.string.username), color = LightGray) },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -356,7 +359,16 @@ fun RegisterScreen(
                 Button(
                     onClick = {
                         if (password == confirmPassword) {
-                            viewModel.register(email, password, displayName, username)
+                            android.util.Log.d(
+                                "RegisterScreen",
+                                "Register button clicked with username: $username, displayName: $displayName"
+                            )
+                            viewModel.register(
+                                email = email,
+                                password = password,
+                                displayName = displayName,
+                                username = username
+                            )
                         }
                     },
                     modifier = Modifier

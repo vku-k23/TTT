@@ -12,9 +12,9 @@ class SyncUserUseCase @Inject constructor(
     suspend operator fun invoke(
         email: String,
         displayName: String,
-        username: String?,
+        username: String,
         firebaseUid: String
     ): Flow<Resource<UserResponse>> {
-        return userRepository.syncUser(email, displayName, username ?: "", firebaseUid)
+        return userRepository.syncUser(email, displayName, username, firebaseUid)
     }
 }

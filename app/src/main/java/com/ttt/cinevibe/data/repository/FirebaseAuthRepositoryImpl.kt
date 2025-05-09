@@ -58,6 +58,9 @@ class FirebaseAuthRepositoryImpl @Inject constructor(
                     "createdAt" to System.currentTimeMillis()
                 )
                 
+                // Log what we're saving to debug if needed
+                android.util.Log.d("FirebaseAuthRepo", "Storing user data in Firestore: userId=${user.uid}, username=$username")
+                
                 firestore.collection("users")
                     .document(user.uid)
                     .set(userData)

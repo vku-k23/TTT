@@ -45,13 +45,14 @@ class UserRepositoryImpl @Inject constructor(
     ): Flow<Resource<UserResponse>> = flow {
         emit(Resource.Loading())
         try {
-            android.util.Log.d("UserRepository", "Making API call to syncUser()")
+            android.util.Log.d("UserRepository", "Making API call to syncUser() with username: $username")
             val userRequest = UserRequest(
                 email = email,
                 displayName = displayName,
                 username = username,
                 firebaseUid = firebaseUid
             )
+            android.util.Log.d("UserRepository", "Sending user request: $userRequest")
             val response = userApiService.syncUser(userRequest)
             android.util.Log.d("UserRepository", "Sync user successful: $response")
             emit(Resource.Success(response))

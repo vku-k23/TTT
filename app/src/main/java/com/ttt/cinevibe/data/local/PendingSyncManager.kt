@@ -1,5 +1,7 @@
 package com.ttt.cinevibe.data.local
 
+import kotlinx.serialization.Serializable
+
 /**
  * Interface quản lý các tác vụ đồng bộ hóa đang chờ xử lý
  * khi không có kết nối hoặc xảy ra lỗi tạm thời
@@ -29,6 +31,7 @@ interface PendingSyncManager {
 /**
  * Data class chứa thông tin đăng ký người dùng đang chờ đồng bộ
  */
+@Serializable
 data class RegistrationData(
     val email: String,
     val displayName: String,

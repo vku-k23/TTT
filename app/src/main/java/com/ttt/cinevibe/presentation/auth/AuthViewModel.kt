@@ -10,6 +10,7 @@ import com.ttt.cinevibe.domain.usecase.auth.LogoutUseCase
 import com.ttt.cinevibe.domain.usecase.auth.RegisterUseCase
 import com.ttt.cinevibe.domain.usecase.user.SyncUserUseCase
 import com.ttt.cinevibe.data.local.PendingSyncManager
+import com.ttt.cinevibe.data.local.UserPreferences
 import com.ttt.cinevibe.data.remote.BackendApiClient
 import com.ttt.cinevibe.data.remote.models.UserRequest
 import com.ttt.cinevibe.data.remote.models.UserResponse
@@ -36,7 +37,8 @@ class AuthViewModel @Inject constructor(
     private val getAuthStatusUseCase: GetAuthStatusUseCase,
     private val syncUserUseCase: SyncUserUseCase,
     private val pendingSyncManager: PendingSyncManager,
-    private val backendApiClient: BackendApiClient
+    private val backendApiClient: BackendApiClient,
+    private val userPreferences: UserPreferences
 ) : ViewModel() {
 
     private val _loginState = MutableStateFlow<AuthState>(AuthState.Idle)
@@ -92,13 +94,36 @@ class AuthViewModel @Inject constructor(
                         is Resource.Success -> {
                             android.util.Log.d(TAG, "Firebase login successful")
 
+                            // Save email in preferences immediately
+                            userPreferences.saveEmail(email)
+
                             // Check for pending registration data first
                             checkPendingSyncTasks()
 
                             // Now sync current user with backend
                             _backendSyncState.value = BackendSyncState.Loading
                             try {
+                                // First try to get the current user data from backend
+                                try {
+                                    val userResponse = backendApiClient.getCurrentUser().getOrThrow()
+                                    android.util.Log.d(TAG, "Successfully retrieved user data from backend")
+                                    
+                                    // Save username to preferences if it exists
+                                    if (!userResponse.username.isNullOrBlank()) {
+                                        android.util.Log.d(TAG, "Saving username from backend: ${userResponse.username}")
+                                        userPreferences.saveUsername(userResponse.username)
+                                    }
+                                    
+                                    // Save display name to preferences if it exists
+                                    if (!userResponse.displayName.isNullOrBlank()) {
+                                        android.util.Log.d(TAG, "Saving display name from backend: ${userResponse.displayName}")
+                                        userPreferences.saveDisplayName(userResponse.displayName)
+                                    }
+                                } catch (e: Exception) {
+                                    android.util.Log.e(TAG, "Failed to get user data from backend: ${e.message}")
+                                }
 
+                                // Then proceed with regular sync
                                 syncUserWithBackend()
 
                                 // Always proceed after sync attempt, regardless of result
@@ -128,12 +153,17 @@ class AuthViewModel @Inject constructor(
     }
 
     fun register(email: String, password: String,  displayName: String, username: String,) {
-        android.util.Log.d(TAG, "Starting registration process for: $email")
+        android.util.Log.d(TAG, "Starting registration process for: $email, $displayName, $username")
         viewModelScope.launch {
             _registerState.value = AuthState.Loading
             _firebaseAuthState.value = FirebaseAuthState.Loading
 
             try {
+                // Save the user details to preferences upfront
+                userPreferences.saveUsername(username)
+                userPreferences.saveDisplayName(displayName)
+                userPreferences.saveEmail(email)
+
                 // Step 1: Register with Firebase
                 var firebaseSuccess = false
                 registerUseCase(email, password, displayName, username)
@@ -182,8 +212,8 @@ class AuthViewModel @Inject constructor(
                     _backendSyncState.value = BackendSyncState.Loading
                     try {
                         val syncResult = backendApiClient.registerWithBackend(
-                            username = username,
-                            displayName = displayName
+                            displayName = displayName,
+                            username = username
                         )
                         syncResult.fold(
                             onSuccess = { userResponse ->
@@ -233,10 +263,21 @@ class AuthViewModel @Inject constructor(
                 if (uid != null && email != null) {
                     android.util.Log.d(TAG, "Syncing user with backend: $uid, email: $email")
 
-                    // Use email prefix as default username if needed
+                    // Log the username value being used for debugging
+                    android.util.Log.d(TAG, "Current username for sync: ${currentUser.username}")
+
+                    // Save user data to preferences
+                    if (currentUser.username.isNotEmpty()) {
+                        userPreferences.saveUsername(currentUser.username)
+                    }
+                    if (currentUser.displayName.isNotEmpty()) {
+                        userPreferences.saveDisplayName(currentUser.displayName)
+                    }
+                    userPreferences.saveEmail(email)
 
                     withTimeoutOrNull(SYNC_TIMEOUT_MS) {
                         try {
+                            // Make sure we're using the correct username from the current user response
                             syncUserUseCase(
                                 email = email,
                                 displayName = currentUser.displayName,
@@ -340,7 +381,11 @@ class AuthViewModel @Inject constructor(
                 }
                 .collect { result ->
                     when (result) {
-                        is Resource.Success -> _logoutState.value = AuthState.Success
+                        is Resource.Success -> {
+                            // Clear user preferences on logout
+                            userPreferences.clearUserData()
+                            _logoutState.value = AuthState.Success
+                        }
                         is Resource.Error -> _logoutState.value =
                             AuthState.Error(result.message ?: "Logout failed")
 

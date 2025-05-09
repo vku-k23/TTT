@@ -126,6 +126,14 @@ dependencies {
     implementation("com.google.firebase:firebase-firestore-ktx")
     implementation("com.google.firebase:firebase-messaging-ktx") // Added FCM dependency
     
+    // Google Play Services
+    implementation("com.google.android.gms:play-services-auth:21.0.0")
+    implementation("com.google.android.gms:play-services-base:18.3.0")
+    implementation("com.google.android.gms:play-services-safetynet:18.0.1")
+    implementation("com.google.android.gms:play-services-basement:18.3.0")
+    implementation("com.google.android.gms:play-services-tasks:18.1.0")
+    implementation("com.google.android.gms:play-services-identity:18.0.1")
+    
     // Icon Library - MaterialIcons (already included with Compose)
     implementation("androidx.compose.material:material-icons-extended:1.7.6")
     

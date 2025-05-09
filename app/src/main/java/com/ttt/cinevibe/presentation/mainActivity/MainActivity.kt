@@ -34,6 +34,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.google.android.gms.common.ConnectionResult
+import com.google.android.gms.common.GoogleApiAvailability
 import com.ttt.cinevibe.data.manager.LanguageManager
 import com.ttt.cinevibe.presentation.NavDestinations
 import com.ttt.cinevibe.presentation.auth.AUTH_GRAPH_ROUTE
@@ -42,6 +44,7 @@ import com.ttt.cinevibe.presentation.detail.MovieDetailScreen
 import com.ttt.cinevibe.presentation.main.MainScreen
 import com.ttt.cinevibe.presentation.splash.SplashScreen
 import com.ttt.cinevibe.ui.theme.CineVibeTheme
+import com.ttt.cinevibe.utils.FirebaseInitializer
 import com.ttt.cinevibe.utils.LanguageContextWrapper
 import com.ttt.cinevibe.utils.LocalAppLocale
 import com.ttt.cinevibe.utils.LocaleConfigurationProvider
@@ -55,6 +58,7 @@ import javax.inject.Inject
 
 // Define a constant for the splash route
 private const val SPLASH_ROUTE = "splash"
+private const val PLAY_SERVICES_RESOLUTION_REQUEST = 9000
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -82,6 +86,11 @@ class MainActivity : ComponentActivity() {
             android.view.WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
             android.view.WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
         )
+        
+        // Check Google Play Services first
+        if (!checkGooglePlayServices()) {
+            Log.e("MainActivity", "Google Play Services not available or up-to-date")
+        }
         
         lifecycleScope.launch {
             try {
@@ -133,6 +142,45 @@ class MainActivity : ComponentActivity() {
                         CineVibeApp(appLocale = Locale.getDefault())
                     }
                 }
+            }
+        }
+    }
+
+    /**
+     * Checks if Google Play Services are available and up to date.
+     * If not, it will show a dialog to update them.
+     */
+    private fun checkGooglePlayServices(): Boolean {
+        val googleApiAvailability = GoogleApiAvailability.getInstance()
+        val resultCode = googleApiAvailability.isGooglePlayServicesAvailable(this)
+        
+        if (resultCode != ConnectionResult.SUCCESS) {
+            if (googleApiAvailability.isUserResolvableError(resultCode)) {
+                googleApiAvailability.getErrorDialog(
+                    this, 
+                    resultCode,
+                    PLAY_SERVICES_RESOLUTION_REQUEST
+                )?.show()
+            } else {
+                Log.e("MainActivity", "Device doesn't support Google Play Services")
+            }
+            return false
+        }
+        
+        return true
+    }
+    
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        
+        // Handle Google Play Services resolution
+        if (requestCode == PLAY_SERVICES_RESOLUTION_REQUEST) {
+            if (resultCode == RESULT_OK) {
+                Log.d("MainActivity", "Google Play Services updated successfully")
+                // Reinitialize Firebase after Play Services update
+                FirebaseInitializer.initializeFirebase(this)
+            } else {
+                Log.e("MainActivity", "Google Play Services update failed or canceled")
             }
         }
     }

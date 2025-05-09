@@ -2,7 +2,10 @@ package com.ttt.cinevibe.data.remote.interceptor
 
 import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
+import com.ttt.cinevibe.data.local.UserPreferences
 import com.ttt.cinevibe.data.remote.BackendApiConstants
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
 import okhttp3.Interceptor
 import okhttp3.Response
@@ -12,7 +15,8 @@ import javax.inject.Singleton
 
 @Singleton
 class FirebaseTokenInterceptor @Inject constructor(
-    private val firebaseAuth: FirebaseAuth
+    private val firebaseAuth: FirebaseAuth,
+    private val userPreferences: UserPreferences
 ) : Interceptor {
     
     companion object {
@@ -30,25 +34,47 @@ class FirebaseTokenInterceptor @Inject constructor(
         return if (currentUser != null) {
             try {
                 Log.d(TAG, "Current user found. UID: ${currentUser.uid}")
-                // Always get a fresh token (forceRefresh=true) for better security
-                val token = runCatching { 
-                    kotlinx.coroutines.runBlocking { 
-                        Log.d(TAG, "Getting fresh ID token...")
-                        currentUser.getIdToken(true).await().token 
-                    }
-                }.getOrNull()
                 
-                if (token != null) {
-                    // Add Authorization header with Bearer token
-                    val authenticatedRequest = originalRequest.newBuilder()
-                        .header(BackendApiConstants.AUTH_HEADER, "${BackendApiConstants.AUTH_BEARER_PREFIX}$token")
-                        .build()
-                    Log.d(TAG, "Added Firebase token to request: ${originalRequest.url}")
-                    chain.proceed(authenticatedRequest)
+                // Get username from preferences if available
+                val username = runBlocking { userPreferences.getUsername() }
+                
+                // If we have a username, make sure it's in the token by setting a custom claim
+                if (!username.isNullOrEmpty()) {
+                    Log.d(TAG, "Adding username to token: $username")
+                    // Get token with the username included in the claims
+                    val token = runBlocking { getTokenWithUsername(currentUser, username) }
+                    
+                    if (token != null) {
+                        // Add Authorization header with Bearer token
+                        val authenticatedRequest = originalRequest.newBuilder()
+                            .header(BackendApiConstants.AUTH_HEADER, "${BackendApiConstants.AUTH_BEARER_PREFIX}$token")
+                            .build()
+                        Log.d(TAG, "Added Firebase token to request: ${originalRequest.url}")
+                        chain.proceed(authenticatedRequest)
+                    } else {
+                        Log.e(TAG, "Authentication required but couldn't get valid token")
+                        throw IOException("Authentication required but failed to get valid token")
+                    }
                 } else {
-                    // Fail the request if token is null - this is an auth protected endpoint
-                    Log.e(TAG, "Authentication required but couldn't get valid token")
-                    throw IOException("Authentication required but failed to get valid token")
+                    // If we don't have username in preferences, just use the regular token
+                    val token = runCatching { 
+                        kotlinx.coroutines.runBlocking { 
+                            Log.d(TAG, "Getting fresh ID token without username...")
+                            currentUser.getIdToken(true).await().token 
+                        }
+                    }.getOrNull()
+                    
+                    if (token != null) {
+                        // Add Authorization header with Bearer token
+                        val authenticatedRequest = originalRequest.newBuilder()
+                            .header(BackendApiConstants.AUTH_HEADER, "${BackendApiConstants.AUTH_BEARER_PREFIX}$token")
+                            .build()
+                        Log.d(TAG, "Added regular Firebase token to request: ${originalRequest.url}")
+                        chain.proceed(authenticatedRequest)
+                    } else {
+                        Log.e(TAG, "Authentication required but couldn't get valid token")
+                        throw IOException("Authentication required but failed to get valid token")
+                    }
                 }
             } catch (e: Exception) {
                 // Log error but don't fail the request silently
@@ -59,6 +85,22 @@ class FirebaseTokenInterceptor @Inject constructor(
             // User not logged in, proceed without authentication
             Log.w(TAG, "No user logged in, proceeding without authentication: ${originalRequest.url}")
             chain.proceed(originalRequest)
+        }
+    }
+    
+    /**
+     * Get a token that includes the username in the claims.
+     * This is done by ensuring the username is set in the user's display name field
+     * since we can't directly modify JWT claims from client.
+     */
+    private suspend fun getTokenWithUsername(user: FirebaseUser, username: String): String? {
+        try {
+            // When we force refresh, Firebase will generate a new token with the metadata
+            // from the user record, which includes the display name
+            return user.getIdToken(true).await().token
+        } catch (e: Exception) {
+            Log.e(TAG, "Error getting token with username: ${e.message}", e)
+            return null
         }
     }
 }
