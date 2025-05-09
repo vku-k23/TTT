@@ -84,24 +84,24 @@ fun ProfileScreen(
 ) {
     val userProfileState by profileViewModel.userProfileState.collectAsState()
     val scrollState = rememberScrollState()
-    
+
     // Quản lý trạng thái hiển thị xem trước avatar
     var showAvatarPreview by remember { mutableStateOf(false) }
-    
+
     // Refresh user data when screen is shown
     LaunchedEffect(Unit) {
         profileViewModel.fetchCurrentUser()
     }
-    
+
     val user = (userProfileState as? Resource.Success)?.data
-    
+
     if (showAvatarPreview && user?.profileImageUrl != null) {
         AvatarPreviewDialog(
             avatarUrl = user.profileImageUrl,
             onDismiss = { showAvatarPreview = false }
         )
     }
-    
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -160,7 +160,7 @@ fun ProfileScreen(
                             .clickable { onNavigateToGeneralSetting() }
                     )
                 }
-                
+
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -172,7 +172,7 @@ fun ProfileScreen(
                             .size(96.dp)
                             .clip(CircleShape)
                             .background(DarkGray)
-                            .clickable { 
+                            .clickable {
                                 if (user?.profileImageUrl != null) {
                                     showAvatarPreview = true
                                 }
@@ -188,55 +188,88 @@ fun ProfileScreen(
                             )
                         } else {
                             Text(
-                                text = (user?.displayName?.firstOrNull() ?: "U").toString().uppercase(),
+                                text = (user?.displayName?.firstOrNull() ?: "U").toString()
+                                    .uppercase(),
                                 color = White,
                                 fontSize = 36.sp,
                                 fontWeight = FontWeight.Bold
                             )
                         }
                     }
-                    
+
                     Spacer(modifier = Modifier.height(16.dp))
-                    
+
                     Text(
                         text = user?.displayName ?: stringResource(R.string.loading),
                         color = White,
                         fontSize = 22.sp,
                         fontWeight = FontWeight.Bold
                     )
-                    
+
                     Text(
-                        text = user?.username ?: "",
+                        text = "@${user?.username ?: ""}",
                         color = LightGray,
                         fontSize = 14.sp
                     )
-                    
-                    // Edit Profile Button
-                    Button(
-                        onClick = onNavigateToEditProfile,
+
+                    Row(
                         modifier = Modifier
-                            .padding(vertical = 16.dp)
-                            .width(160.dp)
-                            .height(40.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = DarkGray,
-                            contentColor = White
-                        ),
-                        shape = RoundedCornerShape(20.dp)
+                            .fillMaxWidth()
+                            .padding(horizontal = 32.dp, vertical = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Icon(
-                            imageVector = Icons.Filled.Edit,
-                            contentDescription = null,
-                            tint = White,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = stringResource(R.string.edit_profile),
-                            fontSize = 14.sp
-                        )
+                        // Edit Profile Button
+                        Button(
+                            onClick = onNavigateToEditProfile,
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(42.dp),
+                            shape = RoundedCornerShape(4.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = DarkGray,
+                                contentColor = White
+                            ),
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Edit,
+                                contentDescription = null,
+                                tint = White,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = stringResource(R.string.edit_profile),
+                                fontSize = 14.sp
+                            )
+                        }
+
+                        Button(
+                            onClick = {
+                                navController.navigate(Screens.USER_RECOMMENDATIONS_ROUTE)
+                            },
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(42.dp),
+                            shape = RoundedCornerShape(4.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = NetflixRed,
+                                contentColor = White
+                            )
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Person,
+                                contentDescription = null,
+                                tint = White,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "Discover",
+                                fontSize = 14.sp
+                            )
+                        }
                     }
-                    
+
                     // User Stats Row
                     Row(
                         modifier = Modifier
@@ -248,41 +281,21 @@ fun ProfileScreen(
                             value = user?.reviewCount?.toString() ?: "0",
                             label = "Reviews"
                         )
-                        
+
                         StatItem(
                             value = user?.followersCount?.toString() ?: "0",
                             label = "Followers"
                         )
-                        
+
                         StatItem(
                             value = user?.followingCount?.toString() ?: "0",
                             label = "Following"
                         )
                     }
-                    
+
                     // Discover People Button - NEW
-                    Button(
-                        onClick = { 
-                            navController.navigate(Screens.USER_RECOMMENDATIONS_ROUTE)
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 16.dp, horizontal = 32.dp)
-                            .height(48.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = NetflixRed,
-                            contentColor = White
-                        )
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = null,
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(text = "Discover People")
-                    }
-                    
+
+
                     // Bio and Favorite Genre
                     if (!user?.bio.isNullOrEmpty() || !user?.favoriteGenre.isNullOrEmpty()) {
                         Card(
@@ -306,7 +319,7 @@ fun ProfileScreen(
                                         fontSize = 14.sp,
                                         fontWeight = FontWeight.Bold
                                     )
-                                    
+
                                     Text(
                                         text = user?.bio ?: "",
                                         color = White,
@@ -314,7 +327,7 @@ fun ProfileScreen(
                                         modifier = Modifier.padding(top = 4.dp, bottom = 12.dp)
                                     )
                                 }
-                                
+
                                 if (!user?.favoriteGenre.isNullOrEmpty()) {
                                     Row(
                                         verticalAlignment = Alignment.CenterVertically
@@ -325,9 +338,9 @@ fun ProfileScreen(
                                             tint = NetflixRed,
                                             modifier = Modifier.size(16.dp)
                                         )
-                                        
+
                                         Spacer(modifier = Modifier.width(8.dp))
-                                        
+
                                         Text(
                                             text = "Favorite Genre: ${user?.favoriteGenre}",
                                             color = White,
@@ -339,7 +352,7 @@ fun ProfileScreen(
                         }
                     }
                 }
-                
+
                 Divider(
                     color = DarkGray.copy(alpha = 0.5f),
                     thickness = 4.dp,
@@ -393,7 +406,7 @@ fun ProfileMenuItem(
             tint = White,
             modifier = Modifier.size(24.dp)
         )
-        
+
         Text(
             text = title,
             color = White,
@@ -402,7 +415,7 @@ fun ProfileMenuItem(
                 .weight(1f)
                 .padding(start = 16.dp)
         )
-        
+
         Icon(
             imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
             contentDescription = stringResource(R.string.navigate),
@@ -410,7 +423,7 @@ fun ProfileMenuItem(
             modifier = Modifier.size(24.dp)
         )
     }
-    
+
     Divider(
         color = DarkGray,
         thickness = 0.5.dp,
@@ -456,7 +469,7 @@ fun AvatarPreviewDialog(
                     )
                 }
             }
-            
+
             // Avatar chính phóng to ở giữa màn hình
             Box(
                 modifier = Modifier
@@ -487,7 +500,7 @@ fun AvatarPreviewDialog(
                     }
                 }
             }
-            
+
             // Nút đóng ở góc trên bên phải
             IconButton(
                 onClick = onDismiss,

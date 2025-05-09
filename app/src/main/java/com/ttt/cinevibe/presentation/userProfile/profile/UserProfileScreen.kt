@@ -21,6 +21,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Chat
+import androidx.compose.material.icons.filled.Movie
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.Share
@@ -176,30 +177,18 @@ fun UserProfileScreen(
                         Text(
                             text = userProfile.displayName,
                             color = White,
-                            fontSize = 22.sp,
+                            fontSize = 16.sp,
                             fontWeight = FontWeight.Bold
                         )
 
                         // Username
                         Text(
                             text = "@${userProfile.username}",
-                            style = MaterialTheme.typography.bodyMedium,
+                            fontSize = 14.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
 
                         Spacer(modifier = Modifier.height(8.dp))
-
-                        // Bio
-                        if (!userProfile.bio.isNullOrEmpty()) {
-                            Text(
-                                text = userProfile.bio,
-                                style = MaterialTheme.typography.bodyMedium,
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier.padding(horizontal = 16.dp)
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.height(16.dp))
 
                         // Stats
                         Card(
@@ -233,8 +222,6 @@ fun UserProfileScreen(
                                 )
                             }
                         }
-
-                        Spacer(modifier = Modifier.height(16.dp))
 
                         // Follow and Message buttons
                         if (!userProfile.isCurrentUser) {
@@ -299,35 +286,53 @@ fun UserProfileScreen(
                             }
                         }
 
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        // Bio
+                        if (!userProfile.bio.isNullOrEmpty()) {
+                            Text(
+                                text = userProfile.bio,
+                                fontSize = 14.sp,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.padding(horizontal = 16.dp)
+                            )
+                        }
+
                         // Favorite genre section if available
                         userProfile.favoriteGenre?.let { genre ->
                             if (genre.isNotEmpty()) {
-                                Spacer(modifier = Modifier.height(24.dp))
                                 Card(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    shape = RoundedCornerShape(16.dp),
+                                    modifier = Modifier
+                                        .fillMaxWidth(),
                                     colors = CardDefaults.cardColors(
-                                        containerColor = MaterialTheme.colorScheme.primaryContainer.copy(
-                                            alpha = 0.5f
-                                        )
+                                        containerColor = Color.Transparent
                                     ),
-                                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                                    shape = RoundedCornerShape(8.dp)
                                 ) {
-                                    Column(
-                                        modifier = Modifier.padding(16.dp),
-                                        horizontalAlignment = Alignment.CenterHorizontally
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth(),
+                                        contentAlignment = Alignment.Center
                                     ) {
-                                        Text(
-                                            text = "Favorite Genre",
-                                            style = MaterialTheme.typography.titleMedium,
-                                            fontWeight = FontWeight.Bold
-                                        )
-                                        Spacer(modifier = Modifier.height(4.dp))
-                                        Text(
-                                            text = genre,
-                                            style = MaterialTheme.typography.bodyLarge,
-                                            color = MaterialTheme.colorScheme.onPrimaryContainer
-                                        )
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.Center
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Movie,
+                                                contentDescription = null,
+                                                tint = NetflixRed,
+                                                modifier = Modifier.size(26.dp)
+                                            )
+
+                                            Spacer(modifier = Modifier.width(8.dp))
+
+                                            Text(
+                                                text = userProfile.favoriteGenre,
+                                                color = White,
+                                                fontSize = 14.sp
+                                            )
+                                        }
                                     }
                                 }
                             }
