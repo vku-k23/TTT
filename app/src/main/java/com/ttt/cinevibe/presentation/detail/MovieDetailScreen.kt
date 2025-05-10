@@ -27,6 +27,8 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.Star
+import androidx.compose.material.icons.filled.Comment
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
@@ -85,7 +87,8 @@ fun MovieDetailScreen(
     viewModel: MovieDetailViewModel = hiltViewModel(),
     movieId: Int,
     onBackClick: () -> Unit,
-    onNavigateToDetails: (Int) -> Unit = {} // Added navigation callback
+    onNavigateToDetails: (Int) -> Unit = {}, // Added navigation callback
+    onNavigateToReviews: (Long, String) -> Unit = { _, _ -> } // New navigation callback for reviews
 ) {
     // Get the current app locale from our composition local
     val appLocale = LocalAppLocale.current
@@ -156,7 +159,8 @@ fun MovieDetailScreen(
                 onPlayTrailerClick = { viewModel.playTrailerInPlace() },
                 onCloseTrailerClick = { viewModel.stopTrailerInPlace() },
                 onToggleFavorite = { viewModel.toggleFavoriteStatus() },
-                onNavigateToDetails = onNavigateToDetails
+                onNavigateToDetails = onNavigateToDetails,
+                onNavigateToReviews = onNavigateToReviews // Pass the reviews navigation callback
             )
         }
     }
@@ -165,14 +169,15 @@ fun MovieDetailScreen(
 @Composable
 fun MovieDetailContent(
     movie: Movie,
-    viewModel: MovieDetailViewModel, // Added this parameter
+    viewModel: MovieDetailViewModel,
     trailerState: TrailerState,
     isFavorite: Boolean,
     onBackClick: () -> Unit,
     onPlayTrailerClick: () -> Unit,
     onCloseTrailerClick: () -> Unit,
     onToggleFavorite: () -> Unit,
-    onNavigateToDetails: (Int) -> Unit // Navigation callback for similar movies
+    onNavigateToDetails: (Int) -> Unit,
+    onNavigateToReviews: (Long, String) -> Unit // Add reviews navigation callback
 ) {
     val scrollState = rememberScrollState()
     val headerAlpha by animateFloatAsState(
@@ -517,6 +522,27 @@ fun MovieDetailContent(
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
                             text = stringResource(R.string.rate),
+                            color = LightGray,
+                            fontSize = 12.sp
+                        )
+                    }
+                    
+                    // Reviews button (using Comment icon instead of RateReview)
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.clickable { 
+                            onNavigateToReviews(movie.id.toLong(), movie.title) 
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Comment,
+                            contentDescription = "Reviews",
+                            tint = White,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "Reviews",
                             color = LightGray,
                             fontSize = 12.sp
                         )
