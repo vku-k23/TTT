@@ -15,12 +15,31 @@ class UserRepositoryImpl @Inject constructor(
     private val userApiService: UserApiService
 ) : UserRepository {
     
-    override suspend fun getCurrentUser(): Flow<Resource<UserResponse>> = flow {
+    // Cache the current user to avoid unnecessary API calls
+    private var cachedCurrentUser: Resource<UserResponse>? = null
+    private var lastFetchTime: Long = 0
+    private val CACHE_TIMEOUT = 60000 // 1 minute in milliseconds
+    
+    override suspend fun getCurrentUser(forceRefresh: Boolean): Flow<Resource<UserResponse>> = flow {
+        // Check if we can use cache
+        val currentTime = System.currentTimeMillis()
+        val cacheExpired = (currentTime - lastFetchTime) > CACHE_TIMEOUT
+        val shouldRefresh = forceRefresh || cacheExpired || cachedCurrentUser == null
+        
+        if (!shouldRefresh && cachedCurrentUser is Resource.Success) {
+            android.util.Log.d("UserRepository", "Using cached user data")
+            emit(cachedCurrentUser!!)
+            return@flow
+        }
+        
         emit(Resource.Loading())
         try {
             android.util.Log.d("UserRepository", "Making API call to getCurrentUser()")
             val response = userApiService.getCurrentUser()
             android.util.Log.d("UserRepository", "Received user response: $response")
+            // Cache the successful response and update last fetch time
+            cachedCurrentUser = Resource.Success(response)
+            lastFetchTime = System.currentTimeMillis()
             emit(Resource.Success(response))
         } catch (e: Exception) {
             android.util.Log.e("UserRepository", "Error getting current user", e)
@@ -33,8 +52,25 @@ class UserRepositoryImpl @Inject constructor(
                 else -> e.message ?: "Failed to get current user"
             }
             
-            emit(Resource.Error(errorMessage))
+            val error = Resource.Error<UserResponse>(errorMessage)
+            // Only update cache with error if we don't have any previous successful data
+            if (cachedCurrentUser !is Resource.Success) {
+                cachedCurrentUser = error
+            }
+            emit(error)
         }
+    }
+    
+    override fun getCurrentUserSync(): Resource<UserResponse> {
+        // Return cached user if available, otherwise return an error
+        return cachedCurrentUser ?: Resource.Error("User not loaded yet")
+    }
+    
+    override fun invalidateCache() {
+        android.util.Log.d("UserRepository", "Invalidating user cache")
+        lastFetchTime = 0
+        // We don't set cachedCurrentUser to null to avoid UI flashing,
+        // but we force next getCurrentUser to refresh from network
     }
 
     override suspend fun syncUser(
@@ -55,6 +91,11 @@ class UserRepositoryImpl @Inject constructor(
             android.util.Log.d("UserRepository", "Sending user request: $userRequest")
             val response = userApiService.syncUser(userRequest)
             android.util.Log.d("UserRepository", "Sync user successful: $response")
+            
+            // Update cache with new data
+            cachedCurrentUser = Resource.Success(response)
+            lastFetchTime = System.currentTimeMillis()
+            
             emit(Resource.Success(response))
         } catch (e: Exception) {
             android.util.Log.e("UserRepository", "Error syncing user", e)
@@ -78,6 +119,11 @@ class UserRepositoryImpl @Inject constructor(
             android.util.Log.d("UserRepository", "Making API call to updateUserProfile(): $profileRequest")
             val response = userApiService.updateUserProfile(profileRequest)
             android.util.Log.d("UserRepository", "Update profile successful: $response")
+            
+            // Immediately update the cache with the new profile data
+            cachedCurrentUser = Resource.Success(response)
+            lastFetchTime = System.currentTimeMillis()
+            
             emit(Resource.Success(response))
         } catch (e: Exception) {
             android.util.Log.e("UserRepository", "Error updating user profile", e)

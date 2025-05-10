@@ -76,12 +76,12 @@ class ProfileViewModel @Inject constructor(
         fetchCurrentUser()
     }
     
-    fun fetchCurrentUser() {
+    fun fetchCurrentUser(forceRefresh: Boolean = false) {
         viewModelScope.launch {
             try {
                 _userProfileState.value = Resource.Loading()
-                android.util.Log.d("ProfileViewModel", "Fetching current user data")
-                userRepository.getCurrentUser().collect { result ->
+                android.util.Log.d("ProfileViewModel", "Fetching current user data with forceRefresh=$forceRefresh")
+                userRepository.getCurrentUser(forceRefresh).collect { result ->
                     _userProfileState.value = result
                     if (result is Resource.Success) {
                         android.util.Log.d("ProfileViewModel", "User data fetched successfully: ${result.data}")
@@ -95,6 +95,13 @@ class ProfileViewModel @Inject constructor(
                 _userProfileState.value = Resource.Error(e.message ?: "Failed to load user profile")
             }
         }
+    }
+    
+    // Force refresh user data from server by invalidating cache
+    fun refreshUserProfile() {
+        android.util.Log.d("ProfileViewModel", "Forcing user profile refresh")
+        userRepository.invalidateCache()
+        fetchCurrentUser(true)
     }
     
     fun updateUserProfile(

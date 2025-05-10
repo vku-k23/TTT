@@ -14,6 +14,7 @@ val White = Color(0xFFFFFFFF)
 val Blue = Color(0xFF1877F2)
 val DarkRed = Color(0xFFC30052)
 val LightRed = Color(0xFFFF84B7)
+val ErrorRed = Color(0xFFCF6679) // Added for form validation errors
 
 // UI element colors
 val TopTenRed = Color(0xFFE50914)

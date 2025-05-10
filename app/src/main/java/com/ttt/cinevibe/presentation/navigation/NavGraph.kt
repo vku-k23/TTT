@@ -17,6 +17,9 @@ import com.ttt.cinevibe.presentation.mylist.MyListScreen
 import com.ttt.cinevibe.presentation.notifications.NotificationsScreen
 import com.ttt.cinevibe.presentation.profile.profileNavGraph
 import com.ttt.cinevibe.presentation.search.SearchScreen
+import com.ttt.cinevibe.presentation.userProfile.connections.FollowersScreen
+import com.ttt.cinevibe.presentation.userProfile.connections.FollowingScreen
+import com.ttt.cinevibe.presentation.userProfile.connections.PendingRequestsScreen
 import com.ttt.cinevibe.presentation.userProfile.discover.UserRecommendationScreen
 import com.ttt.cinevibe.presentation.userProfile.profile.UserProfileScreen
 
@@ -96,7 +99,11 @@ fun NavGraph(
         
         // Notifications screen (replaced Downloads)
         composable(route = Screens.NOTIFICATIONS_ROUTE) {
-            NotificationsScreen()
+            NotificationsScreen(
+                onNavigateToProfile = { userId ->
+                    navController.navigate(Screens.userProfileRoute(userId))
+                }
+            )
         }
         
         // My List screen
@@ -141,15 +148,12 @@ fun NavGraph(
         ) { backStackEntry ->
             val movieId = backStackEntry.arguments?.getString(Screens.MOVIE_DETAIL_ARG)?.toIntOrNull() ?: 0
             
-            // Simply render the MovieDetailScreen and let it manage its own state
-            // This avoids creating two instances of the ViewModel
             MovieDetailScreen(
                 movieId = movieId,
                 onBackClick = {
                     navController.popBackStack()
                 },
                 onNavigateToDetails = { similarMovieId ->
-                    // Navigate to the detail screen of the similar movie
                     navController.navigate(Screens.movieDetailRoute(similarMovieId.toString()))
                 }
             )
@@ -164,7 +168,7 @@ fun NavGraph(
             )
         }
         
-        // User profile screen
+        // User profile screen with updated navigation to followers/following
         composable(
             route = "${Screens.USER_PROFILE_ROUTE}/{${Screens.USER_ID_ARG}}",
             arguments = listOf(navArgument(Screens.USER_ID_ARG) { type = NavType.StringType })
@@ -176,14 +180,74 @@ fun NavGraph(
                 onNavigateBack = {
                     navController.popBackStack()
                 },
-                onFollowUser = { targetUserId ->
-                    // Handle follow action in future implementation
+                onNavigateToFollowers = { uid ->
+                    navController.navigate(Screens.followersRoute(uid))
+                },
+                onNavigateToFollowing = { uid ->
+                    navController.navigate(Screens.followingRoute(uid))
+                },
+                onNavigateToPendingRequests = { uid ->
+                    navController.navigate(Screens.pendingRequestsRoute(uid))
                 },
                 onShareProfile = { targetUserId ->
                     // Handle sharing user profile
                 },
                 onMessageUser = { targetUserId ->
                     // Navigate to chat/messaging in future implementation
+                }
+            )
+        }
+        
+        // Followers screen
+        composable(
+            route = "${Screens.FOLLOWERS_ROUTE}/{${Screens.USER_ID_ARG}}",
+            arguments = listOf(navArgument(Screens.USER_ID_ARG) { type = NavType.StringType })
+        ) { backStackEntry ->
+            val userId = backStackEntry.arguments?.getString(Screens.USER_ID_ARG) ?: ""
+            
+            FollowersScreen(
+                userId = userId,
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onNavigateToProfile = { followerUserId ->
+                    navController.navigate(Screens.userProfileRoute(followerUserId))
+                }
+            )
+        }
+        
+        // Following screen
+        composable(
+            route = "${Screens.FOLLOWING_ROUTE}/{${Screens.USER_ID_ARG}}",
+            arguments = listOf(navArgument(Screens.USER_ID_ARG) { type = NavType.StringType })
+        ) { backStackEntry ->
+            val userId = backStackEntry.arguments?.getString(Screens.USER_ID_ARG) ?: ""
+            
+            FollowingScreen(
+                userId = userId,
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onNavigateToProfile = { followingUserId ->
+                    navController.navigate(Screens.userProfileRoute(followingUserId))
+                }
+            )
+        }
+        
+        // Pending Requests screen
+        composable(
+            route = "${Screens.PENDING_REQUESTS_ROUTE}/{${Screens.USER_ID_ARG}}",
+            arguments = listOf(navArgument(Screens.USER_ID_ARG) { type = NavType.StringType })
+        ) { backStackEntry ->
+            val userId = backStackEntry.arguments?.getString(Screens.USER_ID_ARG) ?: ""
+            
+            PendingRequestsScreen(
+                userId = userId,
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onNavigateToProfile = { requestUserId ->
+                    navController.navigate(Screens.userProfileRoute(requestUserId))
                 }
             )
         }

@@ -1,11 +1,19 @@
 package com.ttt.cinevibe.presentation.profile
 
 import PrivacyTermsScreen
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.runtime.Composable
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import androidx.navigation.navigation
+import com.ttt.cinevibe.data.remote.models.UserResponse
+import com.ttt.cinevibe.domain.model.Resource
 import com.ttt.cinevibe.presentation.navigation.Screens
+import com.ttt.cinevibe.presentation.userProfile.connections.FollowersScreen
+import com.ttt.cinevibe.presentation.userProfile.connections.FollowingScreen
+import com.ttt.cinevibe.presentation.userProfile.viewmodel.UserConnectionViewModel
 
 // Profile graph route constant
 const val PROFILE_GRAPH_ROUTE = "profile_graph"
@@ -21,6 +29,8 @@ private object ProfileScreens {
     const val EDIT_PROFILE = "edit_profile"
     const val PRIVACY_TERMS = "privacy_terms"
     const val USER_AGREEMENT = "user_agreement"
+    const val FOLLOWERS = "my_followers"  // New route for current user's followers
+    const val FOLLOWING = "my_following"  // New route for current user's following
 }
 
 fun NavGraphBuilder.profileNavGraph(
@@ -34,10 +44,14 @@ fun NavGraphBuilder.profileNavGraph(
     ) {
         // Main profile screen
         composable(route = ProfileScreens.MAIN) {
+            val viewModel = hiltViewModel<ProfileViewModel>()
             ProfileScreen(
                 navController = navController,
+                profileViewModel = viewModel,
                 onNavigateToGeneralSetting = { navController.navigate(ProfileScreens.GENERAL_SETTING) },
                 onNavigateToEditProfile = { navController.navigate(ProfileScreens.EDIT_PROFILE) },
+                onNavigateToFollowers = { navController.navigate(ProfileScreens.FOLLOWERS) },
+                onNavigateToFollowing = { navController.navigate(ProfileScreens.FOLLOWING) },
             )
         }
 
@@ -85,9 +99,18 @@ fun NavGraphBuilder.profileNavGraph(
         
         // Edit profile screen
         composable(route = ProfileScreens.EDIT_PROFILE) {
+            val viewModel = hiltViewModel<ProfileViewModel>()
+            val mainScreenViewModel = hiltViewModel<ProfileViewModel>(
+                navController.getBackStackEntry(ProfileScreens.MAIN)
+            )
+            
             EditProfileScreen(
                 onBackPressed = { navController.popBackStack() },
-                onSaveComplete = { navController.popBackStack() }
+                onSaveComplete = { 
+                    // Explicitly refresh the main profile before popping back
+                    mainScreenViewModel.fetchCurrentUser()
+                    navController.popBackStack() 
+                }
             )
         }
         
@@ -103,6 +126,48 @@ fun NavGraphBuilder.profileNavGraph(
             UserAgreementScreen(
                 onBackPressed = { navController.popBackStack() }
             )
+        }
+        
+        // My Followers screen
+        composable(route = ProfileScreens.FOLLOWERS) {
+            val viewModel = hiltViewModel<UserConnectionViewModel>()
+            val currentUserState = viewModel.getCurrentUser()
+            
+            if (currentUserState is Resource.Success<UserResponse> && currentUserState.data?.firebaseUid != null) {
+                // We have the current user ID
+                FollowersScreen(
+                    userId = currentUserState.data.firebaseUid,
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToProfile = { userId -> 
+                        navController.navigate(Screens.userProfileRoute(userId))
+                    },
+                    viewModel = viewModel
+                )
+            } else {
+                // Show loading or error state
+                CircularProgressIndicator()
+            }
+        }
+        
+        // My Following screen
+        composable(route = ProfileScreens.FOLLOWING) {
+            val viewModel = hiltViewModel<UserConnectionViewModel>()
+            val currentUserState = viewModel.getCurrentUser()
+            
+            if (currentUserState is Resource.Success<UserResponse> && currentUserState.data?.firebaseUid != null) {
+                // We have the current user ID
+                FollowingScreen(
+                    userId = currentUserState.data.firebaseUid,
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToProfile = { userId -> 
+                        navController.navigate(Screens.userProfileRoute(userId))
+                    },
+                    viewModel = viewModel
+                )
+            } else {
+                // Show loading or error state
+                CircularProgressIndicator()
+            }
         }
     }
 }

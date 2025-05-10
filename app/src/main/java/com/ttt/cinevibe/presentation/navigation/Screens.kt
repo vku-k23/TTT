@@ -15,7 +15,15 @@ object Screens {
     const val USER_PROFILE_ROUTE = "user_profile"
     const val USER_ID_ARG = "userId"
     
+    // User connections
+    const val FOLLOWERS_ROUTE = "followers"
+    const val FOLLOWING_ROUTE = "following"
+    const val PENDING_REQUESTS_ROUTE = "pending_requests"
+    
     // Route with arguments
     fun movieDetailRoute(movieId: String): String = "$MOVIE_DETAIL_ROUTE/$movieId"
     fun userProfileRoute(userId: String): String = "$USER_PROFILE_ROUTE/$userId"
+    fun followersRoute(userId: String): String = "$FOLLOWERS_ROUTE/$userId"
+    fun followingRoute(userId: String): String = "$FOLLOWING_ROUTE/$userId"
+    fun pendingRequestsRoute(userId: String): String = "$PENDING_REQUESTS_ROUTE/$userId"
 }
