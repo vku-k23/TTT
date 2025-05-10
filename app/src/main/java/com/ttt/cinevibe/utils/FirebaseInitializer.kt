@@ -10,6 +10,11 @@ import com.google.android.gms.security.ProviderInstaller
 import com.google.firebase.FirebaseApp
 import com.google.firebase.FirebaseOptions
 import com.google.firebase.auth.FirebaseAuth
+import java.net.HttpURLConnection
+import java.net.URL
+import java.util.Date
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /**
  * Utility class to help with Firebase initialization and checking for Google Play Services
@@ -17,6 +22,7 @@ import com.google.firebase.auth.FirebaseAuth
 object FirebaseInitializer {
     private const val TAG = "FirebaseInitializer"
     private const val PLAY_SERVICES_RESOLUTION_REQUEST = 9000
+    private const val TIME_URL = "https://www.google.com"
 
     /**
      * Initializes Firebase and ensures Google Play Services are available
@@ -24,6 +30,9 @@ object FirebaseInitializer {
      */
     fun initializeFirebase(context: Context): Boolean {
         try {
+            // Perform time check to reduce chance of token validation errors
+            checkServerTimeOffset()
+            
             // Initialize Firebase with extra error handling
             try {
                 if (FirebaseApp.getApps(context).isEmpty()) {
@@ -131,6 +140,64 @@ object FirebaseInitializer {
         } catch (e: Exception) {
             Log.e(TAG, "Firebase Auth not initialized", e)
             false
+        }
+    }
+
+    /**
+     * Checks and logs any significant time difference between the device and server time
+     * This helps debug token validation issues that may be related to clock skew
+     */
+    private fun checkServerTimeOffset() {
+        Thread {
+            try {
+                val url = URL(TIME_URL)
+                val connection = url.openConnection() as HttpURLConnection
+                connection.connectTimeout = 5000
+                connection.readTimeout = 5000
+                connection.connect()
+                
+                val serverDate = connection.getHeaderFieldDate("Date", System.currentTimeMillis())
+                val deviceTime = System.currentTimeMillis()
+                val timeDifference = deviceTime - serverDate
+                
+                if (Math.abs(timeDifference) > 30000) { // More than 30 seconds difference
+                    Log.w(TAG, "⚠️ SIGNIFICANT TIME DIFFERENCE DETECTED ⚠️")
+                    Log.w(TAG, "Device time: ${Date(deviceTime)}")
+                    Log.w(TAG, "Server time: ${Date(serverDate)}")
+                    Log.w(TAG, "Difference: ${timeDifference/1000} seconds")
+                    Log.w(TAG, "This may cause Firebase token validation errors!")
+                } else {
+                    Log.d(TAG, "Time synchronization check passed. Difference: ${timeDifference/1000} seconds")
+                }
+                
+                connection.disconnect()
+            } catch (e: Exception) {
+                Log.e(TAG, "Error checking time synchronization", e)
+            }
+        }.start()
+    }
+    
+    /**
+     * Suspending function to check server time offset for use in coroutines
+     * @return The time offset in milliseconds (positive if device is ahead)
+     */
+    suspend fun getServerTimeOffset(): Long = withContext(Dispatchers.IO) {
+        try {
+            val url = URL(TIME_URL)
+            val connection = url.openConnection() as HttpURLConnection
+            connection.connectTimeout = 5000
+            connection.readTimeout = 5000
+            connection.connect()
+            
+            val serverDate = connection.getHeaderFieldDate("Date", System.currentTimeMillis())
+            val deviceTime = System.currentTimeMillis()
+            val timeDifference = deviceTime - serverDate
+            
+            connection.disconnect()
+            timeDifference
+        } catch (e: Exception) {
+            Log.e(TAG, "Error getting server time offset", e)
+            0L
         }
     }
 } 

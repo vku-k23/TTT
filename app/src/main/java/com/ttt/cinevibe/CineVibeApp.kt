@@ -7,6 +7,7 @@ import android.os.Handler
 import android.os.Looper
 import android.os.Process
 import android.util.Log
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
 import com.google.android.gms.common.GoogleApiAvailability
@@ -26,6 +27,9 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
+import java.net.HttpURLConnection
+import java.net.URL
+import java.util.Date
 import java.util.Locale
 import javax.inject.Inject
 
@@ -40,6 +44,10 @@ class CineVibeApp : Application() {
     companion object {
         private const val TAG = "CineVibeApp"
     }
+
+    // Time offset between device and server time in milliseconds
+    var timeOffsetMillis: Long = 0L
+        private set
 
     override fun onCreate() {
         super.onCreate()
@@ -77,6 +85,9 @@ class CineVibeApp : Application() {
                 }
             }
         }
+        
+        // Check time synchronization
+        checkDeviceTime()
     }
     
     /**
@@ -207,5 +218,59 @@ class CineVibeApp : Application() {
         override fun onActivityStopped(activity: android.app.Activity) {}
         override fun onActivitySaveInstanceState(activity: android.app.Activity, outState: android.os.Bundle) {}
         override fun onActivityDestroyed(activity: android.app.Activity) {}
+    }
+
+    /**
+     * Checks if the device time is properly synchronized with network time
+     * This is important for Firebase token validation
+     */
+    private fun checkDeviceTime() {
+        Thread {
+            try {
+                // Get current device time
+                val deviceTime = System.currentTimeMillis()
+                
+                // Get network time from a reliable server
+                val url = URL("https://www.google.com")
+                val connection = url.openConnection() as HttpURLConnection
+                connection.connectTimeout = 5000
+                connection.readTimeout = 5000
+                connection.connect()
+                
+                val serverTime = connection.getHeaderFieldDate("Date", deviceTime)
+                connection.disconnect()
+                
+                // Calculate the difference
+                val timeDifference = deviceTime - serverTime
+                
+                if (Math.abs(timeDifference) > 30000) { // 30 seconds
+                    // Significant time difference detected
+                    Log.e(TAG, "⚠️ DEVICE TIME MISMATCH DETECTED ⚠️")
+                    Log.e(TAG, "Device time: ${Date(deviceTime)}")
+                    Log.e(TAG, "Server time: ${Date(serverTime)}")
+                    Log.e(TAG, "Difference: ${timeDifference/1000} seconds")
+                    Log.e(TAG, "This will cause Firebase authentication problems!")
+                    
+                    // Store the offset for potential use in the app
+                    timeOffsetMillis = timeDifference
+                    
+                    // Show a notification about the time issue if it's severe
+                    if (Math.abs(timeDifference) > 5 * 60 * 1000) { // 5 minutes
+                        Handler(Looper.getMainLooper()).post {
+                            Toast.makeText(
+                                this,
+                                "Your device clock is not correctly set. This may cause authentication problems.",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
+                    }
+                } else {
+                    Log.d(TAG, "Device time is properly synchronized. Difference: ${timeDifference/1000} seconds")
+                    timeOffsetMillis = 0L
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error checking time synchronization", e)
+            }
+        }.start()
     }
 }
