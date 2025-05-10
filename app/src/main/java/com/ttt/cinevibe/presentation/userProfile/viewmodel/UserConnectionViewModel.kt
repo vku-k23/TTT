@@ -1,9 +1,11 @@
 package com.ttt.cinevibe.presentation.userProfile.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ttt.cinevibe.data.remote.models.PageResponse
 import com.ttt.cinevibe.data.remote.models.UserConnectionResponse
+import com.ttt.cinevibe.data.remote.models.UserResponse
 import com.ttt.cinevibe.data.repository.UserConnectionRepository
 import com.ttt.cinevibe.data.repository.UserRepository
 import com.ttt.cinevibe.domain.model.Resource
@@ -164,12 +166,24 @@ class UserConnectionViewModel @Inject constructor(
     }
 
     fun loadUserFollowing(userId: String, refresh: Boolean = false) {
+        if (userId.isEmpty()) {
+            Log.e("UserConnectionViewModel", "Attempted to load following with empty user ID")
+            _userFollowing.value = Resource.Error("Invalid user ID")
+            return
+        }
+        
         if (refresh) {
             userFollowingPage = 0
             userFollowingResults.clear()
         }
         
+        // Store the current user ID being viewed
+        currentViewedUserId = userId
+        
         viewModelScope.launch {
+            Log.d("UserConnectionViewModel", "Loading following for user $userId: page=$userFollowingPage")
+            _userFollowing.value = if (userFollowingPage == 0) Resource.Loading() else _userFollowing.value
+            
             userConnectionRepository.getUserFollowing(userId, userFollowingPage, pageSize)
                 .collectLatest { result ->
                     when (result) {
@@ -182,7 +196,9 @@ class UserConnectionViewModel @Inject constructor(
                             
                             userFollowingPage++
                         }
-                        is Resource.Error -> _userFollowing.value = result
+                        is Resource.Error -> {
+                            _userFollowing.value = result
+                        }
                         is Resource.Loading -> {
                             if (userFollowingPage == 0) {
                                 _userFollowing.value = Resource.Loading()
@@ -194,12 +210,24 @@ class UserConnectionViewModel @Inject constructor(
     }
 
     fun loadUserFollowers(userId: String, refresh: Boolean = false) {
+        if (userId.isEmpty()) {
+            Log.e("UserConnectionViewModel", "Attempted to load followers with empty user ID")
+            _userFollowers.value = Resource.Error("Invalid user ID")
+            return
+        }
+        
         if (refresh) {
             userFollowersPage = 0
             userFollowersResults.clear()
         }
         
+        // Store the current user ID being viewed
+        currentViewedUserId = userId
+        
         viewModelScope.launch {
+            Log.d("UserConnectionViewModel", "Loading followers for user $userId: page=$userFollowersPage")
+            _userFollowers.value = if (userFollowersPage == 0) Resource.Loading() else _userFollowers.value
+            
             userConnectionRepository.getUserFollowers(userId, userFollowersPage, pageSize)
                 .collectLatest { result ->
                     when (result) {
@@ -212,7 +240,9 @@ class UserConnectionViewModel @Inject constructor(
                             
                             userFollowersPage++
                         }
-                        is Resource.Error -> _userFollowers.value = result
+                        is Resource.Error -> {
+                            _userFollowers.value = result
+                        }
                         is Resource.Loading -> {
                             if (userFollowersPage == 0) {
                                 _userFollowers.value = Resource.Loading()
@@ -365,6 +395,10 @@ class UserConnectionViewModel @Inject constructor(
         } else {
             false
         }
+    }
+    
+    fun getCurrentUser(): Resource<UserResponse> {
+        return userRepository.getCurrentUserSync()
     }
 
     sealed class ConnectionEvent {

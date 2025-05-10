@@ -22,14 +22,27 @@ class FirebaseTokenInterceptor @Inject constructor(
     companion object {
         private const val TAG = "FirebaseTokenInterceptor"
         private const val HEADER_USERNAME = "X-Username"
+        
+        // List of path patterns that can be accessed without authentication
+        private val PUBLIC_API_PATHS = listOf(
+            "/api/connections/users/.*/followers", 
+            "/api/connections/users/.*/following"
+        )
     }
     
     override fun intercept(chain: Interceptor.Chain): Response {
         val originalRequest = chain.request()
+        val requestUrl = originalRequest.url.toString()
         val currentUser = firebaseAuth.currentUser
         
         // Log the request URL for debugging
-        Log.d(TAG, "Intercepting request to: ${originalRequest.url}")
+        Log.d(TAG, "Intercepting request to: $requestUrl")
+        
+        // Check if the request URL is for a public API
+        if (isPublicApiPath(requestUrl)) {
+            Log.d(TAG, "Public API path detected, proceeding without authentication: $requestUrl")
+            return chain.proceed(originalRequest)
+        }
         
         // Only proceed with token if user is logged in
         return if (currentUser != null) {
@@ -110,8 +123,19 @@ class FirebaseTokenInterceptor @Inject constructor(
             }
         } else {
             // User not logged in, proceed without authentication
-            Log.w(TAG, "No user logged in, proceeding without authentication: ${originalRequest.url}")
+            Log.w(TAG, "No user logged in, proceeding without authentication: $requestUrl")
             chain.proceed(originalRequest)
+        }
+    }
+
+    /**
+     * Check if the request URL is for a public API that doesn't require authentication
+     */
+    private fun isPublicApiPath(url: String): Boolean {
+        return PUBLIC_API_PATHS.any { pattern ->
+            // Convert the pattern to a regex
+            val regex = pattern.replace(".", "\\.").replace("*", ".*")
+            url.contains(regex.toRegex())
         }
     }
     

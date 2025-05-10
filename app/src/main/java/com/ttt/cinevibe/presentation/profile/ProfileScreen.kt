@@ -81,6 +81,8 @@ fun ProfileScreen(
     profileViewModel: ProfileViewModel = hiltViewModel(),
     onNavigateToGeneralSetting: () -> Unit = {},
     onNavigateToEditProfile: () -> Unit = {},
+    onNavigateToFollowers: () -> Unit = {},  // New navigation parameter
+    onNavigateToFollowing: () -> Unit = {},  // New navigation parameter
 ) {
     val userProfileState by profileViewModel.userProfileState.collectAsState()
     val scrollState = rememberScrollState()
@@ -285,13 +287,13 @@ fun ProfileScreen(
                         StatItem(
                             value = user?.followersCount?.toString() ?: "0",
                             label = "Followers",
-
+                            onClick = { onNavigateToFollowers() }  // Navigate to followers screen
                         )
 
                         StatItem(
                             value = user?.followingCount?.toString() ?: "0",
                             label = "Following",
-
+                            onClick = { onNavigateToFollowing() }  // Navigate to following screen
                         )
                     }
 
@@ -370,10 +372,12 @@ fun ProfileScreen(
 @Composable
 fun StatItem(
     value: String,
-    label: String
+    label: String,
+    onClick: () -> Unit = {}
 ) {
     Column(
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.clickable(onClick = onClick)
     ) {
         Text(
             text = value,
