@@ -31,6 +31,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -61,12 +62,31 @@ fun FollowersScreen(
     onNavigateToProfile: (String) -> Unit,
     viewModel: UserConnectionViewModel = hiltViewModel()
 ) {
-    val followersState by viewModel.followers.collectAsState()
+    // Get the current user ID from the ViewModel's currentUserId
+    val isCurrentUserProfile = remember { mutableStateOf(false) }
+    
+    LaunchedEffect(userId) {
+        // This will be set in a more reliable way later
+        isCurrentUserProfile.value = viewModel.isCurrentUser(userId)
+    }
+    
+    // Use the appropriate state flow based on whether we're viewing our own profile or someone else's
+    val followersState by if (isCurrentUserProfile.value) {
+        viewModel.followers.collectAsState()
+    } else {
+        viewModel.userFollowers.collectAsState()
+    }
+    
     val snackbarHostState = remember { SnackbarHostState() }
     val listState = rememberLazyListState()
     
     LaunchedEffect(key1 = userId) {
-        viewModel.loadFollowers(true)
+        // Load data based on whether we're viewing our own profile or someone else's
+        if (isCurrentUserProfile.value) {
+            viewModel.loadFollowers(true)
+        } else {
+            viewModel.loadUserFollowers(userId, true)
+        }
         
         // Listen for connection events (like removing a follower)
         viewModel.connectionEvents.collectLatest { event ->
@@ -89,7 +109,11 @@ fun FollowersScreen(
             val lastVisibleItem = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
             
             if (lastVisibleItem >= totalItems - 5 && totalItems > 0) {
-                viewModel.loadFollowers(false)
+                if (isCurrentUserProfile.value) {
+                    viewModel.loadFollowers(false)
+                } else {
+                    viewModel.loadUserFollowers(userId, false)
+                }
             }
         }
     }
@@ -159,7 +183,13 @@ fun FollowersScreen(
                             items(followersList.size) { index ->
                                 FollowerItem(
                                     connection = followersList[index],
-                                    onRemoveFollower = { viewModel.removeFollower(followersList[index].followerUid) },
+                                    onRemoveFollower = { 
+                                        // Only show the remove button for the current user's followers
+                                        if (isCurrentUserProfile.value) {
+                                            viewModel.removeFollower(followersList[index].followerUid) 
+                                        }
+                                    },
+                                    showRemoveButton = isCurrentUserProfile.value,
                                     onProfileClick = { onNavigateToProfile(followersList[index].followerUid) }
                                 )
                                 
@@ -182,7 +212,13 @@ fun FollowersScreen(
                 is Resource.Error -> {
                     ErrorState(
                         message = followers.message ?: "Failed to load followers",
-                        onRetry = { viewModel.loadFollowers(true) }
+                        onRetry = { 
+                            if (isCurrentUserProfile.value) {
+                                viewModel.loadFollowers(true)
+                            } else {
+                                viewModel.loadUserFollowers(userId, true)
+                            }
+                        }
                     )
                 }
             }
@@ -199,7 +235,8 @@ fun FollowersScreen(
 fun FollowerItem(
     connection: UserConnectionResponse,
     onRemoveFollower: () -> Unit,
-    onProfileClick: () -> Unit
+    onProfileClick: () -> Unit,
+    showRemoveButton: Boolean = true
 ) {
     Row(
         modifier = Modifier
@@ -249,16 +286,18 @@ fun FollowerItem(
             )
         }
         
-        // Remove button
-        IconButton(
-            onClick = onRemoveFollower,
-            modifier = Modifier.size(40.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Default.Close,
-                contentDescription = "Remove follower",
-                tint = LightGray
-            )
+        // Remove button - only show for current user's followers
+        if (showRemoveButton) {
+            IconButton(
+                onClick = onRemoveFollower,
+                modifier = Modifier.size(40.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = "Remove follower",
+                    tint = LightGray
+                )
+            }
         }
     }
 }

@@ -24,6 +24,20 @@ interface UserConnectionApiService {
         @Query("size") size: Int = 20
     ): PageResponse<UserConnectionResponse>
     
+    @GET("/api/connections/users/{userId}/following")
+    suspend fun getUserFollowing(
+        @Path("userId") userId: String,
+        @Query("page") page: Int = 0,
+        @Query("size") size: Int = 20
+    ): PageResponse<UserConnectionResponse>
+    
+    @GET("/api/connections/users/{userId}/followers")
+    suspend fun getUserFollowers(
+        @Path("userId") userId: String,
+        @Query("page") page: Int = 0,
+        @Query("size") size: Int = 20
+    ): PageResponse<UserConnectionResponse>
+    
     @GET("/api/connections/pending")
     suspend fun getPendingRequests(
         @Query("page") page: Int = 0,

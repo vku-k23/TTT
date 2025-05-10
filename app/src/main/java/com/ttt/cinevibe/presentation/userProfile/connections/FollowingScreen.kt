@@ -31,6 +31,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -61,12 +62,31 @@ fun FollowingScreen(
     onNavigateToProfile: (String) -> Unit,
     viewModel: UserConnectionViewModel = hiltViewModel()
 ) {
-    val followingState by viewModel.following.collectAsState()
+    // Get the current user ID from the ViewModel's currentUserId
+    val isCurrentUserProfile = remember { mutableStateOf(false) }
+    
+    LaunchedEffect(userId) {
+        // This will be set in a more reliable way later
+        isCurrentUserProfile.value = viewModel.isCurrentUser(userId)
+    }
+    
+    // Use the appropriate state flow based on whether we're viewing our own profile or someone else's
+    val followingState by if (isCurrentUserProfile.value) {
+        viewModel.following.collectAsState()
+    } else {
+        viewModel.userFollowing.collectAsState()
+    }
+    
     val snackbarHostState = remember { SnackbarHostState() }
     val listState = rememberLazyListState()
     
     LaunchedEffect(key1 = userId) {
-        viewModel.loadFollowing(true)
+        // Load data based on whether we're viewing our own profile or someone else's
+        if (isCurrentUserProfile.value) {
+            viewModel.loadFollowing(true)
+        } else {
+            viewModel.loadUserFollowing(userId, true)
+        }
         
         // Listen for connection events (like unfollowing)
         viewModel.connectionEvents.collectLatest { event ->
@@ -89,7 +109,11 @@ fun FollowingScreen(
             val lastVisibleItem = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
             
             if (lastVisibleItem >= totalItems - 5 && totalItems > 0) {
-                viewModel.loadFollowing(false)
+                if (isCurrentUserProfile.value) {
+                    viewModel.loadFollowing(false)
+                } else {
+                    viewModel.loadUserFollowing(userId, false)
+                }
             }
         }
     }
@@ -160,7 +184,8 @@ fun FollowingScreen(
                                 FollowingItem(
                                     connection = followingList[index],
                                     onUnfollow = { viewModel.unfollowUser(followingList[index].followingUid) },
-                                    onProfileClick = { onNavigateToProfile(followingList[index].followingUid) }
+                                    onProfileClick = { onNavigateToProfile(followingList[index].followingUid) },
+                                    showUnfollowButton = isCurrentUserProfile.value
                                 )
                                 
                                 if (index < followingList.size - 1) {
@@ -182,7 +207,13 @@ fun FollowingScreen(
                 is Resource.Error -> {
                     ErrorState(
                         message = following.message ?: "Failed to load following users",
-                        onRetry = { viewModel.loadFollowing(true) }
+                        onRetry = { 
+                            if (isCurrentUserProfile.value) {
+                                viewModel.loadFollowing(true)
+                            } else {
+                                viewModel.loadUserFollowing(userId, true)
+                            }
+                        }
                     )
                 }
             }
@@ -199,7 +230,8 @@ fun FollowingScreen(
 fun FollowingItem(
     connection: UserConnectionResponse,
     onUnfollow: () -> Unit,
-    onProfileClick: () -> Unit
+    onProfileClick: () -> Unit,
+    showUnfollowButton: Boolean = true
 ) {
     Row(
         modifier = Modifier
@@ -249,17 +281,19 @@ fun FollowingItem(
             )
         }
         
-        // Unfollow button
-        Button(
-            onClick = onUnfollow,
-            shape = RoundedCornerShape(4.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = NetflixRed,
-                contentColor = White
-            ),
-            modifier = Modifier.height(36.dp)
-        ) {
-            Text(text = "Unfollow", fontSize = 12.sp)
+        // Unfollow button - only show for current user's following list
+        if (showUnfollowButton) {
+            Button(
+                onClick = onUnfollow,
+                shape = RoundedCornerShape(4.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = NetflixRed,
+                    contentColor = White
+                ),
+                modifier = Modifier.height(36.dp)
+            ) {
+                Text(text = "Unfollow", fontSize = 12.sp)
+            }
         }
     }
 }

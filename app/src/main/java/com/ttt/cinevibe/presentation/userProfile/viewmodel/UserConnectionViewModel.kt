@@ -26,10 +26,18 @@ class UserConnectionViewModel @Inject constructor(
     // State for following
     private val _following = MutableStateFlow<Resource<PageResponse<UserConnectionResponse>>>(Resource.Loading())
     val following: StateFlow<Resource<PageResponse<UserConnectionResponse>>> = _following
+    
+    // State for user-specific following
+    private val _userFollowing = MutableStateFlow<Resource<PageResponse<UserConnectionResponse>>>(Resource.Loading())
+    val userFollowing: StateFlow<Resource<PageResponse<UserConnectionResponse>>> = _userFollowing
 
     // State for followers
     private val _followers = MutableStateFlow<Resource<PageResponse<UserConnectionResponse>>>(Resource.Loading())
     val followers: StateFlow<Resource<PageResponse<UserConnectionResponse>>> = _followers
+    
+    // State for user-specific followers
+    private val _userFollowers = MutableStateFlow<Resource<PageResponse<UserConnectionResponse>>>(Resource.Loading())
+    val userFollowers: StateFlow<Resource<PageResponse<UserConnectionResponse>>> = _userFollowers
 
     // State for pending follow requests
     private val _pendingRequests = MutableStateFlow<Resource<PageResponse<UserConnectionResponse>>>(Resource.Loading())
@@ -51,12 +59,19 @@ class UserConnectionViewModel @Inject constructor(
     private var followingPage = 0
     private var followersPage = 0
     private var pendingPage = 0
+    private var userFollowingPage = 0
+    private var userFollowersPage = 0
     private val pageSize = 20
     
     // Store previous results to append
     private val followingResults = mutableListOf<UserConnectionResponse>()
     private val followersResults = mutableListOf<UserConnectionResponse>()
     private val pendingResults = mutableListOf<UserConnectionResponse>()
+    private val userFollowingResults = mutableListOf<UserConnectionResponse>()
+    private val userFollowersResults = mutableListOf<UserConnectionResponse>()
+    
+    // Current user ID being viewed
+    private var currentViewedUserId: String? = null
 
     fun loadFollowing(refresh: Boolean = false) {
         if (refresh) {
@@ -141,6 +156,66 @@ class UserConnectionViewModel @Inject constructor(
                         is Resource.Loading -> {
                             if (pendingPage == 0) {
                                 _pendingRequests.value = Resource.Loading()
+                            }
+                        }
+                    }
+                }
+        }
+    }
+
+    fun loadUserFollowing(userId: String, refresh: Boolean = false) {
+        if (refresh) {
+            userFollowingPage = 0
+            userFollowingResults.clear()
+        }
+        
+        viewModelScope.launch {
+            userConnectionRepository.getUserFollowing(userId, userFollowingPage, pageSize)
+                .collectLatest { result ->
+                    when (result) {
+                        is Resource.Success -> {
+                            val newItems = result.data?.content ?: emptyList()
+                            userFollowingResults.addAll(newItems)
+                            
+                            val updatedPage = result.data?.copy(content = userFollowingResults)
+                            _userFollowing.value = Resource.Success(updatedPage ?: result.data) as Resource<PageResponse<UserConnectionResponse>>
+                            
+                            userFollowingPage++
+                        }
+                        is Resource.Error -> _userFollowing.value = result
+                        is Resource.Loading -> {
+                            if (userFollowingPage == 0) {
+                                _userFollowing.value = Resource.Loading()
+                            }
+                        }
+                    }
+                }
+        }
+    }
+
+    fun loadUserFollowers(userId: String, refresh: Boolean = false) {
+        if (refresh) {
+            userFollowersPage = 0
+            userFollowersResults.clear()
+        }
+        
+        viewModelScope.launch {
+            userConnectionRepository.getUserFollowers(userId, userFollowersPage, pageSize)
+                .collectLatest { result ->
+                    when (result) {
+                        is Resource.Success -> {
+                            val newItems = result.data?.content ?: emptyList()
+                            userFollowersResults.addAll(newItems)
+                            
+                            val updatedPage = result.data?.copy(content = userFollowersResults)
+                            _userFollowers.value = Resource.Success(updatedPage ?: result.data) as Resource<PageResponse<UserConnectionResponse>>
+                            
+                            userFollowersPage++
+                        }
+                        is Resource.Error -> _userFollowers.value = result
+                        is Resource.Loading -> {
+                            if (userFollowersPage == 0) {
+                                _userFollowers.value = Resource.Loading()
                             }
                         }
                     }
@@ -279,6 +354,16 @@ class UserConnectionViewModel @Inject constructor(
             userRepository.getCurrentUser().collect { _ ->
                 // Dữ liệu người dùng đã được cập nhật trong repository
             }
+        }
+    }
+
+    fun isCurrentUser(userId: String): Boolean {
+        val currentUserState = userRepository.getCurrentUserSync()
+        return if (currentUserState is Resource.Success) {
+            val currentUser = currentUserState.data
+            currentUser?.firebaseUid == userId
+        } else {
+            false
         }
     }
 

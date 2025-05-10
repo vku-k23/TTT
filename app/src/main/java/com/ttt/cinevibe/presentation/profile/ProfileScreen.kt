@@ -284,12 +284,14 @@ fun ProfileScreen(
 
                         StatItem(
                             value = user?.followersCount?.toString() ?: "0",
-                            label = "Followers"
+                            label = "Followers",
+
                         )
 
                         StatItem(
                             value = user?.followingCount?.toString() ?: "0",
-                            label = "Following"
+                            label = "Following",
+
                         )
                     }
 

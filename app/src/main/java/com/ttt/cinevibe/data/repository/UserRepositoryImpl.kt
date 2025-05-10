@@ -15,12 +15,17 @@ class UserRepositoryImpl @Inject constructor(
     private val userApiService: UserApiService
 ) : UserRepository {
     
+    // Cache the current user to avoid unnecessary API calls
+    private var cachedCurrentUser: Resource<UserResponse>? = null
+    
     override suspend fun getCurrentUser(): Flow<Resource<UserResponse>> = flow {
         emit(Resource.Loading())
         try {
             android.util.Log.d("UserRepository", "Making API call to getCurrentUser()")
             val response = userApiService.getCurrentUser()
             android.util.Log.d("UserRepository", "Received user response: $response")
+            // Cache the successful response
+            cachedCurrentUser = Resource.Success(response)
             emit(Resource.Success(response))
         } catch (e: Exception) {
             android.util.Log.e("UserRepository", "Error getting current user", e)
@@ -33,8 +38,15 @@ class UserRepositoryImpl @Inject constructor(
                 else -> e.message ?: "Failed to get current user"
             }
             
-            emit(Resource.Error(errorMessage))
+            val error = Resource.Error<UserResponse>(errorMessage)
+            cachedCurrentUser = error
+            emit(error)
         }
+    }
+    
+    override fun getCurrentUserSync(): Resource<UserResponse> {
+        // Return cached user if available, otherwise return an error
+        return cachedCurrentUser ?: Resource.Error("User not loaded yet")
     }
 
     override suspend fun syncUser(

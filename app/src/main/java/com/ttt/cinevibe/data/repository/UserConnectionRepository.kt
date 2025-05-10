@@ -12,6 +12,10 @@ interface UserConnectionRepository {
     
     suspend fun getFollowers(page: Int, size: Int): Flow<Resource<PageResponse<UserConnectionResponse>>>
     
+    suspend fun getUserFollowing(userId: String, page: Int, size: Int): Flow<Resource<PageResponse<UserConnectionResponse>>>
+    
+    suspend fun getUserFollowers(userId: String, page: Int, size: Int): Flow<Resource<PageResponse<UserConnectionResponse>>>
+    
     suspend fun getPendingRequests(page: Int, size: Int): Flow<Resource<PageResponse<UserConnectionResponse>>>
     
     suspend fun followUser(targetUserUid: String): Flow<Resource<UserConnectionResponse>>

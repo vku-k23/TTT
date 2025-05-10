@@ -52,6 +52,42 @@ class UserConnectionRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun getUserFollowing(userId: String, page: Int, size: Int): Flow<Resource<PageResponse<UserConnectionResponse>>> = flow {
+        emit(Resource.Loading())
+        try {
+            Log.d("UserConnectionRepo", "Fetching following users for user $userId: page=$page, size=$size")
+            val response = userConnectionApiService.getUserFollowing(userId, page, size)
+            emit(Resource.Success(response))
+        } catch (e: HttpException) {
+            Log.e("UserConnectionRepo", "HTTP error fetching following for user $userId: ${e.message}", e)
+            emit(Resource.Error("Network error: ${e.message ?: "Unknown HTTP error"}"))
+        } catch (e: IOException) {
+            Log.e("UserConnectionRepo", "IO error fetching following for user $userId: ${e.message}", e)
+            emit(Resource.Error("Connection error: ${e.message ?: "Check your internet connection"}"))
+        } catch (e: Exception) {
+            Log.e("UserConnectionRepo", "Error fetching following for user $userId: ${e.message}", e)
+            emit(Resource.Error("Error: ${e.message ?: "Unknown error"}"))
+        }
+    }
+
+    override suspend fun getUserFollowers(userId: String, page: Int, size: Int): Flow<Resource<PageResponse<UserConnectionResponse>>> = flow {
+        emit(Resource.Loading())
+        try {
+            Log.d("UserConnectionRepo", "Fetching followers for user $userId: page=$page, size=$size")
+            val response = userConnectionApiService.getUserFollowers(userId, page, size)
+            emit(Resource.Success(response))
+        } catch (e: HttpException) {
+            Log.e("UserConnectionRepo", "HTTP error fetching followers for user $userId: ${e.message}", e)
+            emit(Resource.Error("Network error: ${e.message ?: "Unknown HTTP error"}"))
+        } catch (e: IOException) {
+            Log.e("UserConnectionRepo", "IO error fetching followers for user $userId: ${e.message}", e)
+            emit(Resource.Error("Connection error: ${e.message ?: "Check your internet connection"}"))
+        } catch (e: Exception) {
+            Log.e("UserConnectionRepo", "Error fetching followers for user $userId: ${e.message}", e)
+            emit(Resource.Error("Error: ${e.message ?: "Unknown error"}"))
+        }
+    }
+
     override suspend fun getPendingRequests(page: Int, size: Int): Flow<Resource<PageResponse<UserConnectionResponse>>> = flow {
         emit(Resource.Loading())
         try {
