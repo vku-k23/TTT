@@ -25,4 +25,6 @@ interface UserConnectionRepository {
     suspend fun removeFollower(followerUid: String): Flow<Resource<Boolean>>
     
     suspend fun checkConnectionStatus(targetUserUid: String): Flow<Resource<Map<String, Any>>>
+    
+    suspend fun cancelFollowRequest(targetUserUid: String): Flow<Resource<Boolean>>
 }

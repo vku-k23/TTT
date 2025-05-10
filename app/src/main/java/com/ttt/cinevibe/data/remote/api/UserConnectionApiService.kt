@@ -59,4 +59,9 @@ interface UserConnectionApiService {
     suspend fun checkConnectionStatus(
         @Path("targetUserUid") targetUserUid: String
     ): Map<String, Any>
+
+    @DELETE("/api/connections/cancel-request/{targetUserUid}")
+    suspend fun cancelFollowRequest(
+        @Path("targetUserUid") targetUserUid: String
+    )
 }

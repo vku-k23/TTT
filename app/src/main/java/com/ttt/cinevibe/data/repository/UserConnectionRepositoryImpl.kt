@@ -178,4 +178,22 @@ class UserConnectionRepositoryImpl @Inject constructor(
             emit(Resource.Error("Error: ${e.message ?: "Unknown error"}"))
         }
     }
+
+    override suspend fun cancelFollowRequest(targetUserUid: String): Flow<Resource<Boolean>> = flow {
+        emit(Resource.Loading())
+        try {
+            Log.d("UserConnectionRepo", "Cancelling follow request for user: $targetUserUid")
+            userConnectionApiService.cancelFollowRequest(targetUserUid)
+            emit(Resource.Success(true))
+        } catch (e: HttpException) {
+            Log.e("UserConnectionRepo", "HTTP error cancelling follow request: ${e.message}", e)
+            emit(Resource.Error("Network error: ${e.message ?: "Unknown HTTP error"}"))
+        } catch (e: IOException) {
+            Log.e("UserConnectionRepo", "IO error cancelling follow request: ${e.message}", e)
+            emit(Resource.Error("Connection error: ${e.message ?: "Check your internet connection"}"))
+        } catch (e: Exception) {
+            Log.e("UserConnectionRepo", "Error cancelling follow request: ${e.message}", e)
+            emit(Resource.Error("Error: ${e.message ?: "Unknown error"}"))
+        }
+    }
 }

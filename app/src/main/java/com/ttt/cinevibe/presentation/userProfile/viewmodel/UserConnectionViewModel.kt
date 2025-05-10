@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.ttt.cinevibe.data.remote.models.PageResponse
 import com.ttt.cinevibe.data.remote.models.UserConnectionResponse
 import com.ttt.cinevibe.data.repository.UserConnectionRepository
+import com.ttt.cinevibe.data.repository.UserRepository
 import com.ttt.cinevibe.domain.model.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -18,7 +19,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class UserConnectionViewModel @Inject constructor(
-    private val userConnectionRepository: UserConnectionRepository
+    private val userConnectionRepository: UserConnectionRepository,
+    private val userRepository: UserRepository
 ) : ViewModel() {
 
     // State for following
@@ -95,11 +97,16 @@ class UserConnectionViewModel @Inject constructor(
 
     fun followUser(targetUserUid: String) {
         viewModelScope.launch {
+            _followActionResult.value = Resource.Loading()
             userConnectionRepository.followUser(targetUserUid)
                 .collectLatest { result ->
                     _followActionResult.value = result
                     if (result is Resource.Success) {
+                        // Không cần gọi checkConnectionStatus nữa, sẽ refresh thông tin từ user profile
                         _connectionEvents.emit(ConnectionEvent.FollowSuccess(targetUserUid))
+                        
+                        // Refresh current user profile to update following count
+                        refreshCurrentUserProfile()
                     } else if (result is Resource.Error) {
                         _connectionEvents.emit(ConnectionEvent.Error(result.message ?: "Error following user"))
                     }
@@ -112,7 +119,11 @@ class UserConnectionViewModel @Inject constructor(
             userConnectionRepository.unfollowUser(targetUserUid)
                 .collectLatest { result ->
                     if (result is Resource.Success) {
+                        // Không cần gọi checkConnectionStatus nữa, sẽ refresh thông tin từ user profile
                         _connectionEvents.emit(ConnectionEvent.UnfollowSuccess(targetUserUid))
+                        
+                        // Refresh current user profile to update following count
+                        refreshCurrentUserProfile()
                     } else if (result is Resource.Error) {
                         _connectionEvents.emit(ConnectionEvent.Error(result.message ?: "Error unfollowing user"))
                     }
@@ -125,9 +136,18 @@ class UserConnectionViewModel @Inject constructor(
             userConnectionRepository.acceptFollowRequest(connectionId)
                 .collectLatest { result ->
                     if (result is Resource.Success) {
+                        // Lấy targetUserUid từ kết quả để gọi lại API cập nhật trạng thái
+                        val targetUserUid = result.data?.followerUid
+                        if (targetUserUid != null) {
+                            checkConnectionStatus(targetUserUid)
+                        }
+                        
                         _connectionEvents.emit(ConnectionEvent.AcceptFollowSuccess(connectionId))
                         // Refresh pending requests after accepting
                         loadPendingRequests(true)
+                        
+                        // Refresh current user profile to update followers count
+                        refreshCurrentUserProfile()
                     } else if (result is Resource.Error) {
                         _connectionEvents.emit(ConnectionEvent.Error(result.message ?: "Error accepting follow request"))
                     }
@@ -148,6 +168,7 @@ class UserConnectionViewModel @Inject constructor(
                     }
                 }
         }
+
     }
 
     fun removeFollower(followerUid: String) {
@@ -160,6 +181,23 @@ class UserConnectionViewModel @Inject constructor(
                         loadFollowers(true)
                     } else if (result is Resource.Error) {
                         _connectionEvents.emit(ConnectionEvent.Error(result.message ?: "Error removing follower"))
+                    }
+                }
+        }
+    }
+
+    fun cancelFollowRequest(targetUserUid: String) {
+        viewModelScope.launch {
+            userConnectionRepository.cancelFollowRequest(targetUserUid)
+                .collectLatest { result ->
+                    if (result is Resource.Success) {
+                        // Không cần gọi checkConnectionStatus nữa, sẽ refresh thông tin từ user profile
+                        _connectionEvents.emit(ConnectionEvent.CancelRequestSuccess(targetUserUid))
+                        
+                        // Refresh current user profile
+                        refreshCurrentUserProfile()
+                    } else if (result is Resource.Error) {
+                        _connectionEvents.emit(ConnectionEvent.Error(result.message ?: "Error cancelling follow request"))
                     }
                 }
         }
@@ -183,9 +221,18 @@ class UserConnectionViewModel @Inject constructor(
         _followActionResult.value = null
     }
 
+    private fun refreshCurrentUserProfile() {
+        viewModelScope.launch {
+            userRepository.getCurrentUser().collect { _ ->
+                // Dữ liệu người dùng đã được cập nhật trong repository
+            }
+        }
+    }
+
     sealed class ConnectionEvent {
         data class FollowSuccess(val targetUserUid: String) : ConnectionEvent()
         data class UnfollowSuccess(val targetUserUid: String) : ConnectionEvent()
+        data class CancelRequestSuccess(val targetUserUid: String) : ConnectionEvent() 
         data class AcceptFollowSuccess(val connectionId: Long) : ConnectionEvent()
         data class RejectFollowSuccess(val connectionId: Long) : ConnectionEvent()
         data class RemoveFollowerSuccess(val followerUid: String) : ConnectionEvent()

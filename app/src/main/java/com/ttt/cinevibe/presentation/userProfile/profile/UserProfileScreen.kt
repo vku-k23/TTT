@@ -89,7 +89,7 @@ fun UserProfileScreen(
 ) {
     LaunchedEffect(userId) {
         viewModel.getUserProfile(userId)
-        connectionViewModel.checkConnectionStatus(userId)
+        // Không cần gọi checkConnectionStatus ở đây nữa, vì chúng ta sẽ sử dụng connectionStatus từ profile
     }
     var showAvatarPreview by remember { mutableStateOf(false) }
     val userProfileState by viewModel.userProfile.collectAsState()
@@ -107,13 +107,16 @@ fun UserProfileScreen(
                     snackbarHostState.showSnackbar("Follow request sent")
                     // Refresh the profile to update UI
                     viewModel.getUserProfile(userId)
-                    connectionViewModel.checkConnectionStatus(userId)
                 }
                 is UserConnectionViewModel.ConnectionEvent.UnfollowSuccess -> {
                     snackbarHostState.showSnackbar("Unfollowed user")
                     // Refresh the profile to update UI
                     viewModel.getUserProfile(userId)
-                    connectionViewModel.checkConnectionStatus(userId)
+                }
+                is UserConnectionViewModel.ConnectionEvent.CancelRequestSuccess -> {
+                    snackbarHostState.showSnackbar("Follow request cancelled")
+                    // Refresh the profile to update UI
+                    viewModel.getUserProfile(userId)
                 }
                 is UserConnectionViewModel.ConnectionEvent.Error -> {
                     snackbarHostState.showSnackbar("Error: ${event.message}")
@@ -172,14 +175,10 @@ fun UserProfileScreen(
 
                 is Resource.Success -> {
                     val userProfile = profileState.data!!
-                    val connectionStatus = when (val status = connectionStatusState) {
-                        is Resource.Success -> (status.data?.get("status") ?: "") as String
-                        else -> "NONE"
-                    }
-                    val isFollowing = when (val status = connectionStatusState) {
-                        is Resource.Success -> (status.data?.get("isFollowing") ?: "") as Boolean
-                        else -> false
-                    }
+                    // Sử dụng connectionStatus từ userProfile thay vì từ connectionStatusState
+                    val connectionStatus = userProfile.connectionStatus ?: "NONE"
+                    // Xác định isFollowing dựa trên connectionStatus
+                    val isFollowing = connectionStatus == "ACCEPTED"
 
                     Column(
                         modifier = Modifier
@@ -273,7 +272,7 @@ fun UserProfileScreen(
                         if (!userProfile.isCurrentUser) {
                             val buttonText = when (connectionStatus) {
                                 "ACCEPTED" -> "Following"
-                                "PENDING" -> "Requested"
+                                "PENDING" -> "Cancel Request"
                                 else -> "Follow"
                             }
 
@@ -286,17 +285,17 @@ fun UserProfileScreen(
                                 // Follow button
                                 Button(
                                     onClick = { 
-                                        if (isFollowing) {
-                                            connectionViewModel.unfollowUser(userId)
-                                        } else {
-                                            connectionViewModel.followUser(userId)
+                                        when (connectionStatus) {
+                                            "ACCEPTED" -> connectionViewModel.unfollowUser(userId)
+                                            "PENDING" -> connectionViewModel.cancelFollowRequest(userId)
+                                            else -> connectionViewModel.followUser(userId)
                                         }
                                     },
                                     modifier = Modifier
                                         .weight(1f)
                                         .height(42.dp),
                                     shape = RoundedCornerShape(4.dp),
-                                    colors = if (isFollowing) {
+                                    colors = if (connectionStatus == "ACCEPTED" || connectionStatus == "PENDING") {
                                         ButtonDefaults.buttonColors(
                                             containerColor = NetflixRed,
                                             contentColor = White
