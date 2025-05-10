@@ -44,8 +44,10 @@ fun NavGraphBuilder.profileNavGraph(
     ) {
         // Main profile screen
         composable(route = ProfileScreens.MAIN) {
+            val viewModel = hiltViewModel<ProfileViewModel>()
             ProfileScreen(
                 navController = navController,
+                profileViewModel = viewModel,
                 onNavigateToGeneralSetting = { navController.navigate(ProfileScreens.GENERAL_SETTING) },
                 onNavigateToEditProfile = { navController.navigate(ProfileScreens.EDIT_PROFILE) },
                 onNavigateToFollowers = { navController.navigate(ProfileScreens.FOLLOWERS) },
@@ -97,9 +99,18 @@ fun NavGraphBuilder.profileNavGraph(
         
         // Edit profile screen
         composable(route = ProfileScreens.EDIT_PROFILE) {
+            val viewModel = hiltViewModel<ProfileViewModel>()
+            val mainScreenViewModel = hiltViewModel<ProfileViewModel>(
+                navController.getBackStackEntry(ProfileScreens.MAIN)
+            )
+            
             EditProfileScreen(
                 onBackPressed = { navController.popBackStack() },
-                onSaveComplete = { navController.popBackStack() }
+                onSaveComplete = { 
+                    // Explicitly refresh the main profile before popping back
+                    mainScreenViewModel.fetchCurrentUser()
+                    navController.popBackStack() 
+                }
             )
         }
         
