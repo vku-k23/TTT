@@ -7,6 +7,7 @@ import com.ttt.cinevibe.data.remote.CloudinaryService
 import com.ttt.cinevibe.data.remote.MovieApi
 import com.ttt.cinevibe.data.remote.api.MovieApiService
 import com.ttt.cinevibe.data.remote.api.UserApiService
+import com.ttt.cinevibe.data.remote.api.UserConnectionApiService
 import com.ttt.cinevibe.data.remote.api.UserRecommendationApiService
 import com.ttt.cinevibe.data.remote.interceptor.AuthInterceptor
 import com.ttt.cinevibe.data.remote.interceptor.FirebaseTokenInterceptor
@@ -151,6 +152,12 @@ object NetworkModule {
     @Singleton
     fun provideUserRecommendationApiService(@BackendRetrofit retrofit: Retrofit): UserRecommendationApiService {
         return retrofit.create(UserRecommendationApiService::class.java)
+    }
+    
+    @Provides
+    @Singleton
+    fun provideUserConnectionApiService(@BackendRetrofit retrofit: Retrofit): UserConnectionApiService {
+        return retrofit.create(UserConnectionApiService::class.java)
     }
 
     @Provides

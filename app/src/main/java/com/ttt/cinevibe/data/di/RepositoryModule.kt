@@ -28,4 +28,10 @@ abstract class RepositoryModule {
     abstract fun bindUserRecommendationRepository(
         userRecommendationRepositoryImpl: UserRecommendationRepositoryImpl
     ): UserRecommendationRepository
-} 
+    
+    @Binds
+    @Singleton
+    abstract fun bindUserConnectionRepository(
+        userConnectionRepositoryImpl: UserConnectionRepositoryImpl
+    ): UserConnectionRepository
+}

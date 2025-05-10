@@ -14,4 +14,13 @@ object NavDestinations {
     const val HOME_ROUTE = "home"
     const val MOVIE_DETAIL_ROUTE = "movie_detail"
     const val MOVIE_DETAIL_WITH_ARGS = "$MOVIE_DETAIL_ROUTE/{movieId}"
+    
+    // User profile and connections
+    const val USER_PROFILE_ROUTE = "user_profile"
+    const val USER_PROFILE_WITH_ARGS = "$USER_PROFILE_ROUTE/{userId}"
+    const val FOLLOWERS_ROUTE = "followers" 
+    const val FOLLOWERS_WITH_ARGS = "$FOLLOWERS_ROUTE/{userId}"
+    const val FOLLOWING_ROUTE = "following"
+    const val FOLLOWING_WITH_ARGS = "$FOLLOWING_ROUTE/{userId}"
+    const val NOTIFICATIONS_ROUTE = "notifications"
 }

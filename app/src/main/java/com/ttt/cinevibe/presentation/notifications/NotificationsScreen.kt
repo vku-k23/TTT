@@ -15,30 +15,81 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import coil3.compose.AsyncImage
+import com.ttt.cinevibe.data.remote.models.UserConnectionResponse
+import com.ttt.cinevibe.domain.model.Resource
+import com.ttt.cinevibe.presentation.userProfile.components.ErrorState
+import com.ttt.cinevibe.presentation.userProfile.components.LoadingIndicator
+import com.ttt.cinevibe.presentation.userProfile.viewmodel.UserConnectionViewModel
 import com.ttt.cinevibe.ui.theme.Black
 import com.ttt.cinevibe.ui.theme.DarkGray
 import com.ttt.cinevibe.ui.theme.LightGray
 import com.ttt.cinevibe.ui.theme.NetflixRed
 import com.ttt.cinevibe.ui.theme.White
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
 @Composable
-fun NotificationsScreen() {
+fun NotificationsScreen(
+    onNavigateToProfile: (String) -> Unit,
+    viewModel: UserConnectionViewModel = hiltViewModel()
+) {
+    val pendingRequestsState by viewModel.pendingRequests.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+    
+    LaunchedEffect(key1 = Unit) {
+        viewModel.loadPendingRequests(true)
+        
+        // Collect events
+        viewModel.connectionEvents.collectLatest { event ->
+            when (event) {
+                is UserConnectionViewModel.ConnectionEvent.AcceptFollowSuccess -> {
+                    snackbarHostState.showSnackbar("Follow request accepted")
+                }
+                is UserConnectionViewModel.ConnectionEvent.RejectFollowSuccess -> {
+                    snackbarHostState.showSnackbar("Follow request rejected")
+                }
+                is UserConnectionViewModel.ConnectionEvent.Error -> {
+                    snackbarHostState.showSnackbar("Error: ${event.message}")
+                }
+                else -> {}
+            }
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -55,123 +106,122 @@ fun NotificationsScreen() {
         )
         
         // Notifications Content
-        NotificationsList()
-    }
-}
-
-@Composable
-fun NotificationsList() {
-    // In a real app, this would come from a ViewModel
-    val notifications = listOf(
-        NotificationItem(
-            id = 1,
-            type = NotificationType.FOLLOW_REQUEST,
-            senderName = "Alex Johnson",
-            message = "wants to follow you",
-            timestamp = Date(System.currentTimeMillis() - 3600000), // 1 hour ago
-            isRead = false
-        ),
-        NotificationItem(
-            id = 2,
-            type = NotificationType.FOLLOW_ACCEPTED,
-            senderName = "Maria Smith",
-            message = "accepted your follow request",
-            timestamp = Date(System.currentTimeMillis() - 86400000), // 1 day ago
-            isRead = true
-        ),
-        NotificationItem(
-            id = 3,
-            type = NotificationType.LIKE,
-            senderName = "David Brown",
-            message = "liked your review of \"Inception\"",
-            timestamp = Date(System.currentTimeMillis() - 259200000), // 3 days ago
-            isRead = true
-        ),
-        NotificationItem(
-            id = 4,
-            type = NotificationType.COMMENT,
-            senderName = "Sarah Williams",
-            message = "commented on your review: \"Great analysis!\"",
-            timestamp = Date(System.currentTimeMillis() - 604800000), // 1 week ago
-            isRead = true
-        ),
-        NotificationItem(
-            id = 5,
-            type = NotificationType.RECOMMEND,
-            senderName = "CineVibe",
-            message = "We think you might enjoy \"The Matrix\" based on your watch history",
-            timestamp = Date(System.currentTimeMillis() - 1209600000), // 2 weeks ago
-            isRead = true
-        )
-    )
-    
-    if (notifications.isEmpty()) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = "No notifications yet",
-                color = LightGray,
-                fontSize = 16.sp,
-                textAlign = TextAlign.Center
-            )
-        }
-    } else {
-        LazyColumn(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            item {
-                Spacer(modifier = Modifier.height(8.dp))
-            }
-            
-            items(notifications.size) { index ->
-                NotificationItem(notification = notifications[index])
+        Box(modifier = Modifier.fillMaxSize()) {
+            when (val pendingRequests = pendingRequestsState) {
+                is Resource.Loading -> {
+                    LoadingIndicator()
+                }
                 
-                if (index < notifications.size - 1) {
-                    Divider(
-                        color = DarkGray.copy(alpha = 0.5f),
-                        thickness = 0.5.dp,
-                        modifier = Modifier.padding(horizontal = 16.dp)
+                is Resource.Success -> {
+                    val requests = pendingRequests.data?.content ?: emptyList()
+                    if (requests.isEmpty()) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(16.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "No notifications yet",
+                                color = LightGray,
+                                fontSize = 16.sp,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            item {
+                                Text(
+                                    text = "Follow Requests",
+                                    color = White,
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                            }
+                            
+                            items(requests.size) { index ->
+                                FollowRequestItem(
+                                    connection = requests[index],
+                                    onAccept = { viewModel.acceptFollowRequest(requests[index].id) },
+                                    onReject = { viewModel.rejectFollowRequest(requests[index].id) },
+                                    onProfileClick = { onNavigateToProfile(requests[index].followerUid) }
+                                )
+                                
+                                if (index < requests.size - 1) {
+                                    Divider(
+                                        color = DarkGray.copy(alpha = 0.5f),
+                                        thickness = 0.5.dp,
+                                        modifier = Modifier.padding(horizontal = 16.dp)
+                                    )
+                                }
+                            }
+                            
+                            item {
+                                Spacer(modifier = Modifier.height(16.dp))
+                            }
+                        }
+                    }
+                }
+                
+                is Resource.Error -> {
+                    ErrorState(
+                        message = pendingRequests.message ?: "Failed to load notifications",
+                        onRetry = { viewModel.loadPendingRequests(true) }
                     )
                 }
             }
             
-            item {
-                Spacer(modifier = Modifier.height(16.dp))
-            }
+            SnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier.align(Alignment.BottomCenter)
+            )
         }
     }
 }
 
 @Composable
-fun NotificationItem(notification: NotificationItem) {
+fun FollowRequestItem(
+    connection: UserConnectionResponse,
+    onAccept: () -> Unit,
+    onReject: () -> Unit,
+    onProfileClick: () -> Unit
+) {
     val dateFormat = SimpleDateFormat("MMM d, h:mm a", Locale.getDefault())
     
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { /* Handle notification click */ }
-            .background(if (!notification.isRead) DarkGray.copy(alpha = 0.2f) else Black)
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Avatar or icon
+        // Avatar
         Box(
             modifier = Modifier
-                .size(40.dp)
+                .size(50.dp)
                 .clip(CircleShape)
-                .background(DarkGray),
+                .background(DarkGray)
+                .clickable { onProfileClick() },
             contentAlignment = Alignment.Center
         ) {
-            Icon(
-                imageVector = Icons.Default.Person,
-                contentDescription = null,
-                tint = White,
-                modifier = Modifier.size(24.dp)
-            )
+            if (connection.followerProfileImageUrl != null) {
+                AsyncImage(
+                    model = connection.followerProfileImageUrl,
+                    contentDescription = "Profile Image",
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                Text(
+                    text = (connection.followerName.firstOrNull() ?: "U").toString().uppercase(),
+                    color = White,
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
         }
         
         Spacer(modifier = Modifier.width(16.dp))
@@ -184,16 +234,17 @@ fun NotificationItem(notification: NotificationItem) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = notification.senderName,
+                    text = connection.followerName,
                     color = White,
                     fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.clickable { onProfileClick() }
                 )
                 
                 Spacer(modifier = Modifier.width(4.dp))
                 
                 Text(
-                    text = notification.message,
+                    text = "wants to follow you",
                     color = LightGray,
                     fontSize = 14.sp
                 )
@@ -202,24 +253,50 @@ fun NotificationItem(notification: NotificationItem) {
             Spacer(modifier = Modifier.height(4.dp))
             
             Text(
-                text = dateFormat.format(notification.timestamp),
+                text = dateFormat.format(connection.createdAt),
                 color = LightGray,
                 fontSize = 12.sp
             )
-        }
-        
-        // Unread indicator
-        if (!notification.isRead) {
-            Box(
-                modifier = Modifier
-                    .size(8.dp)
-                    .clip(CircleShape)
-                    .background(NetflixRed)
-            )
+            
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            Row(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Button(
+                    onClick = onAccept,
+                    shape = RoundedCornerShape(4.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = NetflixRed,
+                        contentColor = White
+                    ),
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(36.dp)
+                ) {
+                    Text(text = "Accept", fontSize = 12.sp)
+                }
+                
+                Spacer(modifier = Modifier.width(8.dp))
+                
+                OutlinedButton(
+                    onClick = onReject,
+                    shape = RoundedCornerShape(4.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = White
+                    ),
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(36.dp)
+                ) {
+                    Text(text = "Decline", fontSize = 12.sp)
+                }
+            }
         }
     }
 }
 
+// Keep existing NotificationItem and NotificationType classes for other types of notifications
 data class NotificationItem(
     val id: Int,
     val type: NotificationType,

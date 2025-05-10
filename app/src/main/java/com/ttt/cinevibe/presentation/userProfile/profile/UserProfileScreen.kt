@@ -34,6 +34,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -42,6 +44,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -69,28 +72,61 @@ import com.ttt.cinevibe.ui.theme.Black
 import com.ttt.cinevibe.ui.theme.DarkGray
 import com.ttt.cinevibe.ui.theme.NetflixRed
 import com.ttt.cinevibe.ui.theme.White
+import com.ttt.cinevibe.presentation.userProfile.viewmodel.UserConnectionViewModel
+import kotlinx.coroutines.flow.collectLatest
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UserProfileScreen(
     userId: String,
     onNavigateBack: () -> Unit,
-    onFollowUser: (userId: String) -> Unit,
+    onNavigateToFollowers: (String) -> Unit = {},
+    onNavigateToFollowing: (String) -> Unit = {},
     onShareProfile: (userId: String) -> Unit = {},
     onMessageUser: (userId: String) -> Unit = {},
-    viewModel: UserRecommendationViewModel = hiltViewModel()
+    viewModel: UserRecommendationViewModel = hiltViewModel(),
+    connectionViewModel: UserConnectionViewModel = hiltViewModel()
 ) {
     LaunchedEffect(userId) {
         viewModel.getUserProfile(userId)
+        connectionViewModel.checkConnectionStatus(userId)
     }
     var showAvatarPreview by remember { mutableStateOf(false) }
     val userProfileState by viewModel.userProfile.collectAsState()
+    val connectionStatusState by connectionViewModel.connectionStatus.collectAsState()
+    val followActionResultState by connectionViewModel.followActionResult.collectAsState()
     val scrollState = rememberScrollState()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+    
+    // Track connection events
+    LaunchedEffect(Unit) {
+        connectionViewModel.connectionEvents.collectLatest { event ->
+            when (event) {
+                is UserConnectionViewModel.ConnectionEvent.FollowSuccess -> {
+                    snackbarHostState.showSnackbar("Follow request sent")
+                    // Refresh the profile to update UI
+                    viewModel.getUserProfile(userId)
+                    connectionViewModel.checkConnectionStatus(userId)
+                }
+                is UserConnectionViewModel.ConnectionEvent.UnfollowSuccess -> {
+                    snackbarHostState.showSnackbar("Unfollowed user")
+                    // Refresh the profile to update UI
+                    viewModel.getUserProfile(userId)
+                    connectionViewModel.checkConnectionStatus(userId)
+                }
+                is UserConnectionViewModel.ConnectionEvent.Error -> {
+                    snackbarHostState.showSnackbar("Error: ${event.message}")
+                }
+                else -> {}
+            }
+        }
+    }
 
-
-    if (showAvatarPreview && userProfileState.data!!.profileImageUrl != null) {
+    if (showAvatarPreview && userProfileState is Resource.Success && 
+        (userProfileState as Resource.Success).data?.profileImageUrl != null) {
         AvatarPreviewDialog(
-            avatarUrl = userProfileState.data!!.profileImageUrl,
+            avatarUrl = (userProfileState as Resource.Success).data?.profileImageUrl,
             onDismiss = { showAvatarPreview = false }
         )
     }
@@ -136,6 +172,14 @@ fun UserProfileScreen(
 
                 is Resource.Success -> {
                     val userProfile = profileState.data!!
+                    val connectionStatus = when (val status = connectionStatusState) {
+                        is Resource.Success -> (status.data?.get("status") ?: "") as String
+                        else -> "NONE"
+                    }
+                    val isFollowing = when (val status = connectionStatusState) {
+                        is Resource.Success -> (status.data?.get("isFollowing") ?: "") as Boolean
+                        else -> false
+                    }
 
                     Column(
                         modifier = Modifier
@@ -190,7 +234,7 @@ fun UserProfileScreen(
 
                         Spacer(modifier = Modifier.height(8.dp))
 
-                        // Stats
+                        // Stats with clickable followers/following
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth(),
@@ -213,25 +257,25 @@ fun UserProfileScreen(
 
                                 StatItem(
                                     value = userProfile.followersCount?.toString() ?: "0",
-                                    label = "Followers"
+                                    label = "Followers",
+                                    onClick = { onNavigateToFollowers(userId) }
                                 )
 
                                 StatItem(
                                     value = userProfile.followingCount?.toString() ?: "0",
-                                    label = "Following"
+                                    label = "Following",
+                                    onClick = { onNavigateToFollowing(userId) }
                                 )
                             }
                         }
 
                         // Follow and Message buttons
                         if (!userProfile.isCurrentUser) {
-                            val buttonText = when (userProfile.connectionStatus) {
+                            val buttonText = when (connectionStatus) {
                                 "ACCEPTED" -> "Following"
                                 "PENDING" -> "Requested"
                                 else -> "Follow"
                             }
-
-                            val isFollowing = userProfile.connectionStatus == "ACCEPTED"
 
                             Row(
                                 modifier = Modifier
@@ -241,7 +285,13 @@ fun UserProfileScreen(
                             ) {
                                 // Follow button
                                 Button(
-                                    onClick = { onFollowUser(userId) },
+                                    onClick = { 
+                                        if (isFollowing) {
+                                            connectionViewModel.unfollowUser(userId)
+                                        } else {
+                                            connectionViewModel.followUser(userId)
+                                        }
+                                    },
                                     modifier = Modifier
                                         .weight(1f)
                                         .height(42.dp),
@@ -350,17 +400,27 @@ fun UserProfileScreen(
                 }
             }
         }
+
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
     }
 }
 
 @Composable
-fun StatItem(count: String, label: String) {
+fun StatItem(
+    value: String, 
+    label: String,
+    onClick: () -> Unit = {}
+) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.Center,
+        modifier = Modifier.clickable(onClick = onClick)
     ) {
         Text(
-            text = count,
+            text = value,
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold
         )
@@ -370,4 +430,4 @@ fun StatItem(count: String, label: String) {
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
-} 
+}
