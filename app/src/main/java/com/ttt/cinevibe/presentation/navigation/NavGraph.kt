@@ -19,6 +19,7 @@ import com.ttt.cinevibe.presentation.profile.profileNavGraph
 import com.ttt.cinevibe.presentation.search.SearchScreen
 import com.ttt.cinevibe.presentation.userProfile.connections.FollowersScreen
 import com.ttt.cinevibe.presentation.userProfile.connections.FollowingScreen
+import com.ttt.cinevibe.presentation.userProfile.connections.PendingRequestsScreen
 import com.ttt.cinevibe.presentation.userProfile.discover.UserRecommendationScreen
 import com.ttt.cinevibe.presentation.userProfile.profile.UserProfileScreen
 
@@ -185,6 +186,9 @@ fun NavGraph(
                 onNavigateToFollowing = { uid ->
                     navController.navigate(Screens.followingRoute(uid))
                 },
+                onNavigateToPendingRequests = { uid ->
+                    navController.navigate(Screens.pendingRequestsRoute(uid))
+                },
                 onShareProfile = { targetUserId ->
                     // Handle sharing user profile
                 },
@@ -226,6 +230,24 @@ fun NavGraph(
                 },
                 onNavigateToProfile = { followingUserId ->
                     navController.navigate(Screens.userProfileRoute(followingUserId))
+                }
+            )
+        }
+        
+        // Pending Requests screen
+        composable(
+            route = "${Screens.PENDING_REQUESTS_ROUTE}/{${Screens.USER_ID_ARG}}",
+            arguments = listOf(navArgument(Screens.USER_ID_ARG) { type = NavType.StringType })
+        ) { backStackEntry ->
+            val userId = backStackEntry.arguments?.getString(Screens.USER_ID_ARG) ?: ""
+            
+            PendingRequestsScreen(
+                userId = userId,
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onNavigateToProfile = { requestUserId ->
+                    navController.navigate(Screens.userProfileRoute(requestUserId))
                 }
             )
         }

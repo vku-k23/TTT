@@ -52,44 +52,97 @@ class UserConnectionViewModel @Inject constructor(
     private var followersPage = 0
     private var pendingPage = 0
     private val pageSize = 20
+    
+    // Store previous results to append
+    private val followingResults = mutableListOf<UserConnectionResponse>()
+    private val followersResults = mutableListOf<UserConnectionResponse>()
+    private val pendingResults = mutableListOf<UserConnectionResponse>()
 
     fun loadFollowing(refresh: Boolean = false) {
-        if (refresh) followingPage = 0
+        if (refresh) {
+            followingPage = 0
+            followingResults.clear()
+        }
         
         viewModelScope.launch {
             userConnectionRepository.getFollowing(followingPage, pageSize)
                 .collectLatest { result ->
-                    _following.value = result
-                    if (result is Resource.Success) {
-                        followingPage++
+                    when (result) {
+                        is Resource.Success -> {
+                            val newItems = result.data?.content ?: emptyList()
+                            followingResults.addAll(newItems)
+                            
+                            val updatedPage = result.data?.copy(content = followingResults)
+                            _following.value = Resource.Success(updatedPage ?: result.data) as Resource<PageResponse<UserConnectionResponse>>
+                            
+                            followingPage++
+                        }
+                        is Resource.Error -> _following.value = result
+                        is Resource.Loading -> {
+                            if (followingPage == 0) {
+                                _following.value = Resource.Loading()
+                            }
+                        }
                     }
                 }
         }
     }
 
     fun loadFollowers(refresh: Boolean = false) {
-        if (refresh) followersPage = 0
+        if (refresh) {
+            followersPage = 0
+            followersResults.clear()
+        }
         
         viewModelScope.launch {
             userConnectionRepository.getFollowers(followersPage, pageSize)
                 .collectLatest { result ->
-                    _followers.value = result
-                    if (result is Resource.Success) {
-                        followersPage++
+                    when (result) {
+                        is Resource.Success -> {
+                            val newItems = result.data?.content ?: emptyList()
+                            followersResults.addAll(newItems)
+                            
+                            val updatedPage = result.data?.copy(content = followersResults)
+                            _followers.value = Resource.Success(updatedPage ?: result.data) as Resource<PageResponse<UserConnectionResponse>>
+                            
+                            followersPage++
+                        }
+                        is Resource.Error -> _followers.value = result
+                        is Resource.Loading -> {
+                            if (followersPage == 0) {
+                                _followers.value = Resource.Loading()
+                            }
+                        }
                     }
                 }
         }
     }
 
     fun loadPendingRequests(refresh: Boolean = false) {
-        if (refresh) pendingPage = 0
+        if (refresh) {
+            pendingPage = 0
+            pendingResults.clear()
+        }
         
         viewModelScope.launch {
             userConnectionRepository.getPendingRequests(pendingPage, pageSize)
                 .collectLatest { result ->
-                    _pendingRequests.value = result
-                    if (result is Resource.Success) {
-                        pendingPage++
+                    when (result) {
+                        is Resource.Success -> {
+                            val newItems = result.data?.content ?: emptyList()
+                            pendingResults.addAll(newItems)
+                            
+                            val updatedPage = result.data?.copy(content = pendingResults)
+                            _pendingRequests.value = Resource.Success(updatedPage ?: result.data) as Resource<PageResponse<UserConnectionResponse>>
+                            
+                            pendingPage++
+                        }
+                        is Resource.Error -> _pendingRequests.value = result
+                        is Resource.Loading -> {
+                            if (pendingPage == 0) {
+                                _pendingRequests.value = Resource.Loading()
+                            }
+                        }
                     }
                 }
         }

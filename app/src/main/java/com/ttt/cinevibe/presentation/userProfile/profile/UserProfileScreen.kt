@@ -82,6 +82,7 @@ fun UserProfileScreen(
     onNavigateBack: () -> Unit,
     onNavigateToFollowers: (String) -> Unit = {},
     onNavigateToFollowing: (String) -> Unit = {},
+    onNavigateToPendingRequests: (String) -> Unit = {}, // Thêm tham số mới cho điều hướng đến yêu cầu theo dõi
     onShareProfile: (userId: String) -> Unit = {},
     onMessageUser: (userId: String) -> Unit = {},
     viewModel: UserRecommendationViewModel = hiltViewModel(),
@@ -265,6 +266,71 @@ fun UserProfileScreen(
                                     label = "Following",
                                     onClick = { onNavigateToFollowing(userId) }
                                 )
+                            }
+                        }
+
+                        // Nút cho yêu cầu theo dõi đang chờ nếu là trang cá nhân của người dùng hiện tại
+                        if (userProfile.isCurrentUser) {
+                            Spacer(modifier = Modifier.height(16.dp))
+                            
+                            // Thêm biến theo dõi số lượng yêu cầu đang chờ
+                            val pendingRequestsViewModel: UserConnectionViewModel = hiltViewModel()
+                            val pendingRequestsState by pendingRequestsViewModel.pendingRequests.collectAsState()
+                            
+                            // Tải yêu cầu theo dõi đang chờ khi hồ sơ được hiển thị
+                            LaunchedEffect(userId) {
+                                pendingRequestsViewModel.loadPendingRequests(true)
+                            }
+                            
+                            // Tính toán số lượng yêu cầu đang chờ
+                            val pendingCount = when (pendingRequestsState) {
+                                is Resource.Success -> {
+                                    (pendingRequestsState as Resource.Success).data?.content?.size ?: 0
+                                }
+                                else -> 0
+                            }
+                            
+                            OutlinedButton(
+                                onClick = { onNavigateToPendingRequests(userId) },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 32.dp)
+                                    .height(42.dp),
+                                shape = RoundedCornerShape(4.dp),
+                                colors = ButtonDefaults.outlinedButtonColors(
+                                    containerColor = Black,
+                                    contentColor = White
+                                )
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.Center
+                                ) {
+                                    Text(
+                                        text = "Pending Follow Requests",
+                                        style = MaterialTheme.typography.labelMedium
+                                    )
+                                    
+                                    if (pendingCount > 0) {
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Box(
+                                            modifier = Modifier
+                                                .size(24.dp)
+                                                .background(
+                                                    color = NetflixRed,
+                                                    shape = CircleShape
+                                                ),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Text(
+                                                text = if (pendingCount > 99) "99+" else pendingCount.toString(),
+                                                color = White,
+                                                fontSize = 10.sp,
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                        }
+                                    }
+                                }
                             }
                         }
 
