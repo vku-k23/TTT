@@ -85,11 +85,16 @@ fun SearchScreen(
                 )
             },
             leadingIcon = {
-                Icon(
-                    imageVector = Icons.Default.Search,
-                    contentDescription = "Search Icon",
-                    tint = White
-                )
+                IconButton(onClick = {
+                    viewModel.performSearch()
+                    focusManager.clearFocus()
+                }) {
+                    Icon(
+                        imageVector = Icons.Default.Search,
+                        contentDescription = "Search Icon",
+                        tint = White
+                    )
+                }
             },
             trailingIcon = {
                 if (viewModel.searchQuery.value.isNotEmpty()) {

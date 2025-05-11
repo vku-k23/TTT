@@ -4,15 +4,19 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ttt.cinevibe.domain.model.Movie
+import com.ttt.cinevibe.domain.repository.MovieRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.collectLatest
 import javax.inject.Inject
 
 @HiltViewModel
-class SearchViewModel @Inject constructor() : ViewModel() {
+class SearchViewModel @Inject constructor(
+    private val movieRepository: MovieRepository
+) : ViewModel() {
     
     private val _searchState = MutableStateFlow<SearchState>(SearchState.Initial)
     val searchState: StateFlow<SearchState> = _searchState
@@ -37,48 +41,13 @@ class SearchViewModel @Inject constructor() : ViewModel() {
         viewModelScope.launch {
             _searchState.value = SearchState.Loading
             
-            // Simulate network delay
-            delay(800)
-            
             try {
-                // In a real app, this would call a use case to perform a repository search
-                val results = searchMovies(query)
-                _searchState.value = SearchState.Success(results)
+                movieRepository.searchMovies(query).collectLatest { results ->
+                    _searchState.value = SearchState.Success(results)
+                }
             } catch (e: Exception) {
                 _searchState.value = SearchState.Error("Failed to search: ${e.message}")
             }
-        }
-    }
-    
-    private fun searchMovies(query: String): List<Movie> {
-        // Simulate search results - in real app this would come from API
-        val allDummyMovies = createDummyMovies()
-        
-        return allDummyMovies.filter {
-            it.title.contains(query, ignoreCase = true) || 
-            it.overview.contains(query, ignoreCase = true)
-        }
-    }
-    
-    private fun createDummyMovies(): List<Movie> {
-        return List(15) { index ->
-            val genre = when (index % 5) {
-                0 -> "Action"
-                1 -> "Comedy"
-                2 -> "Drama"
-                3 -> "Thriller"
-                else -> "Sci-Fi"
-            }
-            
-            Movie(
-                id = 300 + index,
-                title = "$genre Movie ${index + 1}",
-                overview = "This is a $genre movie about exciting adventures and compelling characters.",
-                posterPath = null, // Would be actual paths in production
-                backdropPath = null,
-                releaseDate = "2024-${(index % 12) + 1}-${(index % 28) + 1}",
-                voteAverage = 3.5 + (index % 15) / 10.0
-            )
         }
     }
     
