@@ -9,6 +9,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
+import com.ttt.cinevibe.presentation.NavDestinations
 import com.ttt.cinevibe.presentation.auth.AUTH_GRAPH_ROUTE
 import com.ttt.cinevibe.presentation.detail.MovieDetailScreen
 import com.ttt.cinevibe.presentation.feed.FeedScreen
@@ -16,12 +17,17 @@ import com.ttt.cinevibe.presentation.home.HomeScreen
 import com.ttt.cinevibe.presentation.mylist.MyListScreen
 import com.ttt.cinevibe.presentation.notifications.NotificationsScreen
 import com.ttt.cinevibe.presentation.profile.profileNavGraph
+import com.ttt.cinevibe.presentation.reviews.MovieReviewsScreen
+import com.ttt.cinevibe.presentation.reviews.UserReviewsScreen
 import com.ttt.cinevibe.presentation.search.SearchScreen
 import com.ttt.cinevibe.presentation.userProfile.connections.FollowersScreen
 import com.ttt.cinevibe.presentation.userProfile.connections.FollowingScreen
 import com.ttt.cinevibe.presentation.userProfile.connections.PendingRequestsScreen
 import com.ttt.cinevibe.presentation.userProfile.discover.UserRecommendationScreen
 import com.ttt.cinevibe.presentation.userProfile.profile.UserProfileScreen
+import java.net.URLDecoder
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
 @Composable
 fun NavGraph(
@@ -155,6 +161,11 @@ fun NavGraph(
                 },
                 onNavigateToDetails = { similarMovieId ->
                     navController.navigate(Screens.movieDetailRoute(similarMovieId.toString()))
+                },
+                onNavigateToReviews = { movieId, movieTitle ->
+                    // Navigate to movie reviews screen with movie ID and title
+                    val encodedTitle = URLEncoder.encode(movieTitle, StandardCharsets.UTF_8.toString())
+                    navController.navigate(Screens.movieReviewsRoute(movieId, movieTitle))
                 }
             )
         }
@@ -248,6 +259,43 @@ fun NavGraph(
                 },
                 onNavigateToProfile = { requestUserId ->
                     navController.navigate(Screens.userProfileRoute(requestUserId))
+                }
+            )
+        }
+        
+        // Movie reviews screen
+        composable(
+            route = "${NavDestinations.MOVIE_REVIEWS_ROUTE}/{movieId}/{movieTitle}",
+            arguments = listOf(
+                navArgument("movieId") { type = NavType.LongType },
+                navArgument("movieTitle") { 
+                    type = NavType.StringType 
+                    // Allow special characters in movie titles
+                    nullable = false
+                }
+            )
+        ) { backStackEntry ->
+            val movieId = backStackEntry.arguments?.getLong("movieId") ?: 0L
+            val encodedTitle = backStackEntry.arguments?.getString("movieTitle") ?: ""
+            val movieTitle = URLDecoder.decode(encodedTitle, StandardCharsets.UTF_8.toString())
+            
+            MovieReviewsScreen(
+                movieId = movieId,
+                movieTitle = movieTitle,
+                onNavigateBack = {
+                    navController.popBackStack()
+                }
+            )
+        }
+        
+        // User reviews screen
+        composable(route = NavDestinations.USER_REVIEWS_ROUTE) {
+            UserReviewsScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onNavigateToMovie = { movieId ->
+                    navController.navigate(Screens.movieDetailRoute(movieId.toString()))
                 }
             )
         }

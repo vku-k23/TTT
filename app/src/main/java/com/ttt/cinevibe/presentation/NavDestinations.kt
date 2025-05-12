@@ -23,4 +23,9 @@ object NavDestinations {
     const val FOLLOWING_ROUTE = "following"
     const val FOLLOWING_WITH_ARGS = "$FOLLOWING_ROUTE/{userId}"
     const val NOTIFICATIONS_ROUTE = "notifications"
+    
+    // Movie reviews
+    const val MOVIE_REVIEWS_ROUTE = "movie_reviews"
+    const val MOVIE_REVIEWS_WITH_ARGS = "$MOVIE_REVIEWS_ROUTE/{movieId}/{movieTitle}"
+    const val USER_REVIEWS_ROUTE = "user_reviews"
 }
