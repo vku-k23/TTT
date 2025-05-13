@@ -49,9 +49,12 @@ data class MovieReviewDto(
         
         val reviewContent = reviewText ?: content ?: ""
         
-        // Log giá trị likeCount
-        android.util.Log.d("MovieReviewDto", "Converting DTO to MovieReview: " +
-                "id=$id, likeCount=$likeCount, userHasLiked=$userHasLiked")
+        // Log the likeCount value to help debug
+        android.util.Log.d("MovieReviewDto", 
+            "Converting DTO to MovieReview - id=$id: likeCount=$likeCount, userHasLiked=$userHasLiked")
+        
+        // Make sure likeCount is never negative
+        val safeLikeCount = if (likeCount < 0) 0 else likeCount
         
         return MovieReview(
             id = id,
@@ -60,7 +63,7 @@ data class MovieReviewDto(
             content = reviewContent,
             createdAt = createdAt,
             updatedAt = updatedAt,
-            likeCount = likeCount,
+            likeCount = safeLikeCount, // Use the safe value
             userProfile = profile,
             userHasLiked = userHasLiked
         )

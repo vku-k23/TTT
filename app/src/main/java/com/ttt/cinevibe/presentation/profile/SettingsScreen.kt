@@ -119,9 +119,6 @@ fun SettingsScreen(
             // Logout Button
             Button(
                 onClick = {
-                    // First clear profile view model data
-                    profileViewModel.clearUserData()
-                    // Then trigger logout process
                     authViewModel.logout()
                 },
                 modifier = Modifier

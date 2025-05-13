@@ -195,42 +195,94 @@ class MovieReviewRepositoryImpl @Inject constructor(
     override suspend fun likeReview(reviewId: Long): Flow<Resource<MovieReview>> = flow {
         emit(Resource.Loading())
         try {
+            // Log the current state before API call
+            val currentReview = try {
+                val currentResponse = movieReviewApiService.getReviewById(reviewId)
+                currentResponse.data
+            } catch (e: Exception) {
+                null
+            }
+            
+            android.util.Log.d("MovieReviewRepo", "Before liking - Review $reviewId: " +
+                    "likeCount=${currentReview?.likeCount ?: "unknown"}, " +
+                    "userHasLiked=${currentReview?.userHasLiked ?: "unknown"}")
+            
+            // Make the actual like API call
             val response = movieReviewApiService.likeReview(reviewId)
-            android.util.Log.d("MovieReviewRepo", "Like review response: success=${response.success}, data=${response.data != null}")
+            
+            // Log the detailed response
+            android.util.Log.d("MovieReviewRepo", "Like review API response: " +
+                    "success=${response.success}, " +
+                    "message=${response.message ?: "none"}, " +
+                    "data=${if (response.data != null) "present" else "null"}")
             
             if (response.data != null) {
-                emit(Resource.Success(response.data.toMovieReview()))
+                android.util.Log.d("MovieReviewRepo", "Like review successful - Review $reviewId: " +
+                        "likeCount=${response.data.likeCount}, " +
+                        "userHasLiked=${response.data.userHasLiked}")
+                
+                val movieReview = response.data.toMovieReview()
+                emit(Resource.Success(movieReview))
             } else {
+                android.util.Log.w("MovieReviewRepo", "Like review returned null data")
                 emit(Resource.Error(response.message ?: "Failed to like review"))
             }
         } catch (e: HttpException) {
+            android.util.Log.e("MovieReviewRepo", "HTTP error in likeReview: ${e.code()}, ${e.message()}")
             emit(Resource.Error(e.message ?: "HTTP error occurred"))
         } catch (e: IOException) {
+            android.util.Log.e("MovieReviewRepo", "IO error in likeReview: ${e.message}")
             emit(Resource.Error("Network error. Please check your connection."))
         } catch (e: Exception) {
-            emit(Resource.Error("An unexpected error occurred: ${e.message}"))
             android.util.Log.e("MovieReviewRepo", "Error in likeReview: ${e.message}", e)
+            emit(Resource.Error("An unexpected error occurred: ${e.message}"))
         }
     }
     
     override suspend fun unlikeReview(reviewId: Long): Flow<Resource<MovieReview>> = flow {
         emit(Resource.Loading())
         try {
+            // Log the current state before API call
+            val currentReview = try {
+                val currentResponse = movieReviewApiService.getReviewById(reviewId)
+                currentResponse.data
+            } catch (e: Exception) {
+                null
+            }
+            
+            android.util.Log.d("MovieReviewRepo", "Before unliking - Review $reviewId: " +
+                    "likeCount=${currentReview?.likeCount ?: "unknown"}, " +
+                    "userHasLiked=${currentReview?.userHasLiked ?: "unknown"}")
+            
+            // Make the actual unlike API call
             val response = movieReviewApiService.unlikeReview(reviewId)
-            android.util.Log.d("MovieReviewRepo", "Unlike review response: success=${response.success}, data=${response.data != null}")
+            
+            // Log the detailed response
+            android.util.Log.d("MovieReviewRepo", "Unlike review API response: " +
+                    "success=${response.success}, " +
+                    "message=${response.message ?: "none"}, " +
+                    "data=${if (response.data != null) "present" else "null"}")
             
             if (response.data != null) {
-                emit(Resource.Success(response.data.toMovieReview()))
+                android.util.Log.d("MovieReviewRepo", "Unlike review successful - Review $reviewId: " +
+                        "likeCount=${response.data.likeCount}, " +
+                        "userHasLiked=${response.data.userHasLiked}")
+                
+                val movieReview = response.data.toMovieReview()
+                emit(Resource.Success(movieReview))
             } else {
+                android.util.Log.w("MovieReviewRepo", "Unlike review returned null data")
                 emit(Resource.Error(response.message ?: "Failed to unlike review"))
             }
         } catch (e: HttpException) {
+            android.util.Log.e("MovieReviewRepo", "HTTP error in unlikeReview: ${e.code()}, ${e.message()}")
             emit(Resource.Error(e.message ?: "HTTP error occurred"))
         } catch (e: IOException) {
+            android.util.Log.e("MovieReviewRepo", "IO error in unlikeReview: ${e.message}")
             emit(Resource.Error("Network error. Please check your connection."))
         } catch (e: Exception) {
-            emit(Resource.Error("An unexpected error occurred: ${e.message}"))
             android.util.Log.e("MovieReviewRepo", "Error in unlikeReview: ${e.message}", e)
+            emit(Resource.Error("An unexpected error occurred: ${e.message}"))
         }
     }
 

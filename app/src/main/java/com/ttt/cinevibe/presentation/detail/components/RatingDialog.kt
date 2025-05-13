@@ -27,9 +27,9 @@ import androidx.compose.ui.window.DialogProperties
 fun RatingDialog(
     movieTitle: String,
     isSubmitting: Boolean = false,
-    initialRating: Float? = null,
+    initialRating: Int? = null,
     initialContent: String? = null,
-    onSubmit: (rating: Float, content: String) -> Unit,
+    onSubmit: (rating: Int, content: String) -> Unit,
     onDismiss: () -> Unit
 ) {
     Dialog(
@@ -61,9 +61,9 @@ fun RatingDialog(
 private fun ReviewEditorContent(
     movieTitle: String,
     isSubmitting: Boolean,
-    onSubmit: (rating: Float, content: String) -> Unit,
+    onSubmit: (rating: Int, content: String) -> Unit,
     onCancel: () -> Unit,
-    initialRating: Float? = null,
+    initialRating: Int? = null,
     initialContent: String? = null
 ) {
     val focusManager = LocalFocusManager.current
@@ -71,7 +71,7 @@ private fun ReviewEditorContent(
     
     // State for review content and rating
     var reviewContent by remember { mutableStateOf(initialContent ?: "") }
-    var selectedRating by remember { mutableStateOf(initialRating ?: 0f) }
+    var selectedRating by remember { mutableStateOf(initialRating?.toFloat() ?: 0f) }
     // Error states
     var contentError by remember { mutableStateOf<String?>(null) }
     var ratingError by remember { mutableStateOf<String?>(null) }
@@ -79,20 +79,17 @@ private fun ReviewEditorContent(
     // Validation function
     fun validate(): Boolean {
         var isValid = true
-        
-        if (selectedRating == 0f) {
+          if (selectedRating == 0f) {
             ratingError = "Please select a rating"
             isValid = false
         } else {
             ratingError = null
         }
         
-        if (reviewContent.isBlank() && !isEditing) {
-            // Only require content for new reviews
+        if (reviewContent.isBlank()) {
             contentError = "Please enter a review"
             isValid = false
-        } else if (reviewContent.length in 1..4) {
-            // Still validate length for both cases if content is provided
+        } else if (reviewContent.length < 5) {
             contentError = "Review is too short"
             isValid = false
         } else {
@@ -100,13 +97,6 @@ private fun ReviewEditorContent(
         }
         
         return isValid
-    }
-    
-    // Automatically validate when in editing mode and fields change
-    LaunchedEffect(selectedRating, reviewContent) {
-        if (isEditing) {
-            validate()
-        }
     }
     
     Column(
@@ -210,7 +200,7 @@ private fun ReviewEditorContent(
         Button(
             onClick = {
                 if (validate()) {
-                    onSubmit(selectedRating, reviewContent)
+                    onSubmit(selectedRating.toInt(), reviewContent)
                 }
             },
             modifier = Modifier.fillMaxWidth(),
@@ -251,7 +241,7 @@ private fun ReviewEditorContent(
                 DeleteConfirmationDialog(
                     onConfirm = {
                         // We use rating 0 as a special signal for deletion
-                        onSubmit(0f, "DELETE")
+                        onSubmit(0, "DELETE")
                         showDeleteConfirmation = false
                     },
                     onDismiss = { showDeleteConfirmation = false }

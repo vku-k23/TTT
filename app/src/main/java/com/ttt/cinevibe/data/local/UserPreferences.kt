@@ -1,6 +1,7 @@
 package com.ttt.cinevibe.data.local
 
 import android.content.Context
+import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
@@ -22,9 +23,11 @@ private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(na
 class UserPreferences @Inject constructor(@ApplicationContext private val context: Context) {
 
     companion object {
+        private const val TAG = "UserPreferences"
         private val USERNAME_KEY = stringPreferencesKey("username")
         private val DISPLAY_NAME_KEY = stringPreferencesKey("display_name")
         private val EMAIL_KEY = stringPreferencesKey("email")
+        // Add any additional user-related preference keys here
     }
 
     /**
@@ -33,6 +36,7 @@ class UserPreferences @Inject constructor(@ApplicationContext private val contex
     suspend fun saveUsername(username: String) {
         context.dataStore.edit { preferences ->
             preferences[USERNAME_KEY] = username
+            Log.d(TAG, "Username saved: $username")
         }
     }
 
@@ -51,6 +55,7 @@ class UserPreferences @Inject constructor(@ApplicationContext private val contex
     suspend fun saveDisplayName(displayName: String) {
         context.dataStore.edit { preferences ->
             preferences[DISPLAY_NAME_KEY] = displayName
+            Log.d(TAG, "Display name saved: $displayName")
         }
     }
 
@@ -69,6 +74,7 @@ class UserPreferences @Inject constructor(@ApplicationContext private val contex
     suspend fun saveEmail(email: String) {
         context.dataStore.edit { preferences ->
             preferences[EMAIL_KEY] = email
+            Log.d(TAG, "Email saved: $email")
         }
     }
 
@@ -82,13 +88,24 @@ class UserPreferences @Inject constructor(@ApplicationContext private val contex
     }
 
     /**
-     * Clear all user preferences
+     * Clear all user preferences - completely removes all data to prevent issues
+     * when switching between users
      */
     suspend fun clearUserData() {
-        context.dataStore.edit { preferences ->
-            preferences.remove(USERNAME_KEY)
-            preferences.remove(DISPLAY_NAME_KEY)
-            preferences.remove(EMAIL_KEY)
+        Log.d(TAG, "Clearing all user preferences data")
+        try {
+            context.dataStore.edit { preferences ->
+                // Remove individual keys for specific handling
+                preferences.remove(USERNAME_KEY)
+                preferences.remove(DISPLAY_NAME_KEY)
+                preferences.remove(EMAIL_KEY)
+
+                // Also completely clear all keys to ensure no data remains
+                preferences.clear()
+            }
+            Log.d(TAG, "User preferences data cleared successfully")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error clearing user preferences data: ${e.message}")
         }
     }
-} 
+}

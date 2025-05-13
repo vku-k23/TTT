@@ -34,8 +34,6 @@ import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.*
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -55,7 +53,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -77,7 +74,6 @@ import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.views.YouTube
 import com.ttt.cinevibe.R
 import com.ttt.cinevibe.data.remote.ApiConstants
 import com.ttt.cinevibe.domain.model.Movie
-import com.ttt.cinevibe.domain.model.MovieReview
 import com.ttt.cinevibe.ui.theme.Black
 import com.ttt.cinevibe.ui.theme.DarkGray
 import com.ttt.cinevibe.ui.theme.LightGray
@@ -88,11 +84,6 @@ import com.ttt.cinevibe.utils.LocaleConfigurationProvider
 import java.util.Locale
 import com.ttt.cinevibe.presentation.detail.HasReviewedState
 import com.ttt.cinevibe.presentation.detail.ReviewOperationState
-import com.ttt.cinevibe.presentation.detail.components.RatingDialog
-import com.ttt.cinevibe.presentation.detail.components.ReviewSection
-import com.ttt.cinevibe.presentation.detail.MovieReviewsState
-import java.net.URLEncoder
-import java.nio.charset.StandardCharsets
 
 @Composable
 fun MovieDetailScreen(
@@ -117,103 +108,87 @@ fun MovieDetailScreen(
     val isFavorite by viewModel.isFavorite.collectAsState()
     val reviewOperationState by viewModel.reviewOperationState.collectAsState()
     val hasReviewedState by viewModel.hasReviewedState.collectAsState()
-    val userReview by viewModel.userReview.collectAsState()
     
     // Dialog state
-    var showRatingDialog by remember { mutableStateOf(false) }
-
-    // Fetch movie reviews when screen is first shown
-    LaunchedEffect(movieId) {
-        viewModel.getMovieById(movieId)
-        viewModel.getMovieReviews(movieId)
-        viewModel.checkIfUserReviewed(movieId.toLong())
-    }
-    
-    // Handle review operation state
+    var showRatingDialog by remember { mutableStateOf(false) }    // Handle review operation result
     LaunchedEffect(reviewOperationState) {
         when (reviewOperationState) {
             is ReviewOperationState.Success -> {
-                // Log thành công để debug
-                android.util.Log.d("MovieDetailScreen", "Review operation completed successfully!")
+                // Check if the review was deleted (userReview is now null but hasReviewed was true)
+                val hasReviewed = (hasReviewedState as? HasReviewedState.Success)?.hasReviewed ?: false
+                val wasDeleted = hasReviewed && viewModel.userReview.value == null
                 
-                // Đóng dialog rating (phần quan trọng nhất)
+                val message = when {
+                    wasDeleted -> "Review deleted successfully!"
+                    hasReviewed -> "Review updated successfully!"
+                    else -> "Review submitted successfully!"
+                }
+                
+                // Show success message
+                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                 showRatingDialog = false
                 
-                // Refresh reviews sau khi thao tác thành công
-                viewModel.getMovieReviews(movieId)
-                viewModel.checkIfUserReviewed(movieId.toLong())
-                
-                // Thông báo thành công
-                Toast.makeText(
-                    context,
-                    if (userReview != null) "Review updated successfully" else "Review submitted successfully",
-                    Toast.LENGTH_SHORT
-                ).show()
+                // Check review status again to update UI
+                movieState.movie?.let {
+                    viewModel.checkIfUserReviewed(it.id.toLong())
+                }
             }
             is ReviewOperationState.Error -> {
-                val errorMessage = (reviewOperationState as? ReviewOperationState.Error)?.message ?: "Error"
-                
-                // Debug log lỗi
-                android.util.Log.e("MovieDetailScreen", "Review error: $errorMessage")
-                
-                // Check if this is a duplicate review conflict error
-                if (errorMessage.contains("already reviewed this movie", ignoreCase = true)) {
-                    // Explicitly refresh the user's review state
-                    viewModel.checkIfUserReviewed(movieId.toLong())
-                    
-                    // Show a more helpful error message
-                    Toast.makeText(
-                        context, 
-                        "You've already reviewed this movie. Opening your existing review...", 
-                        Toast.LENGTH_LONG
-                    ).show()
-                    
-                    // Keep the rating dialog open if it was showing
-                    // It will be populated with the existing review data once fetched
-                } else {
-                    // Show other errors as a toast
-                    Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
-                }
+                // Show error message
+                Toast.makeText(context, (reviewOperationState as ReviewOperationState.Error).message, Toast.LENGTH_LONG).show()
             }
             else -> {}
         }
     }
     
-    // Auto-open rating dialog when review data changes and we're in edit mode
-    LaunchedEffect(userReview) {
-        if (userReview != null && hasReviewedState is HasReviewedState.Success && (hasReviewedState as HasReviewedState.Success).hasReviewed) {
-            // Only auto-open if we're following a 409 conflict and dialog isn't already showing
-            if (reviewOperationState is ReviewOperationState.Error && 
-                (reviewOperationState as ReviewOperationState.Error).message?.contains("already reviewed", ignoreCase = true) == true && 
-                !showRatingDialog) {
-                showRatingDialog = true
-            }
-        }
+    // Fetch the movie details
+    LaunchedEffect(movieId) {
+        viewModel.getMovieById(movieId)
     }
-    
-    // Show the rating dialog if needed
-    if (showRatingDialog) {
-        RatingDialog(
-            movieTitle = movieState.movie?.title ?: "",
-            isSubmitting = reviewOperationState is ReviewOperationState.Loading,
-            initialRating = userReview?.rating,
-            initialContent = userReview?.content,
-            onSubmit = { rating, content ->
-                if (rating == 0f && content == "DELETE") {
-                    // Special case for delete
-                    userReview?.id?.let { reviewId ->
-                        viewModel.deleteReview(reviewId)
-                    }
-                } else if (userReview != null) {
-                    // Update existing review
-                    viewModel.updateReview(userReview!!.id, rating, content, false)
-                } else {
-                    // Create new review
-                    viewModel.createReview(movieId.toLong(), rating, content, movieState.movie?.title ?: "", false)
+      // Handle hasReviewedState changes
+    LaunchedEffect(hasReviewedState) {
+        when (hasReviewedState) {
+            is HasReviewedState.Success -> {
+                // Only show the toast if the dialog is open and we're not deliberately trying to edit
+                val hasReviewed = (hasReviewedState as HasReviewedState.Success).hasReviewed
+                
+                if (hasReviewed && showRatingDialog && viewModel.userReview.value == null) {
+                    // We're finding out the user already reviewed but we don't have the review content yet
+                    // Close the dialog and show the message
+                    showRatingDialog = false
+                    Toast.makeText(context, "You've already reviewed this movie", Toast.LENGTH_SHORT).show()
                 }
-            },
-            onDismiss = { showRatingDialog = false }
-        )
+            }
+            is HasReviewedState.Error -> {
+                Toast.makeText(context, (hasReviewedState as HasReviewedState.Error).message, Toast.LENGTH_SHORT).show()
+            }
+            else -> {} // Do nothing for Loading state
+        }
+    }    // Show rating dialog if requested
+    if (showRatingDialog) {
+        movieState.movie?.let { movie ->
+            // Get user's existing review if they have one
+            val existingReview = viewModel.userReview.collectAsState().value
+            val hasReviewed = (hasReviewedState as? HasReviewedState.Success)?.hasReviewed ?: false
+              RatingDialog(
+                movieTitle = movie.title,
+                isSubmitting = reviewOperationState is ReviewOperationState.Loading,
+                onSubmit = { rating, content ->                    if (hasReviewed && existingReview != null) {
+                        if (rating == 0f && content == "DELETE") {
+                            // Special case for deletion
+                            viewModel.deleteReview(existingReview.id)
+                        } else {
+                            // Update existing review
+                            viewModel.updateReview(existingReview.id, rating.toInt(), content)
+                        }
+                    } else {
+                        // Create new review
+                        viewModel.createReview(movie.id.toLong(), rating.toInt(), content)
+                    }
+                },
+                onDismiss = { showRatingDialog = false }
+            )
+        }
     }
     
     // Handle loading and error states
@@ -938,45 +913,8 @@ fun MovieDetailContent(
                 }
             }
             
-            // After this existing code for Trailers & More
-            
-            Divider(
-                color = DarkGray,
-                thickness = 1.dp,
-                modifier = Modifier.padding(vertical = 16.dp)
-            )
-            
-            // Reviews section
-            val movieReviews = remember { mutableStateOf<List<MovieReview>>(emptyList()) }
-            
-            // Collect movie reviews
-            LaunchedEffect(movie.id) {
-                viewModel.getMovieReviews(movie.id)
-                viewModel.movieReviewsState.collect { state ->
-                    movieReviews.value = state.reviews
-                }
-            }
-            
-            // Add the Reviews section
-            ReviewSection(
-                reviews = movieReviews.value,
-                onAddReviewClick = showRatingDialog,
-                onViewAllReviewsClick = { movieId, title ->
-                    // No need to re-encode here since it's handled in navigation
-                    onNavigateToReviews(movieId, title)
-                },
-                movieId = movie.id.toLong(),
-                movieTitle = movie.title,
-                hasReviewed = when (hasReviewedState) {
-                    is HasReviewedState.Success -> hasReviewedState.hasReviewed
-                    is HasReviewedState.Reviewed -> true
-                    is HasReviewedState.NotReviewed -> false
-                    else -> false
-                }
-            )
-            
-            // Padding at the bottom of the screen
-            Spacer(modifier = Modifier.height(32.dp))
+            // Add some space at the bottom
+            Spacer(modifier = Modifier.height(80.dp))
         }
         
         // Back button at the top
@@ -1283,6 +1221,159 @@ fun TrailerItem(
                     color = LightGray,
                     fontSize = 12.sp
                 )
+            }
+        }
+    }
+}
+
+@Composable
+fun RatingDialog(
+    movieTitle: String,
+    isSubmitting: Boolean,
+    onSubmit: (Float, String) -> Unit,
+    onDismiss: () -> Unit
+) {
+    var rating by remember { mutableStateOf(0f) }
+    var reviewText by remember { mutableStateOf("") }
+    var isAnonymous by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(
+            dismissOnBackPress = true,
+            dismissOnClickOutside = false
+        )
+    ) {
+        Surface(
+            shape = RoundedCornerShape(16.dp),
+            color = DarkGray,
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                // Title
+                Text(
+                    text = "Rate & Review",
+                    color = White,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                
+                // Movie title
+                Text(
+                    text = movieTitle,
+                    color = LightGray,
+                    fontSize = 16.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                  // Rating bar
+                com.ttt.cinevibe.presentation.components.RatingBar(
+                    value = rating,
+                    onValueChange = { rating = it },
+                    enabled = !isSubmitting,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp),
+                    inactiveColor = LightGray.copy(alpha = 0.3f),
+                    activeColor = NetflixRed
+                )
+                
+                // Review text field
+                OutlinedTextField(
+                    value = reviewText,
+                    onValueChange = { reviewText = it },
+                    placeholder = {
+                        Text(
+                            text = "Write your review...",
+                            color = LightGray.copy(alpha = 0.7f)
+                        )
+                    },                    textStyle = androidx.compose.ui.text.TextStyle(
+                        color = White,
+                        fontSize = 14.sp
+                    ),                    colors = androidx.compose.material3.TextFieldDefaults.colors(
+                        focusedContainerColor = DarkGray,
+                        unfocusedContainerColor = DarkGray,
+                        focusedIndicatorColor = NetflixRed,
+                        unfocusedIndicatorColor = LightGray.copy(alpha = 0.3f),
+                        cursorColor = NetflixRed,
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(100.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                )
+                
+                // Anonymous review checkbox
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Checkbox(
+                        checked = isAnonymous,
+                        onCheckedChange = { isAnonymous = it },
+                        colors = CheckboxDefaults.colors(
+                            checkedColor = NetflixRed,
+                            uncheckedColor = LightGray
+                        ),
+                        modifier = Modifier.size(24.dp)
+                    )
+                    
+                    Spacer(modifier = Modifier.width(8.dp))
+                    
+                    Text(
+                        text = "Submit as anonymous",
+                        color = White,
+                        fontSize = 14.sp
+                    )
+                }
+                  // Submit button
+                Button(                    onClick = {
+                        if (rating > 0) {
+                            onSubmit(rating, reviewText)
+                        } else {
+                            Toast.makeText(
+                                context,
+                                "Please select a rating",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = NetflixRed
+                    ),
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    if (isSubmitting) {
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier.size(16.dp)
+                        ) {
+                            androidx.compose.material3.CircularProgressIndicator(
+                                color = White,
+                                strokeWidth = 2.dp,
+                                modifier = Modifier.fillMaxSize()
+                            )
+                            }
+                            Spacer(modifier = Modifier.width(8.dp))
+                        }
+                        Text(
+                            text = "Submit Review",
+                            color = White,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
             }
         }
     }
