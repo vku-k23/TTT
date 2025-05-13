@@ -279,7 +279,7 @@ fun MovieReviewsScreen(
                         if (editingReview != null) {
                             viewModel.updateReview(editingReview!!.id, rating, content)
                         } else {
-                            viewModel.createReview(movieId, rating, content)
+                            viewModel.createReview(movieId, rating, content, movieTitle)
                         }
                     },
                     onCancel = {

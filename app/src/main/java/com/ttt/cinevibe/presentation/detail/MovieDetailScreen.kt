@@ -1,6 +1,7 @@
 package com.ttt.cinevibe.presentation.detail
 
 import android.widget.TextView
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
@@ -33,6 +34,8 @@ import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.*
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -52,6 +55,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -73,6 +77,7 @@ import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.views.YouTube
 import com.ttt.cinevibe.R
 import com.ttt.cinevibe.data.remote.ApiConstants
 import com.ttt.cinevibe.domain.model.Movie
+import com.ttt.cinevibe.domain.model.MovieReview
 import com.ttt.cinevibe.ui.theme.Black
 import com.ttt.cinevibe.ui.theme.DarkGray
 import com.ttt.cinevibe.ui.theme.LightGray
@@ -81,6 +86,13 @@ import com.ttt.cinevibe.ui.theme.White
 import com.ttt.cinevibe.utils.LocalAppLocale
 import com.ttt.cinevibe.utils.LocaleConfigurationProvider
 import java.util.Locale
+import com.ttt.cinevibe.presentation.detail.HasReviewedState
+import com.ttt.cinevibe.presentation.detail.ReviewOperationState
+import com.ttt.cinevibe.presentation.detail.components.RatingDialog
+import com.ttt.cinevibe.presentation.detail.components.ReviewSection
+import com.ttt.cinevibe.presentation.detail.MovieReviewsState
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
 @Composable
 fun MovieDetailScreen(
@@ -103,10 +115,61 @@ fun MovieDetailScreen(
     val movieState by viewModel.movieState.collectAsState()
     val trailerState by viewModel.trailerState.collectAsState()
     val isFavorite by viewModel.isFavorite.collectAsState()
+    val reviewOperationState by viewModel.reviewOperationState.collectAsState()
+    val hasReviewedState by viewModel.hasReviewedState.collectAsState()
+    val userReview by viewModel.userReview.collectAsState()
     
-    // Fetch the movie details
+    // Dialog state
+    var showRatingDialog by remember { mutableStateOf(false) }
+
+    // Fetch movie reviews when screen is first shown
     LaunchedEffect(movieId) {
         viewModel.getMovieById(movieId)
+        viewModel.getMovieReviews(movieId)
+        viewModel.checkIfUserReviewed(movieId.toLong())
+    }
+    
+    // Handle review operation state
+    LaunchedEffect(reviewOperationState) {
+        when (reviewOperationState) {
+            is ReviewOperationState.Success -> {
+                // Refresh reviews after successful operation
+                viewModel.getMovieReviews(movieId)
+                viewModel.checkIfUserReviewed(movieId.toLong())
+                showRatingDialog = false
+            }
+            is ReviewOperationState.Error -> {
+                // Could show a snackbar or toast with the error message
+                val errorMessage = (reviewOperationState as? ReviewOperationState.Error)?.message ?: "Error"
+                Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
+            }
+            else -> {}
+        }
+    }
+    
+    // Show the rating dialog if needed
+    if (showRatingDialog) {
+        RatingDialog(
+            movieTitle = movieState.movie?.title ?: "",
+            isSubmitting = reviewOperationState is ReviewOperationState.Loading,
+            initialRating = userReview?.rating,
+            initialContent = userReview?.content,
+            onSubmit = { rating, content ->
+                if (rating == 0 && content == "DELETE") {
+                    // Special case for delete
+                    userReview?.id?.let { reviewId ->
+                        viewModel.deleteReview(reviewId)
+                    }
+                } else if (userReview != null) {
+                    // Update existing review
+                    viewModel.updateReview(userReview!!.id, rating, content)
+                } else {
+                    // Create new review
+                    viewModel.createReview(movieId.toLong(), rating, content, movieState.movie?.title ?: "")
+                }
+            },
+            onDismiss = { showRatingDialog = false }
+        )
     }
     
     // Handle loading and error states
@@ -148,13 +211,14 @@ fun MovieDetailScreen(
                 }
             }
         }
-        
-        movieState.movie != null -> {
+          movieState.movie != null -> {
             MovieDetailContent(
                 movie = movieState.movie!!,
                 viewModel = viewModel,
                 trailerState = trailerState,
                 isFavorite = isFavorite,
+                hasReviewedState = hasReviewedState,
+                showRatingDialog = { showRatingDialog = true },
                 onBackClick = onBackClick,
                 onPlayTrailerClick = { viewModel.playTrailerInPlace() },
                 onCloseTrailerClick = { viewModel.stopTrailerInPlace() },
@@ -172,6 +236,8 @@ fun MovieDetailContent(
     viewModel: MovieDetailViewModel,
     trailerState: TrailerState,
     isFavorite: Boolean,
+    hasReviewedState: HasReviewedState,
+    showRatingDialog: () -> Unit,
     onBackClick: () -> Unit,
     onPlayTrailerClick: () -> Unit,
     onCloseTrailerClick: () -> Unit,
@@ -506,23 +572,32 @@ fun MovieDetailContent(
                             color = if (isFavorite) NetflixRed else LightGray,
                             fontSize = 12.sp
                         )
-                    }
-                    
-                    // Rate button
+                    }                    // Rate button
+                    val context = LocalContext.current
+                    val hasReviewed = (hasReviewedState as? HasReviewedState.Success)?.hasReviewed ?: false
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.clickable { /* Rate */ }
+                        modifier = Modifier.clickable { 
+                            viewModel.checkIfUserReviewed(movie.id.toLong())
+                            if (hasReviewed) {
+                                // If they already have a review, go straight to the dialog to edit it
+                                showRatingDialog()
+                            } else {
+                                // Show the dialog to create a new review
+                                showRatingDialog()
+                            }
+                        }
                     ) {
                         Icon(
                             imageVector = Icons.Filled.Star,
                             contentDescription = "Rate",
-                            tint = White,
+                            tint = if (hasReviewed) Color(0xFFFFD700) else White, // Gold color if already reviewed
                             modifier = Modifier.size(24.dp)
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = stringResource(R.string.rate),
-                            color = LightGray,
+                            text = if (hasReviewed) "Rated" else stringResource(R.string.rate),
+                            color = if (hasReviewed) Color(0xFFFFD700) else LightGray,
                             fontSize = 12.sp
                         )
                     }
@@ -819,8 +894,45 @@ fun MovieDetailContent(
                 }
             }
             
-            // Add some space at the bottom
-            Spacer(modifier = Modifier.height(80.dp))
+            // After this existing code for Trailers & More
+            
+            Divider(
+                color = DarkGray,
+                thickness = 1.dp,
+                modifier = Modifier.padding(vertical = 16.dp)
+            )
+            
+            // Reviews section
+            val movieReviews = remember { mutableStateOf<List<MovieReview>>(emptyList()) }
+            
+            // Collect movie reviews
+            LaunchedEffect(movie.id) {
+                viewModel.getMovieReviews(movie.id)
+                viewModel.movieReviewsState.collect { state ->
+                    movieReviews.value = state.reviews
+                }
+            }
+            
+            // Add the Reviews section
+            ReviewSection(
+                reviews = movieReviews.value,
+                onAddReviewClick = showRatingDialog,
+                onViewAllReviewsClick = { movieId, title ->
+                    // No need to re-encode here since it's handled in navigation
+                    onNavigateToReviews(movieId, title)
+                },
+                movieId = movie.id.toLong(),
+                movieTitle = movie.title,
+                hasReviewed = when (hasReviewedState) {
+                    is HasReviewedState.Success -> hasReviewedState.hasReviewed
+                    is HasReviewedState.Reviewed -> true
+                    is HasReviewedState.NotReviewed -> false
+                    else -> false
+                }
+            )
+            
+            // Padding at the bottom of the screen
+            Spacer(modifier = Modifier.height(32.dp))
         }
         
         // Back button at the top

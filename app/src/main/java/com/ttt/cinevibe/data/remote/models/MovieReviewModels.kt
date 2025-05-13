@@ -11,8 +11,14 @@ data class MovieReviewRequest(
     @SerializedName("rating")
     val rating: Int,
     
-    @SerializedName("content")
-    val content: String
+    @SerializedName("reviewText")
+    val content: String,
+    
+    @SerializedName("containsSpoilers")
+    val containsSpoilers: Boolean = false,
+    
+    @SerializedName("movieTitle")
+    val movieTitle: String = ""
 )
 
 // Response from the API containing review data
@@ -23,7 +29,7 @@ data class MovieReviewResponse(
     @SerializedName("tmdbMovieId")
     val tmdbMovieId: Long,
     
-    @SerializedName("content")
+    @SerializedName("reviewText")
     val content: String,
     
     @SerializedName("rating")
@@ -35,14 +41,20 @@ data class MovieReviewResponse(
     @SerializedName("updatedAt")
     val updatedAt: String,
     
-    @SerializedName("userProfile")
-    val userProfile: UserProfileResponse,
+    @SerializedName("userUid")
+    val userUid: String,
     
-    @SerializedName("likeCount")
+    @SerializedName("userName")
+    val userName: String,
+    
+    @SerializedName("userProfileImageUrl")
+    val userProfileImageUrl: String?,
+    
+    @SerializedName("likesCount")
     val likeCount: Int,
     
     @SerializedName("userHasLiked")
-    val userHasLiked: Boolean
+    val userHasLiked: Boolean = false
 )
 
 // Paginated response wrapper for review lists

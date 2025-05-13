@@ -11,7 +11,7 @@ interface MovieReviewRepository {
     
     suspend fun getReviewById(reviewId: Long): Flow<Resource<MovieReview>>
     
-    suspend fun createReview(tmdbMovieId: Long, rating: Int, content: String): Flow<Resource<MovieReview>>
+    suspend fun createReview(tmdbMovieId: Long, rating: Int, content: String, movieTitle: String): Flow<Resource<MovieReview>>
     
     suspend fun updateReview(reviewId: Long, rating: Int, content: String): Flow<Resource<MovieReview>>
     
@@ -20,6 +20,7 @@ interface MovieReviewRepository {
     suspend fun likeReview(reviewId: Long): Flow<Resource<MovieReview>>
     
     suspend fun unlikeReview(reviewId: Long): Flow<Resource<MovieReview>>
+      suspend fun hasUserReviewedMovie(tmdbMovieId: Long): Flow<Resource<Boolean>>
     
-    suspend fun hasUserReviewedMovie(tmdbMovieId: Long): Flow<Resource<Boolean>>
+    suspend fun getUserReviewForMovie(tmdbMovieId: Long): Flow<Resource<MovieReview>>
 }

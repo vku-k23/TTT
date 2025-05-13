@@ -55,6 +55,7 @@ data class UserProfileDto(
 @Serializable
 data class CreateReviewRequest(
     val tmdbMovieId: Long,
+    val movieTitle: String,
     val rating: Int,
     val content: String
 )

@@ -136,10 +136,10 @@ class MovieReviewViewModel @Inject constructor(
     }
     
     // Function to create a new review
-    fun createReview(tmdbMovieId: Long, rating: Int, content: String) {
+    fun createReview(tmdbMovieId: Long, rating: Int, content: String, movieTitle: String) {
         viewModelScope.launch {
             _reviewOperationState.value = ReviewOperationState.Loading
-            reviewRepository.createReview(tmdbMovieId, rating, content)
+            reviewRepository.createReview(tmdbMovieId, rating, content, movieTitle)
                 .collectLatest { result ->
                     when (result) {
                         is Resource.Success -> {

@@ -50,7 +50,8 @@ class MovieReviewRepositoryImpl @Inject constructor(
             emit(Resource.Error(e.message ?: "HTTP error occurred"))
         } catch (e: IOException) {
             android.util.Log.e("MovieReviewRepo", "IO error: ${e.message}", e)
-            emit(Resource.Error("Network error. Please check your connection."))        } catch (e: Exception) {
+            emit(Resource.Error("Network error. Please check your connection."))
+        } catch (e: Exception) {
             android.util.Log.e("MovieReviewRepo", "Unexpected error: ${e.message}", e)
             emit(Resource.Error("An unexpected error occurred: ${e.message}"))
         }
@@ -74,10 +75,10 @@ class MovieReviewRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun createReview(tmdbMovieId: Long, rating: Int, content: String, movieTitle: String): Flow<Resource<MovieReview>> = flow {
+    override suspend fun createReview(tmdbMovieId: Long, rating: Int, content: String): Flow<Resource<MovieReview>> = flow {
         emit(Resource.Loading())
         try {
-            val request = CreateReviewRequest(tmdbMovieId, movieTitle, rating, content)
+            val request = CreateReviewRequest(tmdbMovieId, rating, content)
             val response = movieReviewApiService.createReview(request)
             
             if (response.success && response.data != null) {
@@ -127,7 +128,7 @@ class MovieReviewRepositoryImpl @Inject constructor(
             emit(Resource.Error("An unexpected error occurred: ${e.message}"))
         }
     }
-    
+
     override suspend fun likeReview(reviewId: Long): Flow<Resource<MovieReview>> = flow {
         emit(Resource.Loading())
         try {
@@ -145,7 +146,7 @@ class MovieReviewRepositoryImpl @Inject constructor(
             emit(Resource.Error("An unexpected error occurred: ${e.message}"))
         }
     }
-    
+
     override suspend fun unlikeReview(reviewId: Long): Flow<Resource<MovieReview>> = flow {
         emit(Resource.Loading())
         try {
@@ -189,7 +190,7 @@ class MovieReviewRepositoryImpl @Inject constructor(
             if (response.success && response.data != null) {
                 emit(Resource.Success(response.data.toMovieReview()))
             } else {
-                emit(Resource.Error(response.message ?: "Failed to get user review"))
+                emit(Resource.Error(response.message ?: "Failed to get user review for movie"))
             }
         } catch (e: HttpException) {
             emit(Resource.Error(e.message ?: "HTTP error occurred"))
