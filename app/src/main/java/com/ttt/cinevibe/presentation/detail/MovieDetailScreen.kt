@@ -1,6 +1,7 @@
 package com.ttt.cinevibe.presentation.detail
 
 import android.widget.TextView
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
@@ -81,6 +82,8 @@ import com.ttt.cinevibe.ui.theme.White
 import com.ttt.cinevibe.utils.LocalAppLocale
 import com.ttt.cinevibe.utils.LocaleConfigurationProvider
 import java.util.Locale
+import com.ttt.cinevibe.presentation.detail.HasReviewedState
+import com.ttt.cinevibe.presentation.detail.ReviewOperationState
 
 @Composable
 fun MovieDetailScreen(
@@ -103,10 +106,89 @@ fun MovieDetailScreen(
     val movieState by viewModel.movieState.collectAsState()
     val trailerState by viewModel.trailerState.collectAsState()
     val isFavorite by viewModel.isFavorite.collectAsState()
+    val reviewOperationState by viewModel.reviewOperationState.collectAsState()
+    val hasReviewedState by viewModel.hasReviewedState.collectAsState()
+    
+    // Dialog state
+    var showRatingDialog by remember { mutableStateOf(false) }    // Handle review operation result
+    LaunchedEffect(reviewOperationState) {
+        when (reviewOperationState) {
+            is ReviewOperationState.Success -> {
+                // Check if the review was deleted (userReview is now null but hasReviewed was true)
+                val hasReviewed = (hasReviewedState as? HasReviewedState.Success)?.hasReviewed ?: false
+                val wasDeleted = hasReviewed && viewModel.userReview.value == null
+                
+                val message = when {
+                    wasDeleted -> "Review deleted successfully!"
+                    hasReviewed -> "Review updated successfully!"
+                    else -> "Review submitted successfully!"
+                }
+                
+                // Show success message
+                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                showRatingDialog = false
+                
+                // Check review status again to update UI
+                movieState.movie?.let {
+                    viewModel.checkIfUserReviewed(it.id.toLong())
+                }
+            }
+            is ReviewOperationState.Error -> {
+                // Show error message
+                Toast.makeText(context, (reviewOperationState as ReviewOperationState.Error).message, Toast.LENGTH_LONG).show()
+            }
+            else -> {}
+        }
+    }
     
     // Fetch the movie details
     LaunchedEffect(movieId) {
         viewModel.getMovieById(movieId)
+    }
+      // Handle hasReviewedState changes
+    LaunchedEffect(hasReviewedState) {
+        when (hasReviewedState) {
+            is HasReviewedState.Success -> {
+                // Only show the toast if the dialog is open and we're not deliberately trying to edit
+                val hasReviewed = (hasReviewedState as HasReviewedState.Success).hasReviewed
+                
+                if (hasReviewed && showRatingDialog && viewModel.userReview.value == null) {
+                    // We're finding out the user already reviewed but we don't have the review content yet
+                    // Close the dialog and show the message
+                    showRatingDialog = false
+                    Toast.makeText(context, "You've already reviewed this movie", Toast.LENGTH_SHORT).show()
+                }
+            }
+            is HasReviewedState.Error -> {
+                Toast.makeText(context, (hasReviewedState as HasReviewedState.Error).message, Toast.LENGTH_SHORT).show()
+            }
+            else -> {} // Do nothing for Loading state
+        }
+    }    // Show rating dialog if requested
+    if (showRatingDialog) {
+        movieState.movie?.let { movie ->
+            // Get user's existing review if they have one
+            val existingReview = viewModel.userReview.collectAsState().value
+            val hasReviewed = (hasReviewedState as? HasReviewedState.Success)?.hasReviewed ?: false
+              RatingDialog(
+                movieTitle = movie.title,
+                isSubmitting = reviewOperationState is ReviewOperationState.Loading,
+                onSubmit = { rating, content ->                    if (hasReviewed && existingReview != null) {
+                        if (rating == 0f && content == "DELETE") {
+                            // Special case for deletion
+                            viewModel.deleteReview(existingReview.id)
+                        } else {
+                            // Update existing review
+                            viewModel.updateReview(existingReview.id, rating.toInt(), content)
+                        }
+                    } else {
+                        // Create new review
+                        viewModel.createReview(movie.id.toLong(), rating.toInt(), content)
+                    }
+                },
+                onDismiss = { showRatingDialog = false }
+            )
+        }
     }
     
     // Handle loading and error states
@@ -148,13 +230,14 @@ fun MovieDetailScreen(
                 }
             }
         }
-        
-        movieState.movie != null -> {
+          movieState.movie != null -> {
             MovieDetailContent(
                 movie = movieState.movie!!,
                 viewModel = viewModel,
                 trailerState = trailerState,
                 isFavorite = isFavorite,
+                hasReviewedState = hasReviewedState,
+                showRatingDialog = { showRatingDialog = true },
                 onBackClick = onBackClick,
                 onPlayTrailerClick = { viewModel.playTrailerInPlace() },
                 onCloseTrailerClick = { viewModel.stopTrailerInPlace() },
@@ -172,6 +255,8 @@ fun MovieDetailContent(
     viewModel: MovieDetailViewModel,
     trailerState: TrailerState,
     isFavorite: Boolean,
+    hasReviewedState: HasReviewedState,
+    showRatingDialog: () -> Unit,
     onBackClick: () -> Unit,
     onPlayTrailerClick: () -> Unit,
     onCloseTrailerClick: () -> Unit,
@@ -506,23 +591,32 @@ fun MovieDetailContent(
                             color = if (isFavorite) NetflixRed else LightGray,
                             fontSize = 12.sp
                         )
-                    }
-                    
-                    // Rate button
+                    }                    // Rate button
+                    val context = LocalContext.current
+                    val hasReviewed = (hasReviewedState as? HasReviewedState.Success)?.hasReviewed ?: false
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.clickable { /* Rate */ }
+                        modifier = Modifier.clickable { 
+                            viewModel.checkIfUserReviewed(movie.id.toLong())
+                            if (hasReviewed) {
+                                // If they already have a review, go straight to the dialog to edit it
+                                showRatingDialog()
+                            } else {
+                                // Show the dialog to create a new review
+                                showRatingDialog()
+                            }
+                        }
                     ) {
                         Icon(
                             imageVector = Icons.Filled.Star,
                             contentDescription = "Rate",
-                            tint = White,
+                            tint = if (hasReviewed) Color(0xFFFFD700) else White, // Gold color if already reviewed
                             modifier = Modifier.size(24.dp)
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = stringResource(R.string.rate),
-                            color = LightGray,
+                            text = if (hasReviewed) "Rated" else stringResource(R.string.rate),
+                            color = if (hasReviewed) Color(0xFFFFD700) else LightGray,
                             fontSize = 12.sp
                         )
                     }
@@ -1127,6 +1221,159 @@ fun TrailerItem(
                     color = LightGray,
                     fontSize = 12.sp
                 )
+            }
+        }
+    }
+}
+
+@Composable
+fun RatingDialog(
+    movieTitle: String,
+    isSubmitting: Boolean,
+    onSubmit: (Float, String) -> Unit,
+    onDismiss: () -> Unit
+) {
+    var rating by remember { mutableStateOf(0f) }
+    var reviewText by remember { mutableStateOf("") }
+    var isAnonymous by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(
+            dismissOnBackPress = true,
+            dismissOnClickOutside = false
+        )
+    ) {
+        Surface(
+            shape = RoundedCornerShape(16.dp),
+            color = DarkGray,
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                // Title
+                Text(
+                    text = "Rate & Review",
+                    color = White,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                
+                // Movie title
+                Text(
+                    text = movieTitle,
+                    color = LightGray,
+                    fontSize = 16.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                  // Rating bar
+                com.ttt.cinevibe.presentation.components.RatingBar(
+                    value = rating,
+                    onValueChange = { rating = it },
+                    enabled = !isSubmitting,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp),
+                    inactiveColor = LightGray.copy(alpha = 0.3f),
+                    activeColor = NetflixRed
+                )
+                
+                // Review text field
+                OutlinedTextField(
+                    value = reviewText,
+                    onValueChange = { reviewText = it },
+                    placeholder = {
+                        Text(
+                            text = "Write your review...",
+                            color = LightGray.copy(alpha = 0.7f)
+                        )
+                    },                    textStyle = androidx.compose.ui.text.TextStyle(
+                        color = White,
+                        fontSize = 14.sp
+                    ),                    colors = androidx.compose.material3.TextFieldDefaults.colors(
+                        focusedContainerColor = DarkGray,
+                        unfocusedContainerColor = DarkGray,
+                        focusedIndicatorColor = NetflixRed,
+                        unfocusedIndicatorColor = LightGray.copy(alpha = 0.3f),
+                        cursorColor = NetflixRed,
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(100.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                )
+                
+                // Anonymous review checkbox
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Checkbox(
+                        checked = isAnonymous,
+                        onCheckedChange = { isAnonymous = it },
+                        colors = CheckboxDefaults.colors(
+                            checkedColor = NetflixRed,
+                            uncheckedColor = LightGray
+                        ),
+                        modifier = Modifier.size(24.dp)
+                    )
+                    
+                    Spacer(modifier = Modifier.width(8.dp))
+                    
+                    Text(
+                        text = "Submit as anonymous",
+                        color = White,
+                        fontSize = 14.sp
+                    )
+                }
+                  // Submit button
+                Button(                    onClick = {
+                        if (rating > 0) {
+                            onSubmit(rating, reviewText)
+                        } else {
+                            Toast.makeText(
+                                context,
+                                "Please select a rating",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = NetflixRed
+                    ),
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    if (isSubmitting) {
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier.size(16.dp)
+                        ) {
+                            androidx.compose.material3.CircularProgressIndicator(
+                                color = White,
+                                strokeWidth = 2.dp,
+                                modifier = Modifier.fillMaxSize()
+                            )
+                            }
+                            Spacer(modifier = Modifier.width(8.dp))
+                        }
+                        Text(
+                            text = "Submit Review",
+                            color = White,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
             }
         }
     }

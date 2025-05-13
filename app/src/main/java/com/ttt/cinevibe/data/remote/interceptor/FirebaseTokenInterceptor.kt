@@ -3,6 +3,7 @@ package com.ttt.cinevibe.data.remote.interceptor
 import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.GetTokenResult
 import com.ttt.cinevibe.data.local.UserPreferences
 import com.ttt.cinevibe.data.remote.BackendApiConstants
 import kotlinx.coroutines.runBlocking
@@ -22,6 +23,9 @@ class FirebaseTokenInterceptor @Inject constructor(
     companion object {
         private const val TAG = "FirebaseTokenInterceptor"
         private const val HEADER_USERNAME = "X-Username"
+        
+        // Token expiration window in seconds (5 minutes)
+        private const val TOKEN_EXPIRATION_WINDOW_SECONDS = 300
         
         // List of path patterns that can be accessed without authentication
         private val PUBLIC_API_PATHS = listOf(
@@ -49,56 +53,40 @@ class FirebaseTokenInterceptor @Inject constructor(
             try {
                 Log.d(TAG, "Current user found. UID: ${currentUser.uid}")
                 
-                // Get username from preferences if available
-                val username = runBlocking { userPreferences.getUsername() }
-                
-                // Force reload user before getting token to ensure metadata is up to date
-                // This can help with synchronization issues
+                // Always force reload user before getting token to ensure metadata is up to date
                 runBlocking {
                     try {
                         currentUser.reload().await()
                         Log.d(TAG, "User metadata reloaded successfully")
                     } catch (e: Exception) {
                         Log.w(TAG, "Failed to reload user metadata: ${e.message}")
-                        // Continue anyway
                     }
                 }
                 
                 // Get token with force refresh to ensure it's current
-                val tokenTask = runBlocking { 
+                val token = runBlocking { 
                     try {
-                        // Force refresh token to ensure it's synchronized with Firebase servers
+                        // Always force refresh token for each request to ensure it's synchronized with Firebase servers
                         val result = currentUser.getIdToken(true).await()
                         val token = result.token
                         
                         // Log token details for debugging
-                        val claims = result.claims
-                        val issuedAt = claims["iat"] as? Long ?: 0
-                        val expiresAt = claims["exp"] as? Long ?: 0
-                        val currentTime = System.currentTimeMillis() / 1000
-                        
-                        Log.d(TAG, "Token details - issued at: $issuedAt, expires at: $expiresAt, " +
-                             "current time: $currentTime, time since issued: ${currentTime - issuedAt} seconds")
-                         
-                        // Check if we have a severe clock skew issue
-                        if (issuedAt > currentTime) {
-                            val timeDiff = issuedAt - currentTime
-                            Log.w(TAG, "⚠️ Clock skew detected! Token issued at is ${timeDiff} seconds in the future!" +
-                                  "This may cause authentication issues with the backend.")
-                        }
+                        logTokenDetails(result)
                         
                         token
                     } catch (e: Exception) {
                         Log.e(TAG, "Error getting fresh token: ${e.message}", e)
-                        // Fallback to non-refreshed token as last resort
-                        currentUser.getIdToken(false).await().token
+                        null
                     }
                 }
                 
-                if (tokenTask != null) {
+                if (token != null) {
                     // Create request builder with the Firebase token
                     val requestBuilder = originalRequest.newBuilder()
-                        .header(BackendApiConstants.AUTH_HEADER, "${BackendApiConstants.AUTH_BEARER_PREFIX}$tokenTask")
+                        .header(BackendApiConstants.AUTH_HEADER, "${BackendApiConstants.AUTH_BEARER_PREFIX}$token")
+                    
+                    // Get username from preferences
+                    val username = runBlocking { userPreferences.getUsername() }
                     
                     // Add username as a custom header if available
                     if (!username.isNullOrEmpty()) {
@@ -140,18 +128,31 @@ class FirebaseTokenInterceptor @Inject constructor(
     }
     
     /**
-     * Get a token that includes the username in the claims.
-     * This is done by ensuring the username is set in the user's display name field
-     * since we can't directly modify JWT claims from client.
+     * Log details about the token for debugging purposes
      */
-    private suspend fun getTokenWithUsername(user: FirebaseUser, username: String): String? {
+    private fun logTokenDetails(result: GetTokenResult) {
         try {
-            // When we force refresh, Firebase will generate a new token with the metadata
-            // from the user record, which includes the display name
-            return user.getIdToken(true).await().token
+            val claims = result.claims
+            val issuedAt = claims["iat"] as? Long ?: 0
+            val expiresAt = claims["exp"] as? Long ?: 0
+            val currentTime = System.currentTimeMillis() / 1000
+            
+            Log.d(TAG, "Token details - issued at: $issuedAt, expires at: $expiresAt, " +
+                 "current time: $currentTime, time since issued: ${currentTime - issuedAt} seconds")
+             
+            // Check if we have a severe clock skew issue
+            if (issuedAt > currentTime) {
+                val timeDiff = issuedAt - currentTime
+                Log.w(TAG, "⚠️ Clock skew detected! Token issued at is $timeDiff seconds in the future! " +
+                      "This may cause authentication issues with the backend.")
+            }
+            
+            // Check if token is about to expire
+            if (expiresAt - currentTime < TOKEN_EXPIRATION_WINDOW_SECONDS) {
+                Log.w(TAG, "Token is about to expire in ${expiresAt - currentTime} seconds!")
+            }
         } catch (e: Exception) {
-            Log.e(TAG, "Error getting token with username: ${e.message}", e)
-            return null
+            Log.e(TAG, "Error logging token details: ${e.message}", e)
         }
     }
 }

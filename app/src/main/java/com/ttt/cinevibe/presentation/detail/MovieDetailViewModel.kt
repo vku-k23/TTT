@@ -2,8 +2,12 @@ package com.ttt.cinevibe.presentation.detail
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.auth.FirebaseAuth
 import com.ttt.cinevibe.data.manager.LanguageManager
 import com.ttt.cinevibe.domain.model.Movie
+import com.ttt.cinevibe.domain.model.MovieReview
+import com.ttt.cinevibe.domain.model.Resource
+import com.ttt.cinevibe.domain.repository.MovieReviewRepository
 import com.ttt.cinevibe.domain.usecase.favorites.FavoriteMoviesUseCases
 import com.ttt.cinevibe.domain.usecase.movies.GetMovieByIdUseCase
 import com.ttt.cinevibe.domain.usecase.movies.GetSimilarMoviesUseCase
@@ -12,8 +16,10 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -24,7 +30,8 @@ class MovieDetailViewModel @Inject constructor(
     private val getSimilarMoviesUseCase: GetSimilarMoviesUseCase,
     private val getMovieVideosUseCase: GetMovieVideosUseCase,
     private val favoriteMoviesUseCases: FavoriteMoviesUseCases,
-    private val languageManager: LanguageManager
+    private val languageManager: LanguageManager,
+    private val movieReviewRepository: MovieReviewRepository
 ) : ViewModel() {
 
     private val _movieState = MutableStateFlow(MovieDetailState(isLoading = false))
@@ -38,6 +45,14 @@ class MovieDetailViewModel @Inject constructor(
     private val _isFavorite = MutableStateFlow(false)
     val isFavorite: StateFlow<Boolean> = _isFavorite
     
+    // State for review operations
+    private val _reviewOperationState = MutableStateFlow<ReviewOperationState>(ReviewOperationState.Idle)
+    val reviewOperationState = _reviewOperationState.asStateFlow()
+    
+    // State for has user reviewed this movie
+    private val _hasReviewedState = MutableStateFlow<HasReviewedState>(HasReviewedState.Loading)
+    val hasReviewedState = _hasReviewedState.asStateFlow()
+    
     // State for similar movies
     private val _similarMovies = MutableStateFlow<List<Movie>>(emptyList())
     val similarMovies: StateFlow<List<Movie>> = _similarMovies
@@ -45,6 +60,10 @@ class MovieDetailViewModel @Inject constructor(
     // State for multiple video trailers
     private val _videosList = MutableStateFlow<List<VideoDetails>>(emptyList())
     val videosList: StateFlow<List<VideoDetails>> = _videosList
+    
+    // State for user's review of this movie
+    private val _userReview = MutableStateFlow<MovieReview?>(null)
+    val userReview = _userReview.asStateFlow()
     
     // Track the current fetch job to cancel it if needed
     private var currentFetchJob: Job? = null
@@ -113,6 +132,9 @@ class MovieDetailViewModel @Inject constructor(
                     
                     // Fetch similar movies after getting movie details
                     fetchSimilarMovies(movieId, languageCode)
+                    
+                    // Check if the user has reviewed this movie
+                    checkUserReviewStatus(movieId)
                 }
         }
     }
@@ -283,6 +305,50 @@ class MovieDetailViewModel @Inject constructor(
                 }
         }
     }
+      private fun checkUserReviewStatus(movieId: Int) {
+        viewModelScope.launch {
+            movieReviewRepository.hasUserReviewedMovie(movieId.toLong())
+                .collect { result ->
+                    when (result) {
+                        is Resource.Success -> {
+                            _hasReviewedState.value = if (result.data == true) {
+                                HasReviewedState.Reviewed
+                            } else {
+                                HasReviewedState.NotReviewed
+                            }
+                        }
+                        is Resource.Error -> {
+                            _hasReviewedState.value = HasReviewedState.Error(result.message ?: "Unknown error")
+                        }
+                        is Resource.Loading -> {
+                            _hasReviewedState.value = HasReviewedState.Loading
+                        }
+                    }
+                }
+        }
+    }
+      fun getMovieReviews(movieId: Int) {
+        viewModelScope.launch {
+            movieReviewRepository.getMovieReviews(movieId.toLong(), page = 1, size = 10)
+                .catch { e ->
+                    android.util.Log.e("MovieDetailViewModel", "Error fetching reviews: ${e.message}")
+                }
+                .collect { result ->
+                    when (result) {
+                        is Resource.Success -> {
+                            val reviews = result.data ?: emptyList()
+                            android.util.Log.d("MovieDetailViewModel", "Received ${reviews.size} reviews")
+                        }
+                        is Resource.Error -> {
+                            android.util.Log.e("MovieDetailViewModel", "Error: ${result.message}")
+                        }
+                        is Resource.Loading -> {
+                            android.util.Log.d("MovieDetailViewModel", "Loading reviews...")
+                        }
+                    }
+                }
+        }
+    }
     
     fun toggleFavoriteStatus() {
         val movie = _movieState.value.movie ?: return
@@ -337,6 +403,199 @@ class MovieDetailViewModel @Inject constructor(
             isPlayingInPlace = true,
             isPlaying = true
         )
+    }    // Check if user has already reviewed this movie and get the review if they have
+    fun checkIfUserReviewed(movieId: Long) {
+        viewModelScope.launch {
+            // Reset operation state
+            _reviewOperationState.value = ReviewOperationState.Idle
+            
+            movieReviewRepository.hasUserReviewedMovie(movieId)
+                .collectLatest { result ->
+                    when (result) {
+                        is Resource.Loading -> {
+                            _hasReviewedState.value = HasReviewedState.Loading
+                        }
+                        is Resource.Success -> {
+                            val hasReviewed = result.data ?: false
+                            _hasReviewedState.value = HasReviewedState.Success(hasReviewed)
+                            
+                            // If user has reviewed, get their review using the direct API endpoint
+                            if (hasReviewed) {
+                                fetchUserReview(movieId)
+                            } else {
+                                // Clear any previously loaded review
+                                _userReview.value = null
+                            }
+                        }
+                        is Resource.Error -> {
+                            _hasReviewedState.value = HasReviewedState.Error(result.message ?: "Failed to check review status")
+                        }
+                    }
+                }
+        }
+    }
+    
+    // Create a review for a movie
+    fun createReview(movieId: Long, rating: Int, content: String) {
+        viewModelScope.launch {
+            _reviewOperationState.value = ReviewOperationState.Loading
+              movieReviewRepository.createReview(
+                tmdbMovieId = movieId, 
+                rating = rating.toFloat(), 
+                content = content,
+                movieTitle = _movieState.value.movie?.title ?: "",
+                containsSpoilers = false
+            )
+                .collectLatest { result ->
+                    when (result) {
+                        is Resource.Loading -> {
+                            // Already set above
+                        }
+                        is Resource.Success -> {
+                            _reviewOperationState.value = ReviewOperationState.Success
+                            // Update has reviewed state
+                            _hasReviewedState.value = HasReviewedState.Success(true)
+                        }
+                        is Resource.Error -> {
+                            _reviewOperationState.value = ReviewOperationState.Error(result.message ?: "Failed to create review")
+                        }
+                    }
+                }
+        }
+    }
+      // Update an existing review
+    fun updateReview(reviewId: Long, rating: Int, content: String) {
+        viewModelScope.launch {
+            _reviewOperationState.value = ReviewOperationState.Loading
+            
+            movieReviewRepository.updateReview(
+                reviewId = reviewId, 
+                rating = rating.toFloat(), 
+                content = content,
+                containsSpoilers = false
+            )
+                .collectLatest { result ->
+                    when (result) {
+                        is Resource.Loading -> {
+                            // Already set above
+                        }
+                        is Resource.Success -> {
+                            _reviewOperationState.value = ReviewOperationState.Success
+                            // Update the userReview value with the updated review
+                            _userReview.value = result.data
+                        }
+                        is Resource.Error -> {
+                            _reviewOperationState.value = ReviewOperationState.Error(
+                                result.message ?: "Failed to update review"
+                            )
+                        }
+                    }
+                }
+        }
+    }
+    
+    // Delete an existing review
+    fun deleteReview(reviewId: Long) {
+        viewModelScope.launch {
+            _reviewOperationState.value = ReviewOperationState.Loading
+            
+            movieReviewRepository.deleteReview(reviewId)
+                .collectLatest { result ->
+                    when (result) {
+                        is Resource.Loading -> {
+                            // Already set above
+                        }
+                        is Resource.Success -> {
+                            _reviewOperationState.value = ReviewOperationState.Success
+                            // Clear the user review and update has reviewed state
+                            _userReview.value = null
+                            _hasReviewedState.value = HasReviewedState.Success(false)
+                        }
+                        is Resource.Error -> {
+                            _reviewOperationState.value = ReviewOperationState.Error(
+                                result.message ?: "Failed to delete review"
+                            )
+                        }
+                    }
+                }
+        }
+    }
+    
+    // Get the user's review for this movie
+    fun getUserReviewForMovie(movieId: Long) {
+        viewModelScope.launch {
+            // First check if the user has reviewed the movie
+            movieReviewRepository.hasUserReviewedMovie(movieId)
+                .collectLatest { hasReviewedResult ->
+                    when (hasReviewedResult) {
+                        is Resource.Loading -> {
+                            _hasReviewedState.value = HasReviewedState.Loading
+                        }
+                        is Resource.Success -> {
+                            val hasReviewed = hasReviewedResult.data ?: false
+                            _hasReviewedState.value = HasReviewedState.Success(hasReviewed)
+                            
+                            if (hasReviewed) {
+                                // The user has reviewed, now fetch the movie reviews to find their review
+                                movieReviewRepository.getMovieReviews(movieId, 0, 100)
+                                    .collectLatest { reviewsResult ->
+                                        when (reviewsResult) {
+                                            is Resource.Loading -> {
+                                                // Already handling loading state
+                                            }
+                                            is Resource.Success -> {                                                // Find the user's review (current user's uid matches the review's user)
+                                                val reviews = reviewsResult.data ?: emptyList()
+                                                
+                                                // Get authenticated user ID from FirebaseAuth or SharedPrefs
+                                                val currentUserId = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid
+                                                
+                                                // Find the review created by current user
+                                                val userReview = if (currentUserId != null) {
+                                                    reviews.find { it.userProfile.uid == currentUserId }
+                                                } else {
+                                                    null
+                                                }
+                                                
+                                                _userReview.value = userReview
+                                            }
+                                            is Resource.Error -> {
+                                                _hasReviewedState.value = HasReviewedState.Error(
+                                                    reviewsResult.message ?: "Failed to get user's review"
+                                                )
+                                            }
+                                        }
+                                    }
+                            }
+                        }
+                        is Resource.Error -> {
+                            _hasReviewedState.value = HasReviewedState.Error(
+                                hasReviewedResult.message ?: "Failed to check review status"
+                            )
+                        }
+                    }
+                }
+        }
+    }
+    
+    // Fetch user's review for this movie using the new direct API endpoint
+    fun fetchUserReview(movieId: Long) {
+        viewModelScope.launch {
+            movieReviewRepository.getUserReviewForMovie(movieId)
+                .collectLatest { result ->
+                    when (result) {
+                        is Resource.Loading -> {
+                            // Already handling loading state in the UI
+                        }
+                        is Resource.Success -> {
+                            _userReview.value = result.data
+                        }
+                        is Resource.Error -> {
+                            _userReview.value = null
+                            android.util.Log.e("MovieDetailViewModel", "Error fetching user review: ${result.message}")
+                        }
+                    }
+                }
+        }
     }
 }
 
@@ -359,3 +618,5 @@ data class VideoDetails(
     val official: Boolean = true,
     val publishedAt: String = ""
 )
+
+// Using ReviewOperationState and HasReviewedState from ReviewState.kt

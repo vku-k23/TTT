@@ -85,21 +85,31 @@ fun MovieReviewsScreen(
         }
     }
     
-    // Monitor scroll position for pagination
-    LaunchedEffect(lazyListState) {
-        snapshotFlow { lazyListState.layoutInfo.visibleItemsInfo }
-            .collectLatest { visibleItems ->
-                if (movieReviewsState is MovieReviewsState.Success) {
-                    val reviews = (movieReviewsState as MovieReviewsState.Success).reviews
-                    
-                    if (reviews.isNotEmpty() && 
-                        visibleItems.isNotEmpty() && 
-                        visibleItems.last().index >= reviews.size - 3) {
-                        // Load more when we're 3 items from the end
-                        viewModel.getMovieReviews(movieId)
-                    }
+    // Monitor scroll position for pagination - but in a more controlled way
+    LaunchedEffect(Unit) {
+        // Only set up the pagination observer once
+        snapshotFlow { 
+            if (lazyListState.layoutInfo.visibleItemsInfo.isNotEmpty() &&
+                movieReviewsState is MovieReviewsState.Success) {
+                val reviews = (movieReviewsState as MovieReviewsState.Success).reviews
+                val lastVisibleItem = lazyListState.layoutInfo.visibleItemsInfo.lastOrNull()
+                
+                if (reviews.isNotEmpty() && lastVisibleItem != null && 
+                    lastVisibleItem.index >= reviews.size - 3 &&
+                    !lazyListState.isScrollInProgress) {
+                    true  // Need to load more
+                } else {
+                    false // Don't need to load more
                 }
+            } else {
+                false
             }
+        }.collectLatest { shouldLoadMore ->
+            if (shouldLoadMore) {
+                // Load more when we're 3 items from the end
+                viewModel.getMovieReviews(movieId)
+            }
+        }
     }
     
     Scaffold(
@@ -185,11 +195,8 @@ fun MovieReviewsScreen(
                                         } else {
                                             viewModel.likeReview(review.id)
                                         }
-                                        // Refresh the list after a short delay
-                                        scope.launch {
-                                            kotlinx.coroutines.delay(300)
-                                            viewModel.getMovieReviews(movieId, refresh = true)
-                                        }
+                                        // Update the like status locally to avoid a full refresh
+                                        // We'll use a dedicated state to track likes in progress
                                     },
                                     onEditClick = { 
                                         editingReview = review
@@ -277,9 +284,9 @@ fun MovieReviewsScreen(
                     isSubmitting = reviewOperationState is ReviewOperationState.Loading,
                     onSubmit = { rating, content ->
                         if (editingReview != null) {
-                            viewModel.updateReview(editingReview!!.id, rating, content)
+                            viewModel.updateReview(editingReview!!.id, rating, content, false)
                         } else {
-                            viewModel.createReview(movieId, rating, content)
+                            viewModel.createReview(movieId, rating, content, movieTitle, false)
                         }
                     },
                     onCancel = {

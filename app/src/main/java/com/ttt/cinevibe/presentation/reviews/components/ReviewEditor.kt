@@ -26,7 +26,7 @@ fun ReviewEditor(
     movieTitle: String,
     initialReview: MovieReview? = null,
     isSubmitting: Boolean = false,
-    onSubmit: (rating: Int, content: String) -> Unit,
+    onSubmit: (rating: Float, content: String) -> Unit,
     onCancel: () -> Unit
 ) {
     val isEditing = initialReview != null
@@ -34,7 +34,7 @@ fun ReviewEditor(
     
     // State for review content and rating
     var reviewContent by remember { mutableStateOf(initialReview?.content ?: "") }
-    var selectedRating by remember { mutableStateOf(initialReview?.rating ?: 0) }
+    var selectedRating by remember { mutableStateOf(initialReview?.rating ?: 0f) }
     
     // Error states
     var contentError by remember { mutableStateOf<String?>(null) }
@@ -88,7 +88,7 @@ fun ReviewEditor(
                 val starPosition = index + 1
                 
                 IconButton(
-                    onClick = { selectedRating = starPosition },
+                    onClick = { selectedRating = starPosition.toFloat() },
                     modifier = Modifier.size(36.dp)
                 ) {
                     Icon(
@@ -147,17 +147,17 @@ fun ReviewEditor(
                 // Validate input
                 var isValid = true
                 
-                if (selectedRating == 0) {
+                if (selectedRating == 0f) {
                     ratingError = "Please select a rating"
                     isValid = false
                 } else {
                     ratingError = null
                 }
                 
-                if (reviewContent.isBlank()) {
+                if (reviewContent.isBlank() && !isEditing) {
                     contentError = "Please write a review"
                     isValid = false
-                } else if (reviewContent.length < 5) {
+                } else if (reviewContent.length in 1..4) {
                     contentError = "Your review is too short"
                     isValid = false
                 } else {

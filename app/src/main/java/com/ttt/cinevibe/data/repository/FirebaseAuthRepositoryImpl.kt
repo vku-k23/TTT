@@ -3,6 +3,7 @@ package com.ttt.cinevibe.data.repository
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.firestore.FirebaseFirestore
+import com.ttt.cinevibe.data.local.UserPreferences
 import com.ttt.cinevibe.domain.model.Resource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -13,7 +14,8 @@ import javax.inject.Singleton
 @Singleton
 class FirebaseAuthRepositoryImpl @Inject constructor(
     private val firebaseAuth: FirebaseAuth,
-    private val firestore: FirebaseFirestore
+    private val firestore: FirebaseFirestore,
+    private val userPreferences: UserPreferences
 ) : AuthRepository {
 
     override fun forgotPassword(email: String): Flow<Resource<Boolean>> = flow {
@@ -29,6 +31,9 @@ class FirebaseAuthRepositoryImpl @Inject constructor(
     override fun loginUser(email: String, password: String): Flow<Resource<Boolean>> = flow {
         try {
             emit(Resource.Loading())
+            // Clear previous user data before attempting a new login
+            clearUserLocalData()
+            
             val result = firebaseAuth.signInWithEmailAndPassword(email, password).await()
             val isSuccessful = result.user != null
             emit(Resource.Success(isSuccessful))
@@ -40,6 +45,9 @@ class FirebaseAuthRepositoryImpl @Inject constructor(
     override fun registerUser(email: String, password: String, displayName: String, username: String): Flow<Resource<Boolean>> = flow {
         try {
             emit(Resource.Loading())
+            // Clear previous user data before registering a new user
+            clearUserLocalData()
+            
             val result = firebaseAuth.createUserWithEmailAndPassword(email, password).await()
             
             result.user?.let { user ->
@@ -77,10 +85,26 @@ class FirebaseAuthRepositoryImpl @Inject constructor(
     override fun logoutUser(): Flow<Resource<Boolean>> = flow {
         try {
             emit(Resource.Loading())
+            
+            // Clear local data first
+            clearUserLocalData()
+            
+            // Then sign out from Firebase
             firebaseAuth.signOut()
+            
             emit(Resource.Success(true))
         } catch (e: Exception) {
             emit(Resource.Error(e.message ?: "Error logging out"))
+        }
+    }
+    
+    // Helper method to clear local user data
+    private suspend fun clearUserLocalData() {
+        try {
+            userPreferences.clearUserData()
+            android.util.Log.d("FirebaseAuthRepo", "Cleared local user preferences")
+        } catch (e: Exception) {
+            android.util.Log.e("FirebaseAuthRepo", "Error clearing user preferences: ${e.message}", e)
         }
     }
 

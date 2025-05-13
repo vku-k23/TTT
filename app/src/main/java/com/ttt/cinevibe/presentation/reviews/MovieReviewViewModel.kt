@@ -39,12 +39,32 @@ class MovieReviewViewModel @Inject constructor(
     private var currentUserReviewPage = 0
     private val pageSize = 10
     
+    // Track if we've reached the end of the list
+    private var hasMoreMovieReviews = true
+    private var hasMoreUserReviews = true
+    
+    // Track if we're already loading
+    private var isLoadingMovieReviews = false
+    private var isLoadingUserReviews = false
+    
     // Function to load reviews for a specific movie
     fun getMovieReviews(tmdbMovieId: Long, refresh: Boolean = false) {
+        // Don't load more if we're already loading or if we've reached the end
+        if (isLoadingMovieReviews && !refresh) {
+            return
+        }
+        
+        if (!hasMoreMovieReviews && !refresh) {
+            return
+        }
+        
         if (refresh) {
             currentMovieReviewPage = 0
+            hasMoreMovieReviews = true
             _movieReviewsState.value = MovieReviewsState.Initial
         }
+        
+        isLoadingMovieReviews = true
         
         viewModelScope.launch {
             reviewRepository.getMovieReviews(tmdbMovieId, currentMovieReviewPage, pageSize)
@@ -60,6 +80,15 @@ class MovieReviewViewModel @Inject constructor(
                             }
                         }
                         is Resource.Success -> {
+                            isLoadingMovieReviews = false
+                            
+                            val newReviews = result.data ?: emptyList()
+                            
+                            // Check if we've reached the end
+                            if (newReviews.size < pageSize) {
+                                hasMoreMovieReviews = false
+                            }
+                            
                             val currentReviews = if (currentMovieReviewPage > 0 && _movieReviewsState.value is MovieReviewsState.Success) {
                                 (_movieReviewsState.value as MovieReviewsState.Success).reviews
                             } else {
@@ -67,19 +96,20 @@ class MovieReviewViewModel @Inject constructor(
                             }
                             
                             val updatedReviews = if (currentMovieReviewPage == 0) {
-                                result.data ?: emptyList()
+                                newReviews
                             } else {
-                                currentReviews + (result.data ?: emptyList())
+                                currentReviews + newReviews
                             }
                             
                             _movieReviewsState.value = MovieReviewsState.Success(updatedReviews)
                             
-                            // Increment page for next load
-                            if ((result.data?.size ?: 0) >= pageSize) {
+                            // Increment page for next load only if we have more to load
+                            if (newReviews.size >= pageSize) {
                                 currentMovieReviewPage++
                             }
                         }
                         is Resource.Error -> {
+                            isLoadingMovieReviews = false
                             _movieReviewsState.value = MovieReviewsState.Error(result.message ?: "Unknown error")
                         }
                     }
@@ -89,10 +119,22 @@ class MovieReviewViewModel @Inject constructor(
     
     // Function to load user's own reviews
     fun getUserReviews(refresh: Boolean = false) {
+        // Don't load more if we're already loading or if we've reached the end
+        if (isLoadingUserReviews && !refresh) {
+            return
+        }
+        
+        if (!hasMoreUserReviews && !refresh) {
+            return
+        }
+        
         if (refresh) {
             currentUserReviewPage = 0
+            hasMoreUserReviews = true
             _userReviewsState.value = MovieReviewsState.Initial
         }
+        
+        isLoadingUserReviews = true
         
         viewModelScope.launch {
             reviewRepository.getUserReviews(currentUserReviewPage, pageSize)
@@ -108,6 +150,15 @@ class MovieReviewViewModel @Inject constructor(
                             }
                         }
                         is Resource.Success -> {
+                            isLoadingUserReviews = false
+                            
+                            val newReviews = result.data ?: emptyList()
+                            
+                            // Check if we've reached the end
+                            if (newReviews.size < pageSize) {
+                                hasMoreUserReviews = false
+                            }
+                            
                             val currentReviews = if (currentUserReviewPage > 0 && _userReviewsState.value is MovieReviewsState.Success) {
                                 (_userReviewsState.value as MovieReviewsState.Success).reviews
                             } else {
@@ -115,19 +166,20 @@ class MovieReviewViewModel @Inject constructor(
                             }
                             
                             val updatedReviews = if (currentUserReviewPage == 0) {
-                                result.data ?: emptyList()
+                                newReviews
                             } else {
-                                currentReviews + (result.data ?: emptyList())
+                                currentReviews + newReviews
                             }
                             
                             _userReviewsState.value = MovieReviewsState.Success(updatedReviews)
                             
-                            // Increment page for next load
-                            if ((result.data?.size ?: 0) >= pageSize) {
+                            // Increment page for next load only if we have more to load
+                            if (newReviews.size >= pageSize) {
                                 currentUserReviewPage++
                             }
                         }
                         is Resource.Error -> {
+                            isLoadingUserReviews = false
                             _userReviewsState.value = MovieReviewsState.Error(result.message ?: "Unknown error")
                         }
                     }
@@ -136,10 +188,10 @@ class MovieReviewViewModel @Inject constructor(
     }
     
     // Function to create a new review
-    fun createReview(tmdbMovieId: Long, rating: Int, content: String) {
+    fun createReview(tmdbMovieId: Long, rating: Float, content: String, movieTitle: String, containsSpoilers: Boolean = false) {
         viewModelScope.launch {
             _reviewOperationState.value = ReviewOperationState.Loading
-            reviewRepository.createReview(tmdbMovieId, rating, content)
+            reviewRepository.createReview(tmdbMovieId, rating, content, movieTitle, containsSpoilers)
                 .collectLatest { result ->
                     when (result) {
                         is Resource.Success -> {
@@ -165,10 +217,10 @@ class MovieReviewViewModel @Inject constructor(
     }
     
     // Function to update an existing review
-    fun updateReview(reviewId: Long, rating: Int, content: String) {
+    fun updateReview(reviewId: Long, rating: Float, content: String, containsSpoilers: Boolean = false) {
         viewModelScope.launch {
             _reviewOperationState.value = ReviewOperationState.Loading
-            reviewRepository.updateReview(reviewId, rating, content)
+            reviewRepository.updateReview(reviewId, rating, content, containsSpoilers)
                 .collectLatest { result ->
                     when (result) {
                         is Resource.Success -> {
@@ -225,20 +277,202 @@ class MovieReviewViewModel @Inject constructor(
     // Function to like a review
     fun likeReview(reviewId: Long) {
         viewModelScope.launch {
-            reviewRepository.likeReview(reviewId)
-                .collectLatest { result ->
-                    // We don't update the state here as we'll refresh the entire list after operation
+            android.util.Log.d("MovieReviewVM", "Liking review $reviewId")
+            
+            // Get the current state of the review before optimistic update
+            if (_movieReviewsState.value is MovieReviewsState.Success) {
+                val reviews = (_movieReviewsState.value as MovieReviewsState.Success).reviews
+                val review = reviews.find { it.id == reviewId }
+                if (review != null) {
+                    android.util.Log.d("MovieReviewVM", "Before like - Review $reviewId: likeCount=${review.likeCount}, userHasLiked=${review.userHasLiked}")
                 }
+            }
+            
+            // Optimistically update the UI
+            updateReviewLikeState(reviewId, true)
+            
+            try {
+                reviewRepository.likeReview(reviewId)
+                    .collect { result -> // Use collect instead of collectLatest
+                        when (result) {
+                            is Resource.Success -> {
+                                android.util.Log.d("MovieReviewVM", "Like API response for review $reviewId: likeCount=${result.data?.likeCount}")
+                                // Update the review in the state with the updated data from server
+                                result.data?.let { 
+                                    // Keep userHasLiked as true regardless of what came from server
+                                    val updatedReview = it.copy(userHasLiked = true)
+                                    updateReviewInState(updatedReview)
+                                }
+                            }
+                            is Resource.Error -> {
+                                android.util.Log.e("MovieReviewVM", "Error liking review: ${result.message}")
+                                // Revert the optimistic update if there was an error
+                                updateReviewLikeState(reviewId, false)
+                            }
+                            is Resource.Loading -> {
+                                // Already handled via optimistic update
+                            }
+                        }
+                    }
+            } catch (e: Exception) {
+                android.util.Log.e("MovieReviewVM", "Exception during likeReview: ${e.message}", e)
+                // Revert the optimistic update if there was an exception
+                updateReviewLikeState(reviewId, false)
+            }
         }
     }
     
     // Function to unlike a review
     fun unlikeReview(reviewId: Long) {
         viewModelScope.launch {
-            reviewRepository.unlikeReview(reviewId)
-                .collectLatest { result ->
-                    // We don't update the state here as we'll refresh the entire list after operation
+            android.util.Log.d("MovieReviewVM", "Unliking review $reviewId")
+            
+            // Get the current state of the review before optimistic update
+            if (_movieReviewsState.value is MovieReviewsState.Success) {
+                val reviews = (_movieReviewsState.value as MovieReviewsState.Success).reviews
+                val review = reviews.find { it.id == reviewId }
+                if (review != null) {
+                    android.util.Log.d("MovieReviewVM", "Before unlike - Review $reviewId: likeCount=${review.likeCount}, userHasLiked=${review.userHasLiked}")
                 }
+            }
+            
+            // Optimistically update the UI
+            updateReviewLikeState(reviewId, false)
+            
+            try {
+                reviewRepository.unlikeReview(reviewId)
+                    .collect { result -> // Use collect instead of collectLatest
+                        when (result) {
+                            is Resource.Success -> {
+                                android.util.Log.d("MovieReviewVM", "Unlike API response for review $reviewId: likeCount=${result.data?.likeCount}")
+                                // Update the review in the state with the updated data
+                                result.data?.let { 
+                                    // Keep userHasLiked as false regardless of what came from server
+                                    val updatedReview = it.copy(userHasLiked = false)
+                                    updateReviewInState(updatedReview)
+                                }
+                            }
+                            is Resource.Error -> {
+                                android.util.Log.e("MovieReviewVM", "Error unliking review: ${result.message}")
+                                // Revert the optimistic update if there was an error
+                                updateReviewLikeState(reviewId, true)
+                            }
+                            is Resource.Loading -> {
+                                // Already handled via optimistic update
+                            }
+                        }
+                    }
+            } catch (e: Exception) {
+                android.util.Log.e("MovieReviewVM", "Exception during unlikeReview: ${e.message}", e)
+                // Revert the optimistic update if there was an exception
+                updateReviewLikeState(reviewId, true)
+            }
+        }
+    }
+    
+    // Helper function to update a review's like state in place for both movie and user reviews states
+    private fun updateReviewLikeState(reviewId: Long, liked: Boolean) {
+        // Update in movie reviews state
+        updateReviewLikeStateInList(reviewId, liked, _movieReviewsState) { updatedState ->
+            _movieReviewsState.value = updatedState
+        }
+        
+        // Also update in user reviews state if present
+        updateReviewLikeStateInList(reviewId, liked, _userReviewsState) { updatedState ->
+            _userReviewsState.value = updatedState
+        }
+    }
+    
+    // Helper function to update like state in a specific review list
+    private fun updateReviewLikeStateInList(
+        reviewId: Long, 
+        liked: Boolean, 
+        stateFlow: MutableStateFlow<MovieReviewsState>, 
+        updateState: (MovieReviewsState) -> Unit
+    ) {
+        if (stateFlow.value is MovieReviewsState.Success) {
+            val reviews = (stateFlow.value as MovieReviewsState.Success).reviews.toMutableList()
+            val index = reviews.indexOfFirst { it.id == reviewId }
+            
+            if (index != -1) {
+                val review = reviews[index]
+                val oldLikeCount = review.likeCount
+                val newLikeCount = if (liked) oldLikeCount + 1 else (oldLikeCount - 1).coerceAtLeast(0)
+                
+                // Log the change
+                android.util.Log.d("MovieReviewVM", "Optimistically updating review $reviewId like state: " +
+                        "oldLikeCount=$oldLikeCount, newLikeCount=$newLikeCount, " +
+                        "oldUserHasLiked=${review.userHasLiked}, newUserHasLiked=$liked")
+                
+                // Create updated review with new values
+                val updatedReview = review.copy(
+                    userHasLiked = liked,
+                    likeCount = newLikeCount
+                )
+                
+                // Update the list
+                reviews[index] = updatedReview
+                updateState(MovieReviewsState.Success(reviews))
+                
+                android.util.Log.d("MovieReviewVM", "Updated review $reviewId in list successfully")
+            } else {
+                android.util.Log.d("MovieReviewVM", "Review $reviewId not found in this list")
+            }
+        }
+    }
+    
+    // Helper function to update a review in the state
+    private fun updateReviewInState(updatedReview: MovieReview?) {
+        if (updatedReview == null) return
+        
+        // Update in movie reviews state
+        updateReviewInSpecificState(updatedReview, _movieReviewsState) { updatedState ->
+            _movieReviewsState.value = updatedState
+        }
+        
+        // Also update in user reviews state if present
+        updateReviewInSpecificState(updatedReview, _userReviewsState) { updatedState ->
+            _userReviewsState.value = updatedState
+        }
+    }
+    
+    // Helper function to update a review in a specific state
+    private fun updateReviewInSpecificState(
+        updatedReview: MovieReview,
+        stateFlow: MutableStateFlow<MovieReviewsState>,
+        updateState: (MovieReviewsState) -> Unit
+    ) {
+        if (stateFlow.value is MovieReviewsState.Success) {
+            val reviews = (stateFlow.value as MovieReviewsState.Success).reviews.toMutableList()
+            val index = reviews.indexOfFirst { it.id == updatedReview.id }
+            
+            if (index != -1) {
+                // Get current review state in the UI
+                val currentReview = reviews[index]
+                
+                // Log detailed information about the update
+                android.util.Log.d("MovieReviewVM", 
+                    "Updating review ${updatedReview.id} in state:\n" +
+                    "Before: likeCount=${currentReview.likeCount}, userHasLiked=${currentReview.userHasLiked}\n" +
+                    "After: likeCount=${updatedReview.likeCount}, userHasLiked=${updatedReview.userHasLiked}")
+                
+                // Create a new review object with updated likeCount
+                // Always use the server likeCount value but keep UI state for userHasLiked
+                val finalReview = currentReview.copy(
+                    likeCount = updatedReview.likeCount,
+                    // Preserve the current userHasLiked state from the UI
+                    userHasLiked = currentReview.userHasLiked  
+                )
+                
+                reviews[index] = finalReview
+                updateState(MovieReviewsState.Success(reviews))
+                
+                // Log the final update
+                android.util.Log.d("MovieReviewVM", 
+                    "Review ${updatedReview.id} updated with likeCount=${finalReview.likeCount}, userHasLiked=${finalReview.userHasLiked}")
+            } else {
+                android.util.Log.d("MovieReviewVM", "Review ${updatedReview.id} not found in this list")
+            }
         }
     }
     

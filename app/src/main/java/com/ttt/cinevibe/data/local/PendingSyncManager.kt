@@ -18,6 +18,12 @@ interface PendingSyncManager {
     suspend fun clearPendingRegistration()
     
     /**
+     * Xóa mọi dữ liệu đồng bộ đang chờ xử lý
+     * Thường được gọi khi đăng xuất hoặc khi cần làm sạch tất cả dữ liệu
+     */
+    suspend fun clearAllPendingData()
+    
+    /**
      * Kiểm tra xem có đăng ký nào đang chờ đồng bộ không
      */
     suspend fun hasPendingRegistration(): Boolean
@@ -25,7 +31,7 @@ interface PendingSyncManager {
     /**
      * Lấy dữ liệu đăng ký đang chờ để đồng bộ
      */
-    suspend fun getPendingRegistrationData(): RegistrationData?
+    suspend fun getPendingRegistration(): RegistrationData?
 }
 
 /**

@@ -165,7 +165,7 @@ fun NavGraph(
                 onNavigateToReviews = { movieId, movieTitle ->
                     // Navigate to movie reviews screen with movie ID and title
                     val encodedTitle = URLEncoder.encode(movieTitle, StandardCharsets.UTF_8.toString())
-                    navController.navigate(Screens.movieReviewsRoute(movieId, movieTitle))
+                    navController.navigate("${NavDestinations.MOVIE_REVIEWS_ROUTE}/$movieId/$encodedTitle")
                 }
             )
         }
@@ -265,7 +265,7 @@ fun NavGraph(
         
         // Movie reviews screen
         composable(
-            route = "${NavDestinations.MOVIE_REVIEWS_ROUTE}/{movieId}/{movieTitle}",
+            route = NavDestinations.MOVIE_REVIEWS_WITH_ARGS,
             arguments = listOf(
                 navArgument("movieId") { type = NavType.LongType },
                 navArgument("movieTitle") { 

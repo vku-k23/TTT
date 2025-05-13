@@ -2,6 +2,7 @@ package com.ttt.cinevibe.presentation.auth
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.auth.FirebaseAuth
 import com.ttt.cinevibe.domain.model.Resource
 import com.ttt.cinevibe.domain.usecase.auth.ForgotPasswordUseCase
 import com.ttt.cinevibe.domain.usecase.auth.GetAuthStatusUseCase
@@ -38,7 +39,8 @@ class AuthViewModel @Inject constructor(
     private val syncUserUseCase: SyncUserUseCase,
     private val pendingSyncManager: PendingSyncManager,
     private val backendApiClient: BackendApiClient,
-    private val userPreferences: UserPreferences
+    private val userPreferences: UserPreferences,
+    private val firebaseAuth: FirebaseAuth
 ) : ViewModel() {
 
     private val _loginState = MutableStateFlow<AuthState>(AuthState.Idle)
@@ -59,6 +61,23 @@ class AuthViewModel @Inject constructor(
 
     private val _backendSyncState = MutableStateFlow<BackendSyncState>(BackendSyncState.Idle)
     val backendSyncState: StateFlow<BackendSyncState> = _backendSyncState
+
+    // Setup Firebase auth state listener to detect sign out from other places
+    init {
+        setupAuthStateListener()
+    }
+
+    private fun setupAuthStateListener() {
+        firebaseAuth.addAuthStateListener { auth ->
+            if (auth.currentUser == null) {
+                // User signed out - clear local data
+                viewModelScope.launch {
+                    android.util.Log.d(TAG, "Auth state changed: signed out, clearing local data")
+                    userPreferences.clearUserData()
+                }
+            }
+        }
+    }
 
     fun forgotPassword(email: String) {
         viewModelScope.launch {
@@ -84,6 +103,10 @@ class AuthViewModel @Inject constructor(
     fun login(email: String, password: String) {
         viewModelScope.launch {
             _loginState.value = AuthState.Loading
+
+            // First, ensure previous user data is cleared to prevent data mixing
+            clearUserData()
+            
             loginUseCase(email, password)
                 .catch { e ->
                     if (e is CancellationException) throw e
@@ -157,6 +180,9 @@ class AuthViewModel @Inject constructor(
         viewModelScope.launch {
             _registerState.value = AuthState.Loading
             _firebaseAuthState.value = FirebaseAuthState.Loading
+
+            // First, ensure previous user data is cleared to prevent data mixing
+            clearUserData()
 
             try {
                 // Save the user details to preferences upfront
@@ -267,10 +293,10 @@ class AuthViewModel @Inject constructor(
                     android.util.Log.d(TAG, "Current username for sync: ${currentUser.username}")
 
                     // Save user data to preferences
-                    if (currentUser.username.isNotEmpty()) {
+                    if (!currentUser.username.isNullOrEmpty()) {
                         userPreferences.saveUsername(currentUser.username)
                     }
-                    if (currentUser.displayName.isNotEmpty()) {
+                    if (!currentUser.displayName.isNullOrEmpty()) {
                         userPreferences.saveDisplayName(currentUser.displayName)
                     }
                     userPreferences.saveEmail(email)
@@ -296,105 +322,87 @@ class AuthViewModel @Inject constructor(
                                         is Resource.Success -> {
                                             android.util.Log.d(TAG, "Backend sync successful")
                                             _backendSyncState.value = BackendSyncState.Success
-                                            pendingSyncManager.clearPendingRegistration()
                                         }
-
                                         is Resource.Error -> {
-                                            android.util.Log.e(
-                                                TAG,
-                                                "Backend sync error: ${result.message}"
-                                            )
+                                            android.util.Log.e(TAG, "Backend sync error: ${result.message}")
                                             _backendSyncState.value = BackendSyncState.Error(
-                                                result.message ?: "Sync failed"
+                                                result.message ?: "Failed to sync with server"
                                             )
                                         }
-
-                                        is Resource.Loading -> {} // Stay in loading state
+                                        is Resource.Loading -> {
+                                            _backendSyncState.value = BackendSyncState.Loading
+                                        }
                                     }
                                 }
                         } catch (e: Exception) {
                             if (e is CancellationException) throw e
-                            android.util.Log.e(TAG, "Backend sync exception: ${e.message}")
-                            _backendSyncState.value =
-                                BackendSyncState.Error(e.message ?: "Sync failed")
+                            android.util.Log.e(TAG, "Backend sync error: ${e.message}")
+                            _backendSyncState.value = BackendSyncState.Error(
+                                e.message ?: "Failed to sync with server"
+                            )
                         }
-                    } ?: run {
-                        // Timeout occurred
-                        android.util.Log.w(TAG, "Backend sync timed out")
-                        _backendSyncState.value = BackendSyncState.Error("Sync timed out")
                     }
                 } else {
-                    android.util.Log.e(TAG, "Missing user data for sync: uid=$uid, email=$email")
-                    _backendSyncState.value = BackendSyncState.Error("Missing user data")
+                    android.util.Log.e(TAG, "Cannot sync user with backend: missing uid or email")
+                    _backendSyncState.value = BackendSyncState.Error(
+                        "Cannot sync user with backend: missing uid or email"
+                    )
                 }
             } catch (e: Exception) {
                 if (e is CancellationException) throw e
-                android.util.Log.e(TAG, "General error during sync: ${e.message}")
-                _backendSyncState.value = BackendSyncState.Error(e.message ?: "Sync failed")
+                android.util.Log.e(TAG, "Error during sync: ${e.message}")
+                _backendSyncState.value = BackendSyncState.Error(
+                    e.message ?: "Failed to sync with server"
+                )
             }
         }
     }
 
-    private fun checkPendingSyncTasks() {
-        viewModelScope.launch {
-            try {
-                if (pendingSyncManager.hasPendingRegistration()) {
-                    android.util.Log.d(TAG, "Found pending registration data")
-                    val registrationData = pendingSyncManager.getPendingRegistrationData()
+    /**
+     * Check for pending registration or sync tasks
+     */
+    private suspend fun checkPendingSyncTasks() {
+        try {
+            val registrationData = pendingSyncManager.getPendingRegistration()
+            if (registrationData != null) {
+                android.util.Log.d(TAG, "Found pending sync data: $registrationData")
+                
+                // Check if we're currently logged in with this user
+                val currentUid = getAuthStatusUseCase.getCurrentUserId()
+                if (currentUid == registrationData.firebaseUid) {
+                    android.util.Log.d(TAG, "Attempting to sync pending registration data for current user")
+                    try {
+                        syncUserUseCase(
+                            email = registrationData.email,
+                            displayName = registrationData.displayName,
+                            username = registrationData.username,
+                            firebaseUid = registrationData.firebaseUid
+                        ).first()
 
-                    if (registrationData != null) {
-                        // Try to sync with backend
-                        withTimeoutOrNull(SYNC_TIMEOUT_MS) {
-                            try {
-                                syncUserUseCase(
-                                    registrationData.email,
-                                    registrationData.displayName,
-                                    registrationData.username,
-                                    registrationData.firebaseUid
-                                ).first()
-
-                                // Sync successful
-                                pendingSyncManager.clearPendingRegistration()
-                                android.util.Log.d(TAG, "Pending data sync successful")
-                            } catch (e: Exception) {
-                                if (e is CancellationException) throw e
-                                android.util.Log.e(TAG, "Pending data sync failed: ${e.message}")
-                                // Keep pending data for next attempt
-                            }
-                        }
+                        // Sync successful
+                        pendingSyncManager.clearPendingRegistration()
+                        android.util.Log.d(TAG, "Pending data sync successful")                    } catch (e: Exception) {
+                        if (e is CancellationException) throw e
+                        android.util.Log.e(TAG, "Pending data sync failed: ${e.message}")
+                        // Keep pending data for next attempt
                     }
                 }
-            } catch (e: Exception) {
-                if (e is CancellationException) throw e
-                android.util.Log.e(TAG, "Error checking pending sync tasks: ${e.message}")
-            }
+            }        } catch (e: Exception) {
+            android.util.Log.e(TAG, "Error checking pending sync tasks: ${e.message}")
         }
     }
 
-    fun logout() {
-        viewModelScope.launch {
-            _logoutState.value = AuthState.Loading
-            logoutUseCase()
-                .catch { e ->
-                    if (e is CancellationException) throw e
-                    _logoutState.value = AuthState.Error(e.message ?: "Logout failed")
-                }
-                .collect { result ->
-                    when (result) {
-                        is Resource.Success -> {
-                            // Clear user preferences on logout
-                            userPreferences.clearUserData()
-                            _logoutState.value = AuthState.Success
-                        }
-                        is Resource.Error -> _logoutState.value =
-                            AuthState.Error(result.message ?: "Logout failed")
-
-                        is Resource.Loading -> _logoutState.value = AuthState.Loading
-                    }
-                }
-        }
+    /**
+     * Clear all user data from preferences
+     */
+    private suspend fun clearUserData() {
+        userPreferences.clearUserData()
     }
 
+    /**
+     * Reset all auth states to Idle
+     * Used when navigating between auth screens or when an operation completes
+     */
     fun resetAuthStates() {
         _loginState.value = AuthState.Idle
         _registerState.value = AuthState.Idle
@@ -404,29 +412,54 @@ class AuthViewModel @Inject constructor(
         _backendSyncState.value = BackendSyncState.Idle
     }
 
-    fun isUserLoggedIn(): Boolean = getAuthStatusUseCase.isUserLoggedIn()
-    fun getCurrentUserId(): String? = getAuthStatusUseCase.getCurrentUserId()
-    fun getCurrentUserEmail(): String? = getAuthStatusUseCase.getCurrentUserEmail()
-}
+    /**
+     * Logout from Firebase and clear user data
+     */
+    fun logout() {
+        viewModelScope.launch {
+            _logoutState.value = AuthState.Loading
+            try {
+                logoutUseCase()
+                    .collect { result ->
+                        when (result) {
+                            is Resource.Success -> {
+                                _logoutState.value = AuthState.Success
+                                // Clear all user data - Firebase AuthStateListener will handle this as well
+                                clearUserData()
+                            }
+                            is Resource.Error -> {
+                                _logoutState.value = AuthState.Error(result.message ?: "Logout failed")
+                            }
+                            is Resource.Loading -> {
+                                _logoutState.value = AuthState.Loading
+                            }
+                        }
+                    }
+            } catch (e: Exception) {
+                if (e is CancellationException) throw e
+                _logoutState.value = AuthState.Error(e.message ?: "Logout failed")
+            }
+        }
+    }
 
-sealed class AuthState {
-    object Idle : AuthState()
-    object Loading : AuthState()
-    object Success : AuthState()
-    data class Error(val message: String) : AuthState()
-}
-
-sealed class FirebaseAuthState {
-    object Idle : FirebaseAuthState()
-    object Loading : FirebaseAuthState()
-    object Success : FirebaseAuthState()
-    data class Error(val message: String) : FirebaseAuthState()
-}
-
-// Consolidated backend sync state (replaces separate states for registration and login)
-sealed class BackendSyncState {
-    object Idle : BackendSyncState()
-    object Loading : BackendSyncState()
-    object Success : BackendSyncState()
-    data class Error(val message: String) : BackendSyncState()
+    /**
+     * Get current user email from the auth repository
+     */
+    fun getCurrentUserEmail(): String? {
+        return getAuthStatusUseCase.getCurrentUserEmail()
+    }
+    
+    /**
+     * Get current user ID from the auth repository
+     */
+    fun getCurrentUserId(): String? {
+        return getAuthStatusUseCase.getCurrentUserId()
+    }
+    
+    /**
+     * Check if user is logged in
+     */
+    fun isUserLoggedIn(): Boolean {
+        return getAuthStatusUseCase.isUserLoggedIn()
+    }
 }

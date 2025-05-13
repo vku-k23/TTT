@@ -4,9 +4,10 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class ApiResponse<T>(
-    val success: Boolean,
-    val data: T?,
-    val error: String? = null
+    val success: Boolean = true,
+    val data: T? = null,
+    val error: String? = null,
+    val message: String? = null
 )
 
 @Serializable

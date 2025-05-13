@@ -3,6 +3,7 @@ package com.ttt.cinevibe.data.remote.dto
 import com.ttt.cinevibe.domain.model.MovieReview
 import com.ttt.cinevibe.domain.model.UserProfile
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerialName
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -11,25 +12,59 @@ import java.util.Locale
 data class MovieReviewDto(
     val id: Long,
     val tmdbMovieId: Long,
-    val userId: String,
-    val rating: Int,
-    val content: String,
+    val userId: String? = null,
+    val rating: Float,
+    val content: String? = null,
+    @SerialName("reviewText")
+    val reviewText: String? = null,
     val createdAt: String,
     val updatedAt: String,
     val likeCount: Int = 0,
-    val userProfile: UserProfileDto,
-    val userHasLiked: Boolean = false
+    val userProfile: UserProfileDto? = null,
+    val userHasLiked: Boolean = false,
+    val userUid: String? = null,
+    val userName: String? = null,
+    val userProfileImageUrl: String? = null
 ) {
     fun toMovieReview(): MovieReview {
+        val profile = when {
+            userProfile != null -> userProfile.toUserProfile()
+            
+            userUid != null || userName != null -> UserProfile(
+                uid = userUid ?: userId ?: "",
+                displayName = userName ?: "Guest User",
+                email = null,
+                avatarUrl = userProfileImageUrl
+            )
+            
+            userId != null -> UserProfile(
+                uid = userId,
+                displayName = "User",
+                email = null,
+                avatarUrl = null
+            )
+            
+            else -> UserProfile.empty()
+        }
+        
+        val reviewContent = reviewText ?: content ?: ""
+        
+        // Log the likeCount value to help debug
+        android.util.Log.d("MovieReviewDto", 
+            "Converting DTO to MovieReview - id=$id: likeCount=$likeCount, userHasLiked=$userHasLiked")
+        
+        // Make sure likeCount is never negative
+        val safeLikeCount = if (likeCount < 0) 0 else likeCount
+        
         return MovieReview(
             id = id,
             tmdbMovieId = tmdbMovieId,
             rating = rating,
-            content = content,
+            content = reviewContent,
             createdAt = createdAt,
             updatedAt = updatedAt,
-            likeCount = likeCount,
-            userProfile = userProfile.toUserProfile(),
+            likeCount = safeLikeCount, // Use the safe value
+            userProfile = profile,
             userHasLiked = userHasLiked
         )
     }
@@ -55,14 +90,19 @@ data class UserProfileDto(
 @Serializable
 data class CreateReviewRequest(
     val tmdbMovieId: Long,
-    val rating: Int,
-    val content: String
+    val movieTitle: String,
+    @SerialName("reviewText")
+    val reviewText: String = "",
+    val rating: Float,
+    val containsSpoilers: Boolean = false
 )
 
 @Serializable
 data class UpdateReviewRequest(
-    val rating: Int,
-    val content: String
+    val rating: Float,
+    @SerialName("reviewText")
+    val reviewText: String = "",
+    val containsSpoilers: Boolean = false
 )
 
 @Serializable
@@ -99,14 +139,14 @@ data class SortDto(
 
 @Serializable
 data class ReviewApiResponse(
-    val success: Boolean,
+    val success: Boolean = true,
     val message: String? = null,
     val data: MovieReviewDto? = null
 )
 
 @Serializable
 data class BooleanResponse(
-    val success: Boolean,
+    val success: Boolean = true,
     val message: String? = null,
     val data: Boolean? = null
 )
