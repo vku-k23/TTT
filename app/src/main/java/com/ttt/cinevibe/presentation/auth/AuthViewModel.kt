@@ -14,6 +14,7 @@ import com.ttt.cinevibe.data.local.UserPreferences
 import com.ttt.cinevibe.data.remote.BackendApiClient
 import com.ttt.cinevibe.data.remote.models.UserRequest
 import com.ttt.cinevibe.data.remote.models.UserResponse
+import com.ttt.cinevibe.data.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -38,7 +39,8 @@ class AuthViewModel @Inject constructor(
     private val syncUserUseCase: SyncUserUseCase,
     private val pendingSyncManager: PendingSyncManager,
     private val backendApiClient: BackendApiClient,
-    private val userPreferences: UserPreferences
+    private val userPreferences: UserPreferences,
+    private val userRepository: UserRepository
 ) : ViewModel() {
 
     private val _loginState = MutableStateFlow<AuthState>(AuthState.Idle)
@@ -382,7 +384,9 @@ class AuthViewModel @Inject constructor(
                 .collect { result ->
                     when (result) {
                         is Resource.Success -> {
-                            // Clear user preferences on logout
+                            // Clear user repository cache first
+                            userRepository.invalidateCache()
+                            // Then clear user preferences
                             userPreferences.clearUserData()
                             _logoutState.value = AuthState.Success
                         }

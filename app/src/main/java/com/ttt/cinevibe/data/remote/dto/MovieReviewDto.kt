@@ -49,6 +49,10 @@ data class MovieReviewDto(
         
         val reviewContent = reviewText ?: content ?: ""
         
+        // Log giá trị likeCount
+        android.util.Log.d("MovieReviewDto", "Converting DTO to MovieReview: " +
+                "id=$id, likeCount=$likeCount, userHasLiked=$userHasLiked")
+        
         return MovieReview(
             id = id,
             tmdbMovieId = tmdbMovieId,

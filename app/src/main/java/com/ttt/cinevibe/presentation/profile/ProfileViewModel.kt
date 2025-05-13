@@ -246,4 +246,14 @@ class ProfileViewModel @Inject constructor(
     fun getAvailableLanguages(): List<String> {
         return languageManager.getAvailableLanguages().keys.toList().sorted()
     }
+    
+    /**
+     * Clear all user-related data from the view model
+     * This should be called when user logs out
+     */
+    fun clearUserData() {
+        _userProfileState.value = Resource.Loading()
+        _updateProfileState.value = null
+        _avatarUploadState.value = null
+    }
 }
