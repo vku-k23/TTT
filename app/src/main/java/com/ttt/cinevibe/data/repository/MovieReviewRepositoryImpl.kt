@@ -20,39 +20,35 @@ class MovieReviewRepositoryImpl @Inject constructor(
         emit(Resource.Loading())
         try {
             val response = movieReviewApiService.getUserReviews(page, size)
-            val reviews = response.content.map { it.toMovieReview() }
+            
+            // Chuyển đổi dữ liệu DTO với log để debug
+            val reviews = response.content.map { dto ->
+                android.util.Log.d("MovieReviewRepo", "User Review ${dto.id} - Content: ${dto.content}, ReviewText: ${dto.reviewText}")
+                dto.toMovieReview()
+            }
+            
             emit(Resource.Success(reviews))
-        } catch (e: HttpException) {
-            emit(Resource.Error(e.message ?: "HTTP error occurred"))
-        } catch (e: IOException) {
-            emit(Resource.Error("Network error. Please check your connection."))
         } catch (e: Exception) {
-            emit(Resource.Error("An unexpected error occurred: ${e.message}"))
+            emit(Resource.Error(e.localizedMessage ?: "Error fetching user reviews"))
         }
     }
 
     override suspend fun getMovieReviews(tmdbMovieId: Long, page: Int, size: Int): Flow<Resource<List<MovieReview>>> = flow {
         emit(Resource.Loading())
         try {
-            android.util.Log.d("MovieReviewRepo", "Fetching movie reviews for movieId: $tmdbMovieId, page: $page")
             val response = movieReviewApiService.getMovieReviews(tmdbMovieId, page, size)
-            android.util.Log.d("MovieReviewRepo", "Got response with ${response.content.size} reviews")
             
-            if (response.content.isNotEmpty()) {
-                val sampleReview = response.content[0]
-                android.util.Log.d("MovieReviewRepo", "Sample review - id: ${sampleReview.id}")
+            // Chuyển đổi dữ liệu DTO với kiểm tra chất lượng
+            val reviews = response.content.map { dto ->
+                // Log để debug
+                android.util.Log.d("MovieReviewRepo", "Review ${dto.id} - User: ${dto.userProfile?.displayName ?: dto.userName ?: "No name"}")
+                android.util.Log.d("MovieReviewRepo", "Review ${dto.id} - Content: ${dto.content}, ReviewText: ${dto.reviewText}")
+                dto.toMovieReview()
             }
             
-            val reviews = response.content.map { it.toMovieReview() }
             emit(Resource.Success(reviews))
-        } catch (e: HttpException) {
-            android.util.Log.e("MovieReviewRepo", "HTTP error: ${e.message}", e)
-            emit(Resource.Error(e.message ?: "HTTP error occurred"))
-        } catch (e: IOException) {
-            android.util.Log.e("MovieReviewRepo", "IO error: ${e.message}", e)
-            emit(Resource.Error("Network error. Please check your connection."))        } catch (e: Exception) {
-            android.util.Log.e("MovieReviewRepo", "Unexpected error: ${e.message}", e)
-            emit(Resource.Error("An unexpected error occurred: ${e.message}"))
+        } catch (e: Exception) {
+            emit(Resource.Error(e.localizedMessage ?: "Error fetching movie reviews"))
         }
     }
 
@@ -74,19 +70,77 @@ class MovieReviewRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun createReview(tmdbMovieId: Long, rating: Int, content: String, movieTitle: String): Flow<Resource<MovieReview>> = flow {
+    override suspend fun createReview(tmdbMovieId: Long, rating: Float, content: String, movieTitle: String, containsSpoilers: Boolean): Flow<Resource<MovieReview>> = flow {
         emit(Resource.Loading())
         try {
-            val request = CreateReviewRequest(tmdbMovieId, movieTitle, rating, content)
-            val response = movieReviewApiService.createReview(request)
+            val safeContent = content.ifBlank { "" }
+            val request = CreateReviewRequest(
+                tmdbMovieId = tmdbMovieId, 
+                movieTitle = movieTitle, 
+                reviewText = safeContent,
+                rating = rating,
+                containsSpoilers = containsSpoilers
+            )
             
-            if (response.success && response.data != null) {
-                emit(Resource.Success(response.data.toMovieReview()))
-            } else {
-                emit(Resource.Error(response.message ?: "Failed to create review"))
+            try {
+                val response = movieReviewApiService.createReview(request)
+                
+                // Debug log để kiểm tra response
+                android.util.Log.d("MovieReviewRepo", "Create review response: success=${response.success}, data=${response.data != null}")
+                
+                if (response.data != null) {
+                    // Nếu có data, coi như thành công dù có trường success hay không
+                    emit(Resource.Success(response.data.toMovieReview()))
+                } else {
+                    emit(Resource.Error(response.message ?: "Failed to create review"))
+                }
+            } catch (e: HttpException) {
+                // Check if this is a 409 Conflict (already reviewed)
+                if (e.code() == 409) {
+                    android.util.Log.d("MovieReviewRepo", "Got 409 conflict - user already reviewed this movie, fetching existing review")
+                    
+                    try {
+                        // Get the existing review for this movie
+                        val existingReviewResponse = movieReviewApiService.getUserReviewForMovie(tmdbMovieId)
+                        android.util.Log.d("MovieReviewRepo", "Existing review response: success=${existingReviewResponse.success}, data=${existingReviewResponse.data != null}")
+                        
+                        if (existingReviewResponse.data != null) {
+                            val existingReview = existingReviewResponse.data.toMovieReview()
+                            android.util.Log.d("MovieReviewRepo", "Found existing review with ID: ${existingReview.id}, updating instead")
+                            
+                            // Update the existing review
+                            val updateResponse = movieReviewApiService.updateReview(
+                                existingReview.id,
+                                UpdateReviewRequest(
+                                    rating = rating,
+                                    reviewText = safeContent,
+                                    containsSpoilers = containsSpoilers
+                                )
+                            )
+                            
+                            android.util.Log.d("MovieReviewRepo", "Update existing review response: success=${updateResponse.success}, data=${updateResponse.data != null}")
+                            
+                            if (updateResponse.data != null) {
+                                emit(Resource.Success(updateResponse.data.toMovieReview()))
+                            } else {
+                                emit(Resource.Error(updateResponse.message ?: "Failed to update existing review"))
+                            }
+                        } else {
+                            // Try to find the review ID from the error message or fetch user reviews as fallback
+                            val errorBody = e.response()?.errorBody()?.string()
+                            android.util.Log.d("MovieReviewRepo", "Conflict error body: $errorBody")
+                            
+                            emit(Resource.Error("You've already reviewed this movie. Please find your review in My Reviews and update it."))
+                        }
+                    } catch (fetchError: Exception) {
+                        android.util.Log.e("MovieReviewRepo", "Error fetching existing review after conflict: ${fetchError.message}")
+                        emit(Resource.Error("You've already reviewed this movie. Please find your review in My Reviews and update it."))
+                    }
+                } else {
+                    // Not a conflict error, pass through
+                    emit(Resource.Error(e.message ?: "HTTP error occurred"))
+                }
             }
-        } catch (e: HttpException) {
-            emit(Resource.Error(e.message ?: "HTTP error occurred"))
         } catch (e: IOException) {
             emit(Resource.Error("Network error. Please check your connection."))
         } catch (e: Exception) {
@@ -94,13 +148,21 @@ class MovieReviewRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun updateReview(reviewId: Long, rating: Int, content: String): Flow<Resource<MovieReview>> = flow {
+    override suspend fun updateReview(reviewId: Long, rating: Float, content: String, containsSpoilers: Boolean): Flow<Resource<MovieReview>> = flow {
         emit(Resource.Loading())
         try {
-            val request = UpdateReviewRequest(rating, content)
+            val safeContent = content.ifBlank { "" }
+            val request = UpdateReviewRequest(
+                rating = rating,
+                reviewText = safeContent,
+                containsSpoilers = containsSpoilers
+            )
             val response = movieReviewApiService.updateReview(reviewId, request)
             
-            if (response.success && response.data != null) {
+            // Debug log
+            android.util.Log.d("MovieReviewRepo", "Update review response: success=${response.success}, data=${response.data != null}")
+            
+            if (response.data != null) {
                 emit(Resource.Success(response.data.toMovieReview()))
             } else {
                 emit(Resource.Error(response.message ?: "Failed to update review"))
@@ -111,6 +173,8 @@ class MovieReviewRepositoryImpl @Inject constructor(
             emit(Resource.Error("Network error. Please check your connection."))
         } catch (e: Exception) {
             emit(Resource.Error("An unexpected error occurred: ${e.message}"))
+            // Log lỗi để debug
+            android.util.Log.e("MovieReviewRepo", "Error in updateReview: ${e.message}", e)
         }
     }
 
@@ -132,7 +196,9 @@ class MovieReviewRepositoryImpl @Inject constructor(
         emit(Resource.Loading())
         try {
             val response = movieReviewApiService.likeReview(reviewId)
-            if (response.success && response.data != null) {
+            android.util.Log.d("MovieReviewRepo", "Like review response: success=${response.success}, data=${response.data != null}")
+            
+            if (response.data != null) {
                 emit(Resource.Success(response.data.toMovieReview()))
             } else {
                 emit(Resource.Error(response.message ?: "Failed to like review"))
@@ -143,6 +209,7 @@ class MovieReviewRepositoryImpl @Inject constructor(
             emit(Resource.Error("Network error. Please check your connection."))
         } catch (e: Exception) {
             emit(Resource.Error("An unexpected error occurred: ${e.message}"))
+            android.util.Log.e("MovieReviewRepo", "Error in likeReview: ${e.message}", e)
         }
     }
     
@@ -150,7 +217,9 @@ class MovieReviewRepositoryImpl @Inject constructor(
         emit(Resource.Loading())
         try {
             val response = movieReviewApiService.unlikeReview(reviewId)
-            if (response.success && response.data != null) {
+            android.util.Log.d("MovieReviewRepo", "Unlike review response: success=${response.success}, data=${response.data != null}")
+            
+            if (response.data != null) {
                 emit(Resource.Success(response.data.toMovieReview()))
             } else {
                 emit(Resource.Error(response.message ?: "Failed to unlike review"))
@@ -161,6 +230,7 @@ class MovieReviewRepositoryImpl @Inject constructor(
             emit(Resource.Error("Network error. Please check your connection."))
         } catch (e: Exception) {
             emit(Resource.Error("An unexpected error occurred: ${e.message}"))
+            android.util.Log.e("MovieReviewRepo", "Error in unlikeReview: ${e.message}", e)
         }
     }
 
@@ -168,17 +238,26 @@ class MovieReviewRepositoryImpl @Inject constructor(
         emit(Resource.Loading())
         try {
             val response = movieReviewApiService.hasUserReviewedMovie(tmdbMovieId)
-            if (response.success && response.data != null) {
+            android.util.Log.d("MovieReviewRepo", "Has user reviewed response: success=${response.success}, data=${response.data}")
+            
+            if (response.data != null) {
                 emit(Resource.Success(response.data))
             } else {
-                emit(Resource.Error(response.message ?: "Failed to check review status"))
+                // Nếu backend không trả về data nhưng cũng không lỗi, giả định là false
+                emit(Resource.Success(false))
             }
         } catch (e: HttpException) {
-            emit(Resource.Error(e.message ?: "HTTP error occurred"))
+            // Nếu API trả về lỗi 404, nghĩa là user chưa review
+            if (e.code() == 404) {
+                emit(Resource.Success(false))
+            } else {
+                emit(Resource.Error(e.message ?: "HTTP error occurred"))
+            }
         } catch (e: IOException) {
             emit(Resource.Error("Network error. Please check your connection."))
         } catch (e: Exception) {
             emit(Resource.Error("An unexpected error occurred: ${e.message}"))
+            android.util.Log.e("MovieReviewRepo", "Error in hasUserReviewedMovie: ${e.message}", e)
         }
     }
 
@@ -186,17 +265,27 @@ class MovieReviewRepositoryImpl @Inject constructor(
         emit(Resource.Loading())
         try {
             val response = movieReviewApiService.getUserReviewForMovie(tmdbMovieId)
-            if (response.success && response.data != null) {
+            android.util.Log.d("MovieReviewRepo", "Get user review response: success=${response.success}, data=${response.data != null}")
+            
+            if (response.data != null) {
                 emit(Resource.Success(response.data.toMovieReview()))
             } else {
                 emit(Resource.Error(response.message ?: "Failed to get user review"))
             }
         } catch (e: HttpException) {
-            emit(Resource.Error(e.message ?: "HTTP error occurred"))
+            if (e.code() == 404) {
+                // 404 means user hasn't reviewed this movie yet, not a real error
+                android.util.Log.d("MovieReviewRepo", "No review found for movie $tmdbMovieId (404)")
+                emit(Resource.Error("You haven't reviewed this movie yet"))
+            } else {
+                emit(Resource.Error(e.message ?: "HTTP error occurred"))
+            }
         } catch (e: IOException) {
             emit(Resource.Error("Network error. Please check your connection."))
         } catch (e: Exception) {
             emit(Resource.Error("An unexpected error occurred: ${e.message}"))
+            // Log lỗi để debug
+            android.util.Log.e("MovieReviewRepo", "Error in getUserReviewForMovie: ${e.message}", e)
         }
     }
 }

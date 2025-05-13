@@ -191,7 +191,7 @@ fun ReviewItem(
             
             // Review content
             Text(
-                text = review.content,
+                text = review.content.ifEmpty { "No content" },
                 color = White,
                 maxLines = 3,
                 overflow = TextOverflow.Ellipsis

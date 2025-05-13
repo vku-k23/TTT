@@ -133,17 +133,61 @@ fun MovieDetailScreen(
     LaunchedEffect(reviewOperationState) {
         when (reviewOperationState) {
             is ReviewOperationState.Success -> {
-                // Refresh reviews after successful operation
+                // Log thành công để debug
+                android.util.Log.d("MovieDetailScreen", "Review operation completed successfully!")
+                
+                // Đóng dialog rating (phần quan trọng nhất)
+                showRatingDialog = false
+                
+                // Refresh reviews sau khi thao tác thành công
                 viewModel.getMovieReviews(movieId)
                 viewModel.checkIfUserReviewed(movieId.toLong())
-                showRatingDialog = false
+                
+                // Thông báo thành công
+                Toast.makeText(
+                    context,
+                    if (userReview != null) "Review updated successfully" else "Review submitted successfully",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
             is ReviewOperationState.Error -> {
-                // Could show a snackbar or toast with the error message
                 val errorMessage = (reviewOperationState as? ReviewOperationState.Error)?.message ?: "Error"
-                Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
+                
+                // Debug log lỗi
+                android.util.Log.e("MovieDetailScreen", "Review error: $errorMessage")
+                
+                // Check if this is a duplicate review conflict error
+                if (errorMessage.contains("already reviewed this movie", ignoreCase = true)) {
+                    // Explicitly refresh the user's review state
+                    viewModel.checkIfUserReviewed(movieId.toLong())
+                    
+                    // Show a more helpful error message
+                    Toast.makeText(
+                        context, 
+                        "You've already reviewed this movie. Opening your existing review...", 
+                        Toast.LENGTH_LONG
+                    ).show()
+                    
+                    // Keep the rating dialog open if it was showing
+                    // It will be populated with the existing review data once fetched
+                } else {
+                    // Show other errors as a toast
+                    Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
+                }
             }
             else -> {}
+        }
+    }
+    
+    // Auto-open rating dialog when review data changes and we're in edit mode
+    LaunchedEffect(userReview) {
+        if (userReview != null && hasReviewedState is HasReviewedState.Success && (hasReviewedState as HasReviewedState.Success).hasReviewed) {
+            // Only auto-open if we're following a 409 conflict and dialog isn't already showing
+            if (reviewOperationState is ReviewOperationState.Error && 
+                (reviewOperationState as ReviewOperationState.Error).message?.contains("already reviewed", ignoreCase = true) == true && 
+                !showRatingDialog) {
+                showRatingDialog = true
+            }
         }
     }
     
@@ -155,17 +199,17 @@ fun MovieDetailScreen(
             initialRating = userReview?.rating,
             initialContent = userReview?.content,
             onSubmit = { rating, content ->
-                if (rating == 0 && content == "DELETE") {
+                if (rating == 0f && content == "DELETE") {
                     // Special case for delete
                     userReview?.id?.let { reviewId ->
                         viewModel.deleteReview(reviewId)
                     }
                 } else if (userReview != null) {
                     // Update existing review
-                    viewModel.updateReview(userReview!!.id, rating, content)
+                    viewModel.updateReview(userReview!!.id, rating, content, false)
                 } else {
                     // Create new review
-                    viewModel.createReview(movieId.toLong(), rating, content, movieState.movie?.title ?: "")
+                    viewModel.createReview(movieId.toLong(), rating, content, movieState.movie?.title ?: "", false)
                 }
             },
             onDismiss = { showRatingDialog = false }

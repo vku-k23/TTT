@@ -39,12 +39,32 @@ class MovieReviewViewModel @Inject constructor(
     private var currentUserReviewPage = 0
     private val pageSize = 10
     
+    // Track if we've reached the end of the list
+    private var hasMoreMovieReviews = true
+    private var hasMoreUserReviews = true
+    
+    // Track if we're already loading
+    private var isLoadingMovieReviews = false
+    private var isLoadingUserReviews = false
+    
     // Function to load reviews for a specific movie
     fun getMovieReviews(tmdbMovieId: Long, refresh: Boolean = false) {
+        // Don't load more if we're already loading or if we've reached the end
+        if (isLoadingMovieReviews && !refresh) {
+            return
+        }
+        
+        if (!hasMoreMovieReviews && !refresh) {
+            return
+        }
+        
         if (refresh) {
             currentMovieReviewPage = 0
+            hasMoreMovieReviews = true
             _movieReviewsState.value = MovieReviewsState.Initial
         }
+        
+        isLoadingMovieReviews = true
         
         viewModelScope.launch {
             reviewRepository.getMovieReviews(tmdbMovieId, currentMovieReviewPage, pageSize)
@@ -60,6 +80,15 @@ class MovieReviewViewModel @Inject constructor(
                             }
                         }
                         is Resource.Success -> {
+                            isLoadingMovieReviews = false
+                            
+                            val newReviews = result.data ?: emptyList()
+                            
+                            // Check if we've reached the end
+                            if (newReviews.size < pageSize) {
+                                hasMoreMovieReviews = false
+                            }
+                            
                             val currentReviews = if (currentMovieReviewPage > 0 && _movieReviewsState.value is MovieReviewsState.Success) {
                                 (_movieReviewsState.value as MovieReviewsState.Success).reviews
                             } else {
@@ -67,19 +96,20 @@ class MovieReviewViewModel @Inject constructor(
                             }
                             
                             val updatedReviews = if (currentMovieReviewPage == 0) {
-                                result.data ?: emptyList()
+                                newReviews
                             } else {
-                                currentReviews + (result.data ?: emptyList())
+                                currentReviews + newReviews
                             }
                             
                             _movieReviewsState.value = MovieReviewsState.Success(updatedReviews)
                             
-                            // Increment page for next load
-                            if ((result.data?.size ?: 0) >= pageSize) {
+                            // Increment page for next load only if we have more to load
+                            if (newReviews.size >= pageSize) {
                                 currentMovieReviewPage++
                             }
                         }
                         is Resource.Error -> {
+                            isLoadingMovieReviews = false
                             _movieReviewsState.value = MovieReviewsState.Error(result.message ?: "Unknown error")
                         }
                     }
@@ -89,10 +119,22 @@ class MovieReviewViewModel @Inject constructor(
     
     // Function to load user's own reviews
     fun getUserReviews(refresh: Boolean = false) {
+        // Don't load more if we're already loading or if we've reached the end
+        if (isLoadingUserReviews && !refresh) {
+            return
+        }
+        
+        if (!hasMoreUserReviews && !refresh) {
+            return
+        }
+        
         if (refresh) {
             currentUserReviewPage = 0
+            hasMoreUserReviews = true
             _userReviewsState.value = MovieReviewsState.Initial
         }
+        
+        isLoadingUserReviews = true
         
         viewModelScope.launch {
             reviewRepository.getUserReviews(currentUserReviewPage, pageSize)
@@ -108,6 +150,15 @@ class MovieReviewViewModel @Inject constructor(
                             }
                         }
                         is Resource.Success -> {
+                            isLoadingUserReviews = false
+                            
+                            val newReviews = result.data ?: emptyList()
+                            
+                            // Check if we've reached the end
+                            if (newReviews.size < pageSize) {
+                                hasMoreUserReviews = false
+                            }
+                            
                             val currentReviews = if (currentUserReviewPage > 0 && _userReviewsState.value is MovieReviewsState.Success) {
                                 (_userReviewsState.value as MovieReviewsState.Success).reviews
                             } else {
@@ -115,19 +166,20 @@ class MovieReviewViewModel @Inject constructor(
                             }
                             
                             val updatedReviews = if (currentUserReviewPage == 0) {
-                                result.data ?: emptyList()
+                                newReviews
                             } else {
-                                currentReviews + (result.data ?: emptyList())
+                                currentReviews + newReviews
                             }
                             
                             _userReviewsState.value = MovieReviewsState.Success(updatedReviews)
                             
-                            // Increment page for next load
-                            if ((result.data?.size ?: 0) >= pageSize) {
+                            // Increment page for next load only if we have more to load
+                            if (newReviews.size >= pageSize) {
                                 currentUserReviewPage++
                             }
                         }
                         is Resource.Error -> {
+                            isLoadingUserReviews = false
                             _userReviewsState.value = MovieReviewsState.Error(result.message ?: "Unknown error")
                         }
                     }
@@ -136,10 +188,10 @@ class MovieReviewViewModel @Inject constructor(
     }
     
     // Function to create a new review
-    fun createReview(tmdbMovieId: Long, rating: Int, content: String, movieTitle: String) {
+    fun createReview(tmdbMovieId: Long, rating: Float, content: String, movieTitle: String, containsSpoilers: Boolean = false) {
         viewModelScope.launch {
             _reviewOperationState.value = ReviewOperationState.Loading
-            reviewRepository.createReview(tmdbMovieId, rating, content, movieTitle)
+            reviewRepository.createReview(tmdbMovieId, rating, content, movieTitle, containsSpoilers)
                 .collectLatest { result ->
                     when (result) {
                         is Resource.Success -> {
@@ -165,10 +217,10 @@ class MovieReviewViewModel @Inject constructor(
     }
     
     // Function to update an existing review
-    fun updateReview(reviewId: Long, rating: Int, content: String) {
+    fun updateReview(reviewId: Long, rating: Float, content: String, containsSpoilers: Boolean = false) {
         viewModelScope.launch {
             _reviewOperationState.value = ReviewOperationState.Loading
-            reviewRepository.updateReview(reviewId, rating, content)
+            reviewRepository.updateReview(reviewId, rating, content, containsSpoilers)
                 .collectLatest { result ->
                     when (result) {
                         is Resource.Success -> {
@@ -225,9 +277,22 @@ class MovieReviewViewModel @Inject constructor(
     // Function to like a review
     fun likeReview(reviewId: Long) {
         viewModelScope.launch {
+            // Optimistically update the UI
+            updateReviewLikeState(reviewId, true)
+            
             reviewRepository.likeReview(reviewId)
                 .collectLatest { result ->
-                    // We don't update the state here as we'll refresh the entire list after operation
+                    when (result) {
+                        is Resource.Success -> {
+                            // Update the review in the state with the updated data
+                            updateReviewInState(result.data)
+                        }
+                        is Resource.Error -> {
+                            // Revert the optimistic update if there was an error
+                            updateReviewLikeState(reviewId, false)
+                        }
+                        else -> {}
+                    }
                 }
         }
     }
@@ -235,10 +300,54 @@ class MovieReviewViewModel @Inject constructor(
     // Function to unlike a review
     fun unlikeReview(reviewId: Long) {
         viewModelScope.launch {
+            // Optimistically update the UI
+            updateReviewLikeState(reviewId, false)
+            
             reviewRepository.unlikeReview(reviewId)
                 .collectLatest { result ->
-                    // We don't update the state here as we'll refresh the entire list after operation
+                    when (result) {
+                        is Resource.Success -> {
+                            // Update the review in the state with the updated data
+                            updateReviewInState(result.data)
+                        }
+                        is Resource.Error -> {
+                            // Revert the optimistic update if there was an error
+                            updateReviewLikeState(reviewId, true)
+                        }
+                        else -> {}
+                    }
                 }
+        }
+    }
+    
+    // Helper function to update a review's like state in place
+    private fun updateReviewLikeState(reviewId: Long, liked: Boolean) {
+        if (_movieReviewsState.value is MovieReviewsState.Success) {
+            val reviews = (_movieReviewsState.value as MovieReviewsState.Success).reviews.toMutableList()
+            val index = reviews.indexOfFirst { it.id == reviewId }
+            
+            if (index != -1) {
+                val review = reviews[index]
+                val updatedReview = review.copy(
+                    userHasLiked = liked,
+                    likeCount = if (liked) review.likeCount + 1 else (review.likeCount - 1).coerceAtLeast(0)
+                )
+                reviews[index] = updatedReview
+                _movieReviewsState.value = MovieReviewsState.Success(reviews)
+            }
+        }
+    }
+    
+    // Helper function to update a review in the state
+    private fun updateReviewInState(updatedReview: MovieReview?) {
+        if (updatedReview != null && _movieReviewsState.value is MovieReviewsState.Success) {
+            val reviews = (_movieReviewsState.value as MovieReviewsState.Success).reviews.toMutableList()
+            val index = reviews.indexOfFirst { it.id == updatedReview.id }
+            
+            if (index != -1) {
+                reviews[index] = updatedReview
+                _movieReviewsState.value = MovieReviewsState.Success(reviews)
+            }
         }
     }
     

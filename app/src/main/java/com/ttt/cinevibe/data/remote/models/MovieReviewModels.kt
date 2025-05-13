@@ -9,7 +9,7 @@ data class MovieReviewRequest(
     val tmdbMovieId: Long,
     
     @SerializedName("rating")
-    val rating: Int,
+    val rating: Float,
     
     @SerializedName("reviewText")
     val content: String,
@@ -33,7 +33,7 @@ data class MovieReviewResponse(
     val content: String,
     
     @SerializedName("rating")
-    val rating: Int,
+    val rating: Float,
     
     @SerializedName("createdAt")
     val createdAt: String,

@@ -42,6 +42,10 @@ fun UserReviewsScreen(
     var reviewToDelete by remember { mutableStateOf<Long?>(null) }
     var movieTitleForEditing by remember { mutableStateOf("") }
     
+    // State for error handling
+    var showErrorDialog by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf("") }
+    
     // Load user reviews
     LaunchedEffect(Unit) {
         viewModel.getUserReviews(refresh = true)
@@ -66,30 +70,39 @@ fun UserReviewsScreen(
             }
             is ReviewOperationState.Error -> {
                 // Show error message
-                scope.launch {
-                    val message = (reviewOperationState as ReviewOperationState.Error).message
-                    // You can show a snackbar or toast here with the error message
-                }
+                val message = (reviewOperationState as ReviewOperationState.Error).message
+                errorMessage = message
+                showErrorDialog = true
             }
             else -> {}
         }
     }
     
     // Monitor scroll position for pagination
-    LaunchedEffect(lazyListState) {
-        snapshotFlow { lazyListState.layoutInfo.visibleItemsInfo }
-            .collectLatest { visibleItems ->
-                if (userReviewsState is MovieReviewsState.Success) {
-                    val reviews = (userReviewsState as MovieReviewsState.Success).reviews
-                    
-                    if (reviews.isNotEmpty() && 
-                        visibleItems.isNotEmpty() && 
-                        visibleItems.last().index >= reviews.size - 3) {
-                        // Load more when we're 3 items from the end
-                        viewModel.getUserReviews()
-                    }
+    LaunchedEffect(Unit) {
+        // Only set up the pagination observer once
+        snapshotFlow { 
+            if (lazyListState.layoutInfo.visibleItemsInfo.isNotEmpty() &&
+                userReviewsState is MovieReviewsState.Success) {
+                val reviews = (userReviewsState as MovieReviewsState.Success).reviews
+                val lastVisibleItem = lazyListState.layoutInfo.visibleItemsInfo.lastOrNull()
+                
+                if (reviews.isNotEmpty() && lastVisibleItem != null && 
+                    lastVisibleItem.index >= reviews.size - 3 &&
+                    !lazyListState.isScrollInProgress) {
+                    true  // Need to load more
+                } else {
+                    false // Don't need to load more
                 }
+            } else {
+                false
             }
+        }.collectLatest { shouldLoadMore ->
+            if (shouldLoadMore) {
+                // Load more when we're 3 items from the end
+                viewModel.getUserReviews()
+            }
+        }
     }
     
     Scaffold(
@@ -248,7 +261,7 @@ fun UserReviewsScreen(
                     initialReview = editingReview,
                     isSubmitting = reviewOperationState is ReviewOperationState.Loading,
                     onSubmit = { rating, content ->
-                        viewModel.updateReview(editingReview!!.id, rating, content)
+                        viewModel.updateReview(editingReview!!.id, rating, content, false)
                     },
                     onCancel = {
                         editingReview = null
@@ -286,6 +299,37 @@ fun UserReviewsScreen(
                     }
                 ) {
                     Text("Cancel")
+                }
+            }
+        )
+    }
+    
+    // Error dialog
+    if (showErrorDialog) {
+        AlertDialog(
+            onDismissRequest = { showErrorDialog = false },
+            title = { 
+                Text(
+                    if (errorMessage.contains("already reviewed", ignoreCase = true)) 
+                        "Review Already Exists" 
+                    else 
+                        "Error"
+                )
+            },
+            text = { 
+                if (errorMessage.contains("already reviewed", ignoreCase = true)) {
+                    Column {
+                        Text("You've already reviewed this movie.")
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text("Please find your existing review in the list and update it instead of creating a new one.")
+                    }
+                } else {
+                    Text(errorMessage)
+                }
+            },
+            confirmButton = {
+                Button(onClick = { showErrorDialog = false }) {
+                    Text("OK")
                 }
             }
         )
