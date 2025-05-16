@@ -3,18 +3,22 @@ package com.ttt.cinevibe.data.repository
 import com.ttt.cinevibe.data.remote.api.MovieReviewApiService
 import com.ttt.cinevibe.data.remote.dto.CreateReviewRequest
 import com.ttt.cinevibe.data.remote.dto.UpdateReviewRequest
+import com.ttt.cinevibe.data.remote.models.UserProfileRequest
 import com.ttt.cinevibe.domain.model.MovieReview
 import com.ttt.cinevibe.domain.model.Resource
 import com.ttt.cinevibe.domain.model.UserProfile
 import com.ttt.cinevibe.domain.repository.MovieReviewRepository
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import retrofit2.HttpException
 import java.io.IOException
 import javax.inject.Inject
+import com.ttt.cinevibe.data.repository.UserRepository
 
 class MovieReviewRepositoryImpl @Inject constructor(
-    private val movieReviewApiService: MovieReviewApiService
+    private val movieReviewApiService: MovieReviewApiService,
+    private val userRepository: UserRepository
 ) : MovieReviewRepository {
 
     override suspend fun getUserReviews(page: Int, size: Int): Flow<Resource<List<MovieReview>>> = flow {
@@ -109,6 +113,9 @@ class MovieReviewRepositoryImpl @Inject constructor(
                 android.util.Log.d("MovieReviewRepo", "Create review response: success=${response.success}, data=${response.data != null}, message=${response.message}")
                 
                 if (response.success) {
+                    // Update the review count after successful creation
+                    updateUserReviewCount(1)
+                    
                     android.util.Log.d("MovieReviewRepo", "Review creation successful!")
                     if (response.data != null) {
                         // Ideal case - we have the data
@@ -325,6 +332,10 @@ class MovieReviewRepositoryImpl @Inject constructor(
         emit(Resource.Loading())
         try {
             movieReviewApiService.deleteReview(reviewId)
+            
+            // Update the user review count after successful deletion
+            updateUserReviewCount(-1)
+            
             emit(Resource.Success(Unit))
         } catch (e: HttpException) {
             emit(Resource.Error(e.message ?: "HTTP error occurred"))
@@ -526,6 +537,49 @@ class MovieReviewRepositoryImpl @Inject constructor(
             emit(Resource.Error("Network error. Please check your connection."))
         } catch (e: Exception) {
             emit(Resource.Error("An unexpected error occurred: ${e.message}"))
+        }
+    }
+
+    // Helper method to update user review count while preserving other fields
+    private suspend fun updateUserReviewCount(change: Int) {
+        try {
+            // Get current user with all fields
+            val userResourceResult = userRepository.getCurrentUser(true).first()
+            
+            if (userResourceResult is Resource.Success && userResourceResult.data != null) {
+                val currentUser = userResourceResult.data
+                
+                // Only if we have a current count, update it
+                if (currentUser.reviewCount != null) {
+                    val newCount = currentUser.reviewCount + change
+                    
+                    android.util.Log.d("MovieReviewRepo", "Updating user review count from ${currentUser.reviewCount} to $newCount")
+                    
+                    // Create a request that ONLY changes the review count and maintains all other fields
+                    val profileRequest = UserProfileRequest(
+                        reviewCount = newCount,
+                        
+                        // Keep all other fields as they were
+                        firebaseUid = currentUser.firebaseUid,
+                        displayName = currentUser.displayName,
+                        username = currentUser.username,
+                        profileImageUrl = currentUser.profileImageUrl,
+                        bio = currentUser.bio,
+                        favoriteGenre = currentUser.favoriteGenre,
+                        followersCount = currentUser.followersCount,
+                        followingCount = currentUser.followingCount
+                    )
+                    
+                    // Update the user profile
+                    userRepository.updateUserProfile(profileRequest).first()
+                } else {
+                    android.util.Log.w("MovieReviewRepo", "Current user has null reviewCount, can't update")
+                }
+            } else {
+                android.util.Log.w("MovieReviewRepo", "Failed to get current user for updating review count")
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("MovieReviewRepo", "Error updating user review count: ${e.message}", e)
         }
     }
 }

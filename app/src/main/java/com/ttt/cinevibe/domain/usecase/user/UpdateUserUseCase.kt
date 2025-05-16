@@ -17,9 +17,9 @@ class UpdateUserUseCase @Inject constructor(
         profileImageUrl: String? = null,
         bio: String? = null,
         favoriteGenre: String? = null,
-        reviewCount: String? = null, 
-        followersCount: String? = null,
-        followingCount: String? = null
+        reviewCount: Int? = null, 
+        followersCount: Int? = null,
+        followingCount: Int? = null
     ): Flow<Resource<UserResponse>> {
         val profileRequest = UserProfileRequest(
             firebaseUid = firebaseUid,

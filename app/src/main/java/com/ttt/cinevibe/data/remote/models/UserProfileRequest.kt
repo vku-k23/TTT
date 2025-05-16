@@ -10,7 +10,7 @@ data class UserProfileRequest(
     val profileImageUrl: String? = null,
     val bio: String? = null,
     val favoriteGenre: String? = null,
-    val reviewCount: String? = null,
-    val followersCount: String? = null,
-    val followingCount: String? = null
+    val reviewCount: Int? = null,
+    val followersCount: Int? = null,
+    val followingCount: Int? = null
 )
