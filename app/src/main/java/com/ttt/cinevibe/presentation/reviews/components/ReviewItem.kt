@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.ttt.cinevibe.domain.model.MovieReview
+import com.ttt.cinevibe.presentation.comments.CommentsSection
 
 @Composable
 fun ReviewItem(
@@ -212,8 +213,7 @@ fun ReviewItem(
             }
             
             Spacer(modifier = Modifier.height(12.dp))
-            
-            // Like button and count
+              // Like button and count
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.clickable { onLikeClick() }
@@ -231,6 +231,20 @@ fun ReviewItem(
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                 )
             }
+            
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            // Comments section
+            HorizontalDivider(
+                modifier = Modifier.padding(vertical = 8.dp),
+                thickness = 0.5.dp,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
+            )
+            
+            // Add comments section
+            com.ttt.cinevibe.presentation.comments.CommentsSection(
+                reviewId = review.id
+            )
         }
     }
 }

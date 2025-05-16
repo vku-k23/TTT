@@ -5,6 +5,7 @@ import com.ttt.cinevibe.data.remote.ApiConstants
 import com.ttt.cinevibe.data.remote.BackendApiConstants
 import com.ttt.cinevibe.data.remote.CloudinaryService
 import com.ttt.cinevibe.data.remote.MovieApi
+import com.ttt.cinevibe.data.remote.api.CommentApiService
 import com.ttt.cinevibe.data.remote.api.MovieApiService
 import com.ttt.cinevibe.data.remote.api.MovieReviewApiService
 import com.ttt.cinevibe.data.remote.api.UserApiService
@@ -165,11 +166,15 @@ object NetworkModule {
     @Singleton
     fun provideCloudinaryService(okHttpClient: OkHttpClient): CloudinaryService {
         return CloudinaryService(okHttpClient)
-    }
-
-    @Provides
+    }    @Provides
     @Singleton
     fun provideMovieReviewApiService(@BackendRetrofit retrofit: Retrofit): MovieReviewApiService {
         return retrofit.create(MovieReviewApiService::class.java)
+    }
+    
+    @Provides
+    @Singleton
+    fun provideCommentApiService(@BackendRetrofit retrofit: Retrofit): CommentApiService {
+        return retrofit.create(CommentApiService::class.java)
     }
 }
