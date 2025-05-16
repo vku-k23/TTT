@@ -18,13 +18,13 @@ interface MovieReviewApiService {
     ): MovieReviewResponse
     
     // Get reviews for a specific movie
-    @GET("api/revi ews/movie/{tmdbMovieId}")
+    @GET("api/reviews/movie/{tmdbMovieId}")
     suspend fun getMovieReviews(
         @Path("tmdbMovieId") tmdbMovieId: Long,
         @Query("page") page: Int = 0,
         @Query("size") size: Int = 10
     ): MovieReviewResponse
-    
+    \
     // Get a specific review by ID
     @GET("api/reviews/{reviewId}")
     suspend fun getReviewById(
