@@ -28,6 +28,20 @@ import com.ttt.cinevibe.presentation.userProfile.profile.UserProfileScreen
 import java.net.URLDecoder
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
+import com.ttt.cinevibe.utils.KnoxCompatUtil
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.delay
+import androidx.compose.foundation.layout.Arrangement
 
 @Composable
 fun NavGraph(
@@ -200,6 +214,9 @@ fun NavGraph(
                 onNavigateToPendingRequests = { uid ->
                     navController.navigate(Screens.pendingRequestsRoute(uid))
                 },
+                onNavigateToUserReviews = { uid ->
+                    navController.navigate(Screens.userReviewsRoute(uid))
+                },
                 onShareProfile = { targetUserId ->
                     // Handle sharing user profile
                 },
@@ -289,15 +306,76 @@ fun NavGraph(
         }
         
         // User reviews screen
-        composable(route = NavDestinations.USER_REVIEWS_ROUTE) {
-            UserReviewsScreen(
-                onNavigateBack = {
-                    navController.popBackStack()
-                },
-                onNavigateToMovie = { movieId ->
-                    navController.navigate(Screens.movieDetailRoute(movieId.toString()))
+        composable(
+            route = NavDestinations.USER_REVIEWS_WITH_ARGS,
+            arguments = listOf(navArgument("userId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val userId = backStackEntry.arguments?.getString("userId") ?: ""
+            
+            // Create a custom error handler composable wrapper
+            val errorHandler = KnoxCompatUtil.isSamsungKnoxDevice()
+            
+            // Use a safer approach with state to handle errors
+            val errorState = remember { mutableStateOf(false) }
+            val errorMessage = remember { mutableStateOf("") }
+            
+            if (errorState.value) {
+                // Show error state UI
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "Unable to display reviews on this device",
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
+                    
+                    Button(onClick = { navController.popBackStack() }) {
+                        Text("Go Back")
+                    }
+                    
+                    // Auto-navigate back after error
+                    LaunchedEffect(Unit) {
+                        delay(3000)
+                        navController.popBackStack()
+                    }
                 }
-            )
+            } else {
+                // Use effect to handle Knox errors before rendering UserReviewsScreen
+                LaunchedEffect(userId) {
+                    try {
+                        if (errorHandler) {
+                            // Test for Knox-specific issues ahead of time
+                            android.util.Log.d("NavGraph", "Samsung Knox device detected, watching for errors")
+                        }
+                    } catch (e: Exception) {
+                        android.util.Log.e("NavGraph", "Knox error detected: ${e.message}", e)
+                        errorState.value = true
+                        errorMessage.value = e.message ?: "Error loading reviews"
+                    }
+                }
+                
+                // Safely render the screen
+                UserReviewsScreen(
+                    onNavigateBack = {
+                        navController.popBackStack()
+                    },
+                    onNavigateToMovie = { movieId ->
+                        try {
+                            navController.navigate(Screens.movieDetailRoute(movieId.toString()))
+                        } catch (e: Exception) {
+                            android.util.Log.e("NavGraph", "Navigation error: ${e.message}", e)
+                            // Just pop back on error
+                            navController.popBackStack()
+                        }
+                    },
+                    userId = userId
+                )
+            }
         }
     }
 }

@@ -17,6 +17,14 @@ interface MovieReviewApiService {
         @Query("size") size: Int = 10
     ): MovieReviewResponse
     
+    // Get reviews for a specific user by their ID
+    @GET("api/reviews/user/{userId}")
+    suspend fun getUserReviewsByUserId(
+        @Path("userId") userId: String,
+        @Query("page") page: Int = 0,
+        @Query("size") size: Int = 10
+    ): MovieReviewResponse
+    
     // Get reviews for a specific movie
     @GET("api/reviews/movie/{tmdbMovieId}")
     suspend fun getMovieReviews(
@@ -24,7 +32,7 @@ interface MovieReviewApiService {
         @Query("page") page: Int = 0,
         @Query("size") size: Int = 10
     ): MovieReviewResponse
-    \
+    
     // Get a specific review by ID
     @GET("api/reviews/{reviewId}")
     suspend fun getReviewById(

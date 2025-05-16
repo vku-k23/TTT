@@ -74,6 +74,7 @@ import com.ttt.cinevibe.ui.theme.NetflixRed
 import com.ttt.cinevibe.ui.theme.White
 import androidx.navigation.NavHostController
 import com.ttt.cinevibe.presentation.navigation.Screens
+import androidx.compose.ui.platform.LocalContext
 
 @Composable
 fun ProfileScreen(
@@ -83,9 +84,11 @@ fun ProfileScreen(
     onNavigateToEditProfile: () -> Unit = {},
     onNavigateToFollowers: () -> Unit = {},  // New navigation parameter
     onNavigateToFollowing: () -> Unit = {},  // New navigation parameter
+    onNavigateToUserReviews: () -> Unit = {},  // New parameter for navigating to user reviews
 ) {
     val userProfileState by profileViewModel.userProfileState.collectAsState()
     val scrollState = rememberScrollState()
+    val context = LocalContext.current
 
     // Quản lý trạng thái hiển thị xem trước avatar
     var showAvatarPreview by remember { mutableStateOf(false) }
@@ -281,7 +284,21 @@ fun ProfileScreen(
                     ) {
                         StatItem(
                             value = user?.reviewCount?.toString() ?: "0",
-                            label = "Reviews"
+                            label = "Reviews",
+                            onClick = { 
+                                try {
+                                    onNavigateToUserReviews()
+                                } catch (e: Exception) {
+                                    // Log the error
+                                    android.util.Log.e("ProfileScreen", "Error navigating to reviews: ${e.message}", e)
+                                    // Show a toast to inform the user
+                                    android.widget.Toast.makeText(
+                                        context,
+                                        "Unable to open reviews. Please try again.",
+                                        android.widget.Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            }
                         )
 
                         StatItem(

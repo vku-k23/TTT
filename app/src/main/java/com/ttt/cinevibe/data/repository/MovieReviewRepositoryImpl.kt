@@ -34,6 +34,23 @@ class MovieReviewRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun getUserReviewsByUserId(userId: String, page: Int, size: Int): Flow<Resource<List<MovieReview>>> = flow {
+        emit(Resource.Loading())
+        try {
+            val response = movieReviewApiService.getUserReviewsByUserId(userId, page, size)
+            
+            // Convert DTOs to domain models
+            val reviews = response.content.map { dto ->
+                android.util.Log.d("MovieReviewRepo", "User ${userId} Review ${dto.id} - Content: ${dto.content}, ReviewText: ${dto.reviewText}")
+                dto.toMovieReview()
+            }
+            
+            emit(Resource.Success(reviews))
+        } catch (e: Exception) {
+            emit(Resource.Error(e.localizedMessage ?: "Error fetching reviews for user $userId"))
+        }
+    }
+
     override suspend fun getMovieReviews(tmdbMovieId: Long, page: Int, size: Int): Flow<Resource<List<MovieReview>>> = flow {
         emit(Resource.Loading())
         try {

@@ -187,6 +187,76 @@ class MovieReviewViewModel @Inject constructor(
         }
     }
     
+    // Function to load another user's reviews by their userId
+    fun getUserReviewsByUserId(userId: String, refresh: Boolean = false) {
+        // Don't load more if we're already loading or if we've reached the end
+        if (isLoadingUserReviews && !refresh) {
+            return
+        }
+        
+        if (!hasMoreUserReviews && !refresh) {
+            return
+        }
+        
+        if (refresh) {
+            currentUserReviewPage = 0
+            hasMoreUserReviews = true
+            _userReviewsState.value = MovieReviewsState.Initial
+        }
+        
+        isLoadingUserReviews = true
+        
+        viewModelScope.launch {
+            reviewRepository.getUserReviewsByUserId(userId, currentUserReviewPage, pageSize)
+                .collectLatest { result ->
+                    when (result) {
+                        is Resource.Loading -> {
+                            if (currentUserReviewPage == 0) {
+                                _userReviewsState.value = MovieReviewsState.Loading
+                            } else {
+                                _userReviewsState.value = MovieReviewsState.LoadingMore(
+                                    (_userReviewsState.value as? MovieReviewsState.Success)?.reviews ?: emptyList()
+                                )
+                            }
+                        }
+                        is Resource.Success -> {
+                            isLoadingUserReviews = false
+                            
+                            val newReviews = result.data ?: emptyList()
+                            
+                            // Check if we've reached the end
+                            if (newReviews.size < pageSize) {
+                                hasMoreUserReviews = false
+                            }
+                            
+                            val currentReviews = if (currentUserReviewPage > 0 && _userReviewsState.value is MovieReviewsState.Success) {
+                                (_userReviewsState.value as MovieReviewsState.Success).reviews
+                            } else {
+                                emptyList()
+                            }
+                            
+                            val updatedReviews = if (currentUserReviewPage == 0) {
+                                newReviews
+                            } else {
+                                currentReviews + newReviews
+                            }
+                            
+                            _userReviewsState.value = MovieReviewsState.Success(updatedReviews)
+                            
+                            // Increment page for next load only if we have more to load
+                            if (newReviews.size >= pageSize) {
+                                currentUserReviewPage++
+                            }
+                        }
+                        is Resource.Error -> {
+                            isLoadingUserReviews = false
+                            _userReviewsState.value = MovieReviewsState.Error(result.message ?: "Unknown error")
+                        }
+                    }
+                }
+        }
+    }
+    
     // Function to create a new review
     fun createReview(tmdbMovieId: Long, rating: Float, content: String, movieTitle: String, containsSpoilers: Boolean = false) {
         viewModelScope.launch {
