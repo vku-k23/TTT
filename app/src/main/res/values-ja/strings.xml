@@ -8,7 +8,11 @@
     <string name="search">検索</string>
     <string name="profile">プロフィール</string>
     <string name="back">戻る</string>
-    
+
+    <string name="display_name">表示名</string>
+    <string name="similar_movies_description">視聴履歴に基づくおすすめ</string>
+    <string name="discover_trending_content">話題のディスカッションや人気レビューをチェックしよう</string>
+
     <!-- Authentication -->
     <string name="login">ログイン</string>
     <string name="register">登録</string>

@@ -31,7 +31,11 @@
     <string name="reset_link_sent_to_email">Un lien de réinitialisation du mot de passe a été envoyé à %1$s</string>
     <string name="check_inbox_instructions">Veuillez vérifier votre boîte de réception et suivre les instructions pour réinitialiser votre mot de passe.</string>
     <string name="back_to_login">Retour à la connexion</string>
-    
+
+    <string name="display_name">Nom affiché</string>
+    <string name="similar_movies_description">Basé sur ce que vous avez regardé</string>
+    <string name="discover_trending_content">Restez informé des discussions tendance et des avis populaires</string>
+
     <!-- Profile -->
     <string name="general_setting">Paramètres généraux</string>
     <string name="account_information">Informations du compte</string>

@@ -8,7 +8,11 @@
     <string name="search">Tìm kiếm</string>
     <string name="profile">Hồ sơ</string>
     <string name="back">Quay lại</string>
-    
+
+    <string name="display_name">Tên hiển thị</string>
+    <string name="similar_movies_description">Dựa trên những gì bạn đã xem</string>
+    <string name="discover_trending_content">Cập nhật các thảo luận thịnh hành và đánh giá phổ biến</string>
+
     <!-- Authentication -->
     <string name="login">Đăng nhập</string>
     <string name="register">Đăng ký</string>

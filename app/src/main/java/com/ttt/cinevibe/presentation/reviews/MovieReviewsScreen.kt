@@ -22,6 +22,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.ttt.cinevibe.domain.model.MovieReview
 import com.ttt.cinevibe.presentation.reviews.components.ReviewEditor
 import com.ttt.cinevibe.presentation.reviews.components.ReviewItem
+import com.ttt.cinevibe.ui.theme.NetflixRed
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
@@ -138,7 +139,8 @@ fun MovieReviewsScreen(
             if (hasReviewedState is HasReviewedState.Success && 
                 !(hasReviewedState as HasReviewedState.Success).hasReviewed) {
                 FloatingActionButton(
-                    onClick = { showAddReviewDialog = true }
+                    onClick = { showAddReviewDialog = true },
+                    containerColor = NetflixRed
                 ) {
                     Icon(
                         imageVector = Icons.Default.Add,
