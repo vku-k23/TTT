@@ -340,4 +340,49 @@ class MovieReviewRepositoryImpl @Inject constructor(
             android.util.Log.e("MovieReviewRepo", "Error in getUserReviewForMovie: ${e.message}", e)
         }
     }
+
+    override suspend fun getFollowingReviews(page: Int, size: Int): Flow<Resource<List<MovieReview>>> = flow {
+        emit(Resource.Loading())
+        try {
+            val response = movieReviewApiService.getFollowingReviews(page, size)
+            val reviews = response.content.map { dto -> dto.toMovieReview() }
+            emit(Resource.Success(reviews))
+        } catch (e: HttpException) {
+            emit(Resource.Error(e.message ?: "HTTP error occurred"))
+        } catch (e: IOException) {
+            emit(Resource.Error("Network error. Please check your connection."))
+        } catch (e: Exception) {
+            emit(Resource.Error("An unexpected error occurred: ${e.message}"))
+        }
+    }
+    
+    override suspend fun getPopularReviews(page: Int, size: Int): Flow<Resource<List<MovieReview>>> = flow {
+        emit(Resource.Loading())
+        try {
+            val response = movieReviewApiService.getPopularReviews(page, size)
+            val reviews = response.content.map { dto -> dto.toMovieReview() }
+            emit(Resource.Success(reviews))
+        } catch (e: HttpException) {
+            emit(Resource.Error(e.message ?: "HTTP error occurred"))
+        } catch (e: IOException) {
+            emit(Resource.Error("Network error. Please check your connection."))
+        } catch (e: Exception) {
+            emit(Resource.Error("An unexpected error occurred: ${e.message}"))
+        }
+    }
+    
+    override suspend fun getTrendingReviews(page: Int, size: Int): Flow<Resource<List<MovieReview>>> = flow {
+        emit(Resource.Loading())
+        try {
+            val response = movieReviewApiService.getTrendingReviews(page, size)
+            val reviews = response.content.map { dto -> dto.toMovieReview() }
+            emit(Resource.Success(reviews))
+        } catch (e: HttpException) {
+            emit(Resource.Error(e.message ?: "HTTP error occurred"))
+        } catch (e: IOException) {
+            emit(Resource.Error("Network error. Please check your connection."))
+        } catch (e: Exception) {
+            emit(Resource.Error("An unexpected error occurred: ${e.message}"))
+        }
+    }
 }

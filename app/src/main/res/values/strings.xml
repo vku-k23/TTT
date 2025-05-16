@@ -224,6 +224,7 @@
     <string name="popular_lists">Popular Lists</string>
     <string name="following_desc">Reviews and activities from people you follow</string>
     <string name="discover_desc">Discover popular reviews and activities</string>
+    <string name="discover_trending_content">Stay updated with trending discussions and popular reviews</string>
     <string name="movie_reviews_desc">See all movie reviews</string>
     <string name="lists_desc">Movie lists shared by users</string>
     <string name="create_first_list">Create your first list</string>

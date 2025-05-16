@@ -29,6 +29,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.ttt.cinevibe.R
 import com.ttt.cinevibe.ui.theme.Black
@@ -47,64 +48,61 @@ enum class FeedTab(val route: String) {
 @Composable
 fun FeedScreen(
     viewModel: FeedViewModel = hiltViewModel(),
-    onNavigateToMovieDetails: (Int) -> Unit = {}
+    onMovieClick: (Int) -> Unit = {}
 ) {
     var selectedTabIndex by remember { mutableIntStateOf(0) }
-    
     val tabs = listOf(
-        FeedTab.FOLLOWING to stringResource(R.string.following),
-        FeedTab.DISCOVER to stringResource(R.string.discover),
-        FeedTab.MOVIE_REVIEWS to stringResource(R.string.movie_reviews),
-        FeedTab.LISTS to stringResource(R.string.lists)
+        stringResource(R.string.following),
+        stringResource(R.string.discover)
     )
-    
+
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Black)
+            .background(color = Black)
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Black)
+            modifier = Modifier.fillMaxSize()
         ) {
-            
-            // Tabs
+            // Tab row
             TabRow(
                 selectedTabIndex = selectedTabIndex,
                 containerColor = Black,
                 contentColor = White,
+                divider = {
+                    androidx.compose.material3.Divider(
+                        color = LightGray.copy(alpha = 0.2f),
+                        thickness = 1.dp
+                    )
+                },
                 indicator = { tabPositions ->
-                    TabRowDefaults.Indicator(
-                        Modifier
-                            .clip(androidx.compose.foundation.shape.RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp)),
-                        height = 3.dp,
+                    androidx.compose.material3.TabRowDefaults.Indicator(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        height = 2.dp,
                         color = Color.Transparent
                     )
                 }
             ) {
-                tabs.forEachIndexed { index, (_, title) ->
+                tabs.forEachIndexed { index, title ->
                     Tab(
                         selected = selectedTabIndex == index,
                         onClick = { selectedTabIndex = index },
-                        text = { 
+                        text = {
                             Text(
                                 text = title,
                                 color = if (selectedTabIndex == index) White else LightGray,
-                                fontWeight = if (selectedTabIndex == index) FontWeight.Bold else FontWeight.Normal,
-                                textAlign = TextAlign.Center,
+                                fontSize = 16.sp,
+                                fontWeight = if (selectedTabIndex == index) FontWeight.Bold else FontWeight.Normal
                             )
                         }
                     )
                 }
             }
-            
+
             // Content based on selected tab
             when (selectedTabIndex) {
-                0 -> FollowingScreen(onMovieClick = onNavigateToMovieDetails)
-                1 -> DiscoverScreen(onMovieClick = onNavigateToMovieDetails)
-                2 -> MovieReviewsScreen(onMovieClick = onNavigateToMovieDetails)
-                3 -> ListsScreen(onMovieClick = onNavigateToMovieDetails)
+                0 -> FollowingScreen(viewModel = viewModel, onMovieClick = onMovieClick)
+                1 -> DiscoverScreen(viewModel = viewModel, onMovieClick = onMovieClick)
             }
         }
     }

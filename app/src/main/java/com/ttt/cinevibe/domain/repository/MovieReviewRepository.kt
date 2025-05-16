@@ -24,4 +24,11 @@ interface MovieReviewRepository {
     suspend fun hasUserReviewedMovie(tmdbMovieId: Long): Flow<Resource<Boolean>>
     
     suspend fun getUserReviewForMovie(tmdbMovieId: Long): Flow<Resource<MovieReview>>
+    
+    // New methods for feed functionality
+    suspend fun getFollowingReviews(page: Int, size: Int): Flow<Resource<List<MovieReview>>>
+    
+    suspend fun getPopularReviews(page: Int, size: Int): Flow<Resource<List<MovieReview>>>
+    
+    suspend fun getTrendingReviews(page: Int, size: Int): Flow<Resource<List<MovieReview>>>
 }

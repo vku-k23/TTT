@@ -2,19 +2,25 @@ package com.ttt.cinevibe.presentation.feed
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.ttt.cinevibe.domain.model.Movie
-import com.ttt.cinevibe.domain.model.Review
+import com.ttt.cinevibe.data.repository.UserConnectionRepository
 import com.ttt.cinevibe.domain.model.MovieList
+import com.ttt.cinevibe.domain.model.MovieReview
+import com.ttt.cinevibe.domain.model.Resource
+import com.ttt.cinevibe.domain.model.Review
 import com.ttt.cinevibe.domain.model.User
+import com.ttt.cinevibe.domain.repository.MovieReviewRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class FeedViewModel @Inject constructor(
-    // Add repositories and use cases here as needed
+    private val userConnectionRepository: UserConnectionRepository,
+    private val movieReviewRepository: MovieReviewRepository
 ) : ViewModel() {
 
     // Following tab state
@@ -57,9 +63,10 @@ class FeedViewModel @Inject constructor(
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                // In a real app, these would be API calls
-                // For now, we'll use mock data
-                loadMockData()
+                // In real implementation, we'll load data from repositories
+                loadFollowingData()
+                loadDiscoverData()
+                loadMockListsData() // Keep mock data for lists until API is ready
                 _error.value = null
             } catch (e: Exception) {
                 _error.value = e.message
@@ -69,20 +76,141 @@ class FeedViewModel @Inject constructor(
         }
     }
     
-    private fun loadMockData() {
-        // For demo purposes, create mock data
-        // Following tab data
-        _followingReviews.value = createMockReviews(5)
-        _followingUsers.value = createMockUsers(8)
-        
-        // Discover tab data
-        _popularReviews.value = createMockReviews(10)
-        _trendingDiscussions.value = createMockReviews(6)
-        
-        // Movie Reviews tab data
-        _movieReviews.value = createMockReviews(15)
-        
-        // Lists tab data
+    private suspend fun loadFollowingData() {
+        viewModelScope.launch {
+            try {
+                // Load following users
+                val followingDeferred = async {
+                    userConnectionRepository.getFollowing(0, 20).collectLatest { result ->
+                        when (result) {
+                            is Resource.Success -> {
+                                val users = result.data?.content?.map { connection ->
+                                    User(
+                                        id = connection.id.toInt(),
+                                        username = connection.followingUid,
+                                        displayName = connection.followingName,
+                                        avatar = connection.followingProfileImageUrl ?: "",
+                                        bio = "",
+                                        followersCount = 0,
+                                        followingCount = 0
+                                    )
+                                } ?: emptyList()
+                                _followingUsers.value = users
+                            }
+                            is Resource.Error -> {
+                                _error.value = result.message ?: "Error loading following users"
+                            }
+                            else -> {}
+                        }
+                    }
+                }
+                
+                // Load reviews from following users
+                val reviewsDeferred = async {
+                    movieReviewRepository.getFollowingReviews(0, 20).collectLatest { result ->
+                        when (result) {
+                            is Resource.Success -> {
+                                val reviews = result.data?.map { movieReview ->
+                                    convertToReview(movieReview)
+                                } ?: emptyList()
+                                _followingReviews.value = reviews
+                            }
+                            is Resource.Error -> {
+                                _error.value = result.message ?: "Error loading following reviews"
+                            }
+                            else -> {}
+                        }
+                    }
+                }
+                
+                followingDeferred.await()
+                reviewsDeferred.await()
+            } catch (e: Exception) {
+                _error.value = "Error: ${e.message}"
+                // Fall back to mock data if API call fails
+                _followingUsers.value = createMockUsers(8)
+                _followingReviews.value = createMockReviews(5)
+            }
+        }
+    }
+    
+    private suspend fun loadDiscoverData() {
+        viewModelScope.launch {
+            try {
+                // Load popular reviews
+                val popularDeferred = async {
+                    movieReviewRepository.getPopularReviews(0, 10).collectLatest { result ->
+                        when (result) {
+                            is Resource.Success -> {
+                                val reviews = result.data?.map { movieReview ->
+                                    convertToReview(movieReview)
+                                } ?: emptyList()
+                                _popularReviews.value = reviews
+                            }
+                            is Resource.Error -> {
+                                _error.value = result.message ?: "Error loading popular reviews"
+                            }
+                            else -> {}
+                        }
+                    }
+                }
+                
+                // Load trending discussions
+                val trendingDeferred = async {
+                    movieReviewRepository.getTrendingReviews(0, 6).collectLatest { result ->
+                        when (result) {
+                            is Resource.Success -> {
+                                val reviews = result.data?.map { movieReview ->
+                                    convertToReview(movieReview)
+                                } ?: emptyList()
+                                _trendingDiscussions.value = reviews
+                            }
+                            is Resource.Error -> {
+                                _error.value = result.message ?: "Error loading trending discussions"
+                            }
+                            else -> {}
+                        }
+                    }
+                }
+                
+                popularDeferred.await()
+                trendingDeferred.await()
+            } catch (e: Exception) {
+                _error.value = "Error: ${e.message}"
+                // Fall back to mock data if API call fails
+                _popularReviews.value = createMockReviews(10)
+                _trendingDiscussions.value = createMockReviews(6)
+            }
+        }
+    }
+    
+    private fun convertToReview(movieReview: MovieReview): Review {
+        return Review(
+            id = movieReview.id,
+            userUid = movieReview.userProfile.uid,
+            userName = movieReview.userProfile.displayName,
+            userProfileImageUrl = movieReview.userProfile.avatarUrl,
+            tmdbMovieId = movieReview.tmdbMovieId,
+            movieTitle = "Movie Title", // This field might need to be sourced elsewhere
+            rating = movieReview.rating,
+            reviewText = movieReview.content,
+            containsSpoilers = false, // Default to false if not provided
+            likesCount = movieReview.likeCount,
+            commentCount = 0, // This field might not be directly available
+            createdAt = movieReview.createdAt,
+            updatedAt = movieReview.updatedAt
+        )
+    }
+    
+    // Method to refresh data
+    fun refreshData() {
+        viewModelScope.launch {
+            loadInitialData()
+        }
+    }
+    
+    private fun loadMockListsData() {
+        // For now, we'll use mock data for the lists
         _popularLists.value = createMockLists(8)
         _userCreatedLists.value = createMockLists(4)
     }
@@ -93,20 +221,27 @@ class FeedViewModel @Inject constructor(
         val movieTitles = listOf("Dune: Part Two", "Joker: Folie à Deux", "Avengers: Secret Wars", 
             "The Batman 2", "Furiosa", "Inside Out 2", "Deadpool & Wolverine", "Gladiator II")
         
+        val dateFormatter = java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME
+        val now = java.time.LocalDateTime.now()
+        
         repeat(count) { i ->
+            val daysAgo = java.time.LocalDateTime.now().minusDays(i.toLong())
+            
             reviews.add(
                 Review(
-                    id = i,
-                    userId = i % 10,
-                    userName = "User${i % 10}",
-                    userAvatar = "https://i.pravatar.cc/150?img=${i % 10}",
-                    movieId = i % 8,
+                    id = i.toLong(),
+                    userUid = "user$i",
+                    userName = "User $i",
+                    userProfileImageUrl = "https://i.pravatar.cc/150?img=$i",
+                    tmdbMovieId = (i % 8).toLong(),
                     movieTitle = movieTitles[i % 8],
                     rating = 3.5f + (i % 5) * 0.5f,
-                    content = "This is a review for ${movieTitles[i % 8]}. The film was ${if (i % 2 == 0) "amazing" else "disappointing"} and I ${if (i % 2 == 0) "highly recommend it" else "don't recommend it"}.",
-                    likes = i * 5,
-                    comments = i * 2,
-                    timestamp = System.currentTimeMillis() - (i * 86400000) // days ago
+                    reviewText = "This is a review for ${movieTitles[i % 8]}. The film was ${if (i % 2 == 0) "amazing" else "disappointing"} and I ${if (i % 2 == 0) "highly recommend it" else "don't recommend it"}.",
+                    containsSpoilers = i % 3 == 0,
+                    likesCount = i * 5,
+                    commentCount = i * 2,
+                    createdAt = daysAgo.format(dateFormatter),
+                    updatedAt = if (i % 2 == 0) daysAgo.plusHours(1).format(dateFormatter) else null
                 )
             )
         }
