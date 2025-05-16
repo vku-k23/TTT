@@ -439,7 +439,9 @@ class MovieDetailViewModel @Inject constructor(
     fun createReview(movieId: Long, rating: Int, content: String) {
         viewModelScope.launch {
             _reviewOperationState.value = ReviewOperationState.Loading
-              movieReviewRepository.createReview(
+            android.util.Log.d("MovieDetailViewModel", "Creating review: movieId=$movieId, rating=$rating")
+            
+            movieReviewRepository.createReview(
                 tmdbMovieId = movieId, 
                 rating = rating.toFloat(), 
                 content = content,
@@ -450,14 +452,32 @@ class MovieDetailViewModel @Inject constructor(
                     when (result) {
                         is Resource.Loading -> {
                             // Already set above
+                            android.util.Log.d("MovieDetailViewModel", "Review creation loading...")
                         }
                         is Resource.Success -> {
+                            android.util.Log.d("MovieDetailViewModel", "Review creation successful")
                             _reviewOperationState.value = ReviewOperationState.Success
                             // Update has reviewed state
                             _hasReviewedState.value = HasReviewedState.Success(true)
+                            
+                            // Update the userReview value with the created review
+                            if (result.data != null) {
+                                _userReview.value = result.data
+                                android.util.Log.d("MovieDetailViewModel", "Review created successfully with ID: ${result.data.id}")
+                            } else {
+                                // If we don't have the review data, fetch it
+                                android.util.Log.d("MovieDetailViewModel", "No review data returned, fetching review")
+                                fetchUserReview(movieId)
+                            }
                         }
                         is Resource.Error -> {
+                            android.util.Log.e("MovieDetailViewModel", "Review creation failed: ${result.message}")
                             _reviewOperationState.value = ReviewOperationState.Error(result.message ?: "Failed to create review")
+                            // If it's a duplicate review error, try to fetch the existing review
+                            if (result.message?.contains("already reviewed", ignoreCase = true) == true) {
+                                android.util.Log.d("MovieDetailViewModel", "This is a duplicate review, fetching existing review")
+                                fetchUserReview(movieId)
+                            }
                         }
                     }
                 }
@@ -481,13 +501,26 @@ class MovieDetailViewModel @Inject constructor(
                         }
                         is Resource.Success -> {
                             _reviewOperationState.value = ReviewOperationState.Success
+                            
                             // Update the userReview value with the updated review
-                            _userReview.value = result.data
+                            if (result.data != null) {
+                                _userReview.value = result.data
+                                android.util.Log.d("MovieDetailViewModel", "Review updated successfully: ID=${result.data.id}")
+                            } else {
+                                // If data is null but operation was successful, refresh the review data
+                                val movieId = _movieState.value.movie?.id?.toLong() ?: 0
+                                if (movieId > 0) {
+                                    fetchUserReview(movieId)
+                                } else {
+                                    android.util.Log.w("MovieDetailViewModel", "Cannot fetch updated review - movie ID not available")
+                                }
+                            }
                         }
                         is Resource.Error -> {
                             _reviewOperationState.value = ReviewOperationState.Error(
                                 result.message ?: "Failed to update review"
                             )
+                            android.util.Log.e("MovieDetailViewModel", "Failed to update review: ${result.message}")
                         }
                     }
                 }
@@ -588,10 +621,20 @@ class MovieDetailViewModel @Inject constructor(
                         }
                         is Resource.Success -> {
                             _userReview.value = result.data
+                            // Also update the hasReviewedState if we got a valid review
+                            if (result.data != null) {
+                                _hasReviewedState.value = HasReviewedState.Success(true)
+                            }
                         }
                         is Resource.Error -> {
-                            _userReview.value = null
                             android.util.Log.e("MovieDetailViewModel", "Error fetching user review: ${result.message}")
+                            // Only set to null if we're sure it doesn't exist (404)
+                            if (result.message?.contains("haven't reviewed", ignoreCase = true) == true || 
+                                result.message?.contains("404", ignoreCase = true) == true) {
+                                _userReview.value = null
+                                _hasReviewedState.value = HasReviewedState.Success(false)
+                            }
+                            // Otherwise, keep previous state
                         }
                     }
                 }
