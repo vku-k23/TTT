@@ -28,4 +28,5 @@ object NavDestinations {
     const val MOVIE_REVIEWS_ROUTE = "movie_reviews"
     const val MOVIE_REVIEWS_WITH_ARGS = "$MOVIE_REVIEWS_ROUTE/{movieId}/{movieTitle}"
     const val USER_REVIEWS_ROUTE = "user_reviews"
+    const val USER_REVIEWS_WITH_ARGS = "$USER_REVIEWS_ROUTE/{userId}"
 }

@@ -11,9 +11,30 @@ import androidx.navigation.navigation
 import com.ttt.cinevibe.data.remote.models.UserResponse
 import com.ttt.cinevibe.domain.model.Resource
 import com.ttt.cinevibe.presentation.navigation.Screens
+import com.ttt.cinevibe.presentation.reviews.UserReviewsScreen
 import com.ttt.cinevibe.presentation.userProfile.connections.FollowersScreen
 import com.ttt.cinevibe.presentation.userProfile.connections.FollowingScreen
 import com.ttt.cinevibe.presentation.userProfile.viewmodel.UserConnectionViewModel
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import android.util.Log
+import com.ttt.cinevibe.utils.KnoxCompatUtil
 
 // Profile graph route constant
 const val PROFILE_GRAPH_ROUTE = "profile_graph"
@@ -31,6 +52,7 @@ private object ProfileScreens {
     const val USER_AGREEMENT = "user_agreement"
     const val FOLLOWERS = "my_followers"  // New route for current user's followers
     const val FOLLOWING = "my_following"  // New route for current user's following
+    const val USER_REVIEWS = "my_reviews" // New route for current user's reviews
 }
 
 fun NavGraphBuilder.profileNavGraph(
@@ -52,6 +74,7 @@ fun NavGraphBuilder.profileNavGraph(
                 onNavigateToEditProfile = { navController.navigate(ProfileScreens.EDIT_PROFILE) },
                 onNavigateToFollowers = { navController.navigate(ProfileScreens.FOLLOWERS) },
                 onNavigateToFollowing = { navController.navigate(ProfileScreens.FOLLOWING) },
+                onNavigateToUserReviews = { navController.navigate(ProfileScreens.USER_REVIEWS) },
             )
         }
 
@@ -167,6 +190,75 @@ fun NavGraphBuilder.profileNavGraph(
             } else {
                 // Show loading or error state
                 CircularProgressIndicator()
+            }
+        }
+
+        // My Reviews screen
+        composable(route = ProfileScreens.USER_REVIEWS) {
+            val viewModel = hiltViewModel<UserConnectionViewModel>()
+            val currentUserState = viewModel.getCurrentUser()
+            
+            // Use a safer approach with state to handle errors
+            val errorState = remember { mutableStateOf(false) }
+            val errorMessage = remember { mutableStateOf("") }
+            val context = LocalContext.current
+            
+            if (errorState.value) {
+                // Show error UI
+                Column(
+                    modifier = Modifier.fillMaxSize().padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = "Unable to open reviews",
+                        style = MaterialTheme.typography.titleLarge,
+                        textAlign = TextAlign.Center
+                    )
+                    
+                    Spacer(modifier = Modifier.height(16.dp))
+                    
+                    Text(
+                        text = errorMessage.value,
+                        style = MaterialTheme.typography.bodyMedium,
+                        textAlign = TextAlign.Center
+                    )
+                    
+                    Spacer(modifier = Modifier.height(16.dp))
+                    
+                    Button(onClick = { navController.popBackStack() }) {
+                        Text("Go Back")
+                    }
+                }
+            } else {
+                if (currentUserState is Resource.Success<UserResponse> && currentUserState.data?.firebaseUid != null) {
+                    // We have the current user ID - show reviews screen
+                    UserReviewsScreen(
+                        userId = currentUserState.data.firebaseUid,
+                        onNavigateBack = { navController.popBackStack() },
+                        onNavigateToMovie = { movieId ->
+                            try {
+                                navController.navigate(Screens.movieDetailRoute(movieId.toString()))
+                            } catch (e: Exception) {
+                                // Log navigation error
+                                Log.e("profileNavGraph", "Navigation error: ${e.message}", e)
+                                errorState.value = true
+                                errorMessage.value = "Unable to navigate to movie details"
+                            }
+                        }
+                    )
+                    
+                    // Run Knox compatibility check in the background
+                    LaunchedEffect(Unit) {
+                        KnoxCompatUtil.safeKnoxOperation(context) {
+                            // Only log the operation, don't prevent showing reviews
+                            Log.d("profileNavGraph", "Performing review-related operations with Knox compatibility")
+                        }
+                    }
+                } else {
+                    // Show loading or error state
+                    CircularProgressIndicator()
+                }
             }
         }
     }

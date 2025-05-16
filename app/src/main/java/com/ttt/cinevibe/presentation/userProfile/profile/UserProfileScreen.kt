@@ -74,6 +74,7 @@ import com.ttt.cinevibe.ui.theme.NetflixRed
 import com.ttt.cinevibe.ui.theme.White
 import com.ttt.cinevibe.presentation.userProfile.viewmodel.UserConnectionViewModel
 import kotlinx.coroutines.flow.collectLatest
+import androidx.compose.ui.platform.LocalContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -82,7 +83,8 @@ fun UserProfileScreen(
     onNavigateBack: () -> Unit,
     onNavigateToFollowers: (String) -> Unit = {},
     onNavigateToFollowing: (String) -> Unit = {},
-    onNavigateToPendingRequests: (String) -> Unit = {}, // Thêm tham số mới cho điều hướng đến yêu cầu theo dõi
+    onNavigateToPendingRequests: (String) -> Unit = {},
+    onNavigateToUserReviews: (String) -> Unit = {},
     onShareProfile: (userId: String) -> Unit = {},
     onMessageUser: (userId: String) -> Unit = {},
     viewModel: UserRecommendationViewModel = hiltViewModel(),
@@ -99,6 +101,7 @@ fun UserProfileScreen(
     val scrollState = rememberScrollState()
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
     
     // Track connection events
     LaunchedEffect(Unit) {
@@ -234,7 +237,7 @@ fun UserProfileScreen(
 
                         Spacer(modifier = Modifier.height(8.dp))
 
-                        // Stats with clickable followers/following
+                        // User Stats Row
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth(),
@@ -252,7 +255,21 @@ fun UserProfileScreen(
                             ) {
                                 StatItem(
                                     value = userProfile.reviewCount?.toString() ?: "0",
-                                    label = "Reviews"
+                                    label = "Reviews",
+                                    onClick = { 
+                                        try {
+                                            onNavigateToUserReviews(userId) 
+                                        } catch (e: Exception) {
+                                            // Log the error
+                                            android.util.Log.e("UserProfileScreen", "Error navigating to reviews: ${e.message}", e)
+                                            // Show a toast to inform the user
+                                            android.widget.Toast.makeText(
+                                                context,
+                                                "Unable to open reviews. Please try again.",
+                                                android.widget.Toast.LENGTH_SHORT
+                                            ).show()
+                                        }
+                                    }
                                 )
 
                                 StatItem(

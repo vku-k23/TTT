@@ -29,12 +29,14 @@ import androidx.compose.ui.platform.LocalContext
 fun UserReviewsScreen(
     onNavigateBack: () -> Unit,
     onNavigateToMovie: (Long) -> Unit,
+    userId: String? = null,
     viewModel: MovieReviewViewModel = hiltViewModel()
 ) {
     val userReviewsState by viewModel.userReviewsState.collectAsState()
     val reviewOperationState by viewModel.reviewOperationState.collectAsState()
     
     val currentUser = FirebaseAuth.getInstance().currentUser
+    val isCurrentUserProfile = userId == null || userId == currentUser?.uid
     val scope = rememberCoroutineScope()
     val lazyListState = rememberLazyListState()
     val context = LocalContext.current
@@ -49,9 +51,15 @@ fun UserReviewsScreen(
     var showErrorDialog by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
     
-    // Load user reviews
-    LaunchedEffect(Unit) {
-        viewModel.getUserReviews(refresh = true)
+    // Load user reviews based on userId
+    LaunchedEffect(userId) {
+        if (userId != null && userId != currentUser?.uid) {
+            // Get another user's reviews
+            viewModel.getUserReviewsByUserId(userId, true)
+        } else {
+            // Get current user's reviews
+            viewModel.getUserReviews(refresh = true)
+        }
     }
     
     // Handle operation state changes
@@ -62,13 +70,21 @@ fun UserReviewsScreen(
                 
                 when (type) {
                     OperationType.UPDATE -> {
-                        viewModel.getUserReviews(refresh = true)
+                        if (isCurrentUserProfile) {
+                            viewModel.getUserReviews(refresh = true)
+                        } else if (userId != null) {
+                            viewModel.getUserReviewsByUserId(userId, true)
+                        }
                         // Always close the dialog after successful update
                         editingReview = null
                         Toast.makeText(context, "Review updated successfully", Toast.LENGTH_SHORT).show()
                     }
                     OperationType.DELETE -> {
-                        viewModel.getUserReviews(refresh = true)
+                        if (isCurrentUserProfile) {
+                            viewModel.getUserReviews(refresh = true)
+                        } else if (userId != null) {
+                            viewModel.getUserReviewsByUserId(userId, true)
+                        }
                         Toast.makeText(context, "Review deleted", Toast.LENGTH_SHORT).show()
                     }
                     else -> {}
@@ -106,7 +122,11 @@ fun UserReviewsScreen(
         }.collectLatest { shouldLoadMore ->
             if (shouldLoadMore) {
                 // Load more when we're 3 items from the end
-                viewModel.getUserReviews()
+                if (isCurrentUserProfile) {
+                    viewModel.getUserReviews()
+                } else if (userId != null) {
+                    viewModel.getUserReviewsByUserId(userId)
+                }
             }
         }
     }
@@ -114,7 +134,15 @@ fun UserReviewsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(text = "My Reviews") },
+                title = { 
+                    Text(
+                        text = if (isCurrentUserProfile) {
+                            "My Reviews"
+                        } else {
+                            "User's Reviews"
+                        }
+                    ) 
+                },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(

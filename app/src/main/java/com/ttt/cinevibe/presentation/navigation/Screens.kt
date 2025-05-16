@@ -27,6 +27,9 @@ object Screens {
     const val FOLLOWING_ROUTE = "following"
     const val PENDING_REQUESTS_ROUTE = "pending_requests"
     
+    // Reviews screen
+    const val USER_REVIEWS_ROUTE = "user_reviews"
+    
     // Recommendation screen
     const val USER_RECOMMENDATIONS_ROUTE = "user_recommendations"
     
@@ -49,6 +52,10 @@ object Screens {
     
     fun pendingRequestsRoute(userId: String): String {
         return "$PENDING_REQUESTS_ROUTE/$userId"
+    }
+    
+    fun userReviewsRoute(userId: String): String {
+        return "$USER_REVIEWS_ROUTE/$userId"
     }
     
     // Movie reviews navigation helpers
