@@ -1,5 +1,6 @@
 package com.ttt.cinevibe.presentation.reviews
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -21,6 +22,7 @@ import com.ttt.cinevibe.presentation.reviews.components.ReviewEditor
 import com.ttt.cinevibe.presentation.reviews.components.ReviewItem
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import androidx.compose.ui.platform.LocalContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -35,6 +37,7 @@ fun UserReviewsScreen(
     val currentUser = FirebaseAuth.getInstance().currentUser
     val scope = rememberCoroutineScope()
     val lazyListState = rememberLazyListState()
+    val context = LocalContext.current
     
     // Dialog states
     var editingReview by remember { mutableStateOf<MovieReview?>(null) }
@@ -60,10 +63,13 @@ fun UserReviewsScreen(
                 when (type) {
                     OperationType.UPDATE -> {
                         viewModel.getUserReviews(refresh = true)
+                        // Always close the dialog after successful update
                         editingReview = null
+                        Toast.makeText(context, "Review updated successfully", Toast.LENGTH_SHORT).show()
                     }
                     OperationType.DELETE -> {
                         viewModel.getUserReviews(refresh = true)
+                        Toast.makeText(context, "Review deleted", Toast.LENGTH_SHORT).show()
                     }
                     else -> {}
                 }

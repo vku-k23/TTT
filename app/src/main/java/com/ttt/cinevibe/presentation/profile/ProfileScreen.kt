@@ -90,9 +90,9 @@ fun ProfileScreen(
     // Quản lý trạng thái hiển thị xem trước avatar
     var showAvatarPreview by remember { mutableStateOf(false) }
 
-    // Refresh user data when screen is shown
+    // Refresh user data every time the screen is shown
     LaunchedEffect(Unit) {
-        profileViewModel.fetchCurrentUser()
+        profileViewModel.fetchCurrentUser(forceRefresh = true)
     }
 
     val user = (userProfileState as? Resource.Success)?.data

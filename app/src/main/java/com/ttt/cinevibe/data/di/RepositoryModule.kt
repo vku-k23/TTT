@@ -1,6 +1,7 @@
 package com.ttt.cinevibe.data.di
 
 import com.ttt.cinevibe.data.repository.*
+import com.ttt.cinevibe.domain.repository.CommentRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -28,10 +29,15 @@ abstract class RepositoryModule {
     abstract fun bindUserRecommendationRepository(
         userRecommendationRepositoryImpl: UserRecommendationRepositoryImpl
     ): UserRecommendationRepository
-    
-    @Binds
+      @Binds
     @Singleton
     abstract fun bindUserConnectionRepository(
         userConnectionRepositoryImpl: UserConnectionRepositoryImpl
     ): UserConnectionRepository
+    
+    @Binds
+    @Singleton
+    abstract fun bindCommentRepository(
+        commentRepositoryImpl: CommentRepositoryImpl
+    ): CommentRepository
 }

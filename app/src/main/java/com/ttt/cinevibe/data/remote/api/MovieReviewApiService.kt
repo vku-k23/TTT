@@ -24,7 +24,7 @@ interface MovieReviewApiService {
         @Query("page") page: Int = 0,
         @Query("size") size: Int = 10
     ): MovieReviewResponse
-    
+    \
     // Get a specific review by ID
     @GET("api/reviews/{reviewId}")
     suspend fun getReviewById(
@@ -71,4 +71,25 @@ interface MovieReviewApiService {
     suspend fun getUserReviewForMovie(
         @Path("tmdbMovieId") tmdbMovieId: Long
     ): ReviewApiResponse
+    
+    // Get reviews from users the authenticated user is following
+    @GET("api/reviews/following")
+    suspend fun getFollowingReviews(
+        @Query("page") page: Int = 0,
+        @Query("size") size: Int = 10
+    ): MovieReviewResponse
+    
+    // Get popular reviews across all users
+    @GET("api/reviews/popular")
+    suspend fun getPopularReviews(
+        @Query("page") page: Int = 0,
+        @Query("size") size: Int = 10
+    ): MovieReviewResponse
+    
+    // Get trending reviews (high engagement, recent)
+    @GET("api/reviews/trending")
+    suspend fun getTrendingReviews(
+        @Query("page") page: Int = 0,
+        @Query("size") size: Int = 10
+    ): MovieReviewResponse
 }

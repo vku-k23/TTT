@@ -1,5 +1,6 @@
 package com.ttt.cinevibe.presentation.reviews
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -64,12 +65,18 @@ fun MovieReviewsScreen(
                     OperationType.CREATE, OperationType.UPDATE -> {
                         viewModel.getMovieReviews(movieId, refresh = true)
                         viewModel.checkIfUserReviewedMovie(movieId)
-                        if (showAddReviewDialog) showAddReviewDialog = false
+                        // Always close the dialog after a successful operation
+                        showAddReviewDialog = false
                         editingReview = null
+                        
+                        // Show a toast to confirm the operation
+                        val message = if (type == OperationType.CREATE) "Review posted successfully" else "Review updated successfully"
+                        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                     }
                     OperationType.DELETE -> {
                         viewModel.getMovieReviews(movieId, refresh = true)
                         viewModel.checkIfUserReviewedMovie(movieId)
+                        Toast.makeText(context, "Review deleted", Toast.LENGTH_SHORT).show()
                     }
                     else -> {}
                 }
@@ -78,7 +85,7 @@ fun MovieReviewsScreen(
                 // Show error message
                 scope.launch {
                     val message = (reviewOperationState as ReviewOperationState.Error).message
-                    // You can show a snackbar or toast here with the error message
+                    Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                 }
             }
             else -> {}

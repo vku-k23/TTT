@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.auth.FirebaseAuth
 import com.ttt.cinevibe.data.manager.LanguageManager
 import com.ttt.cinevibe.data.remote.CloudinaryService
 import com.ttt.cinevibe.data.remote.models.UserProfileRequest
@@ -27,7 +28,8 @@ class ProfileViewModel @Inject constructor(
     private val languageManager: LanguageManager,
     private val userRepository: UserRepository,
     private val getAuthStatusUseCase: GetAuthStatusUseCase,
-    private val cloudinaryService: CloudinaryService
+    private val cloudinaryService: CloudinaryService,
+    private val firebaseAuth: FirebaseAuth
 ) : ViewModel() {
     
     // Settings state flows
@@ -71,9 +73,30 @@ class ProfileViewModel @Inject constructor(
     private val _avatarUploadState = MutableStateFlow<Resource<String>?>(null)
     val avatarUploadState: StateFlow<Resource<String>?> = _avatarUploadState
     
-    // Initialize by fetching current user data
+    // Firebase auth listener
+    private val authStateListener = FirebaseAuth.AuthStateListener { auth ->
+        // When auth state changes (login or logout), invalidate cache and reset profile state
+        if (auth.currentUser == null) {
+            android.util.Log.d("ProfileViewModel", "Auth state changed: user logged out, invalidating cache")
+            _userProfileState.value = Resource.Loading()
+            userRepository.invalidateCache()
+        } else if (_userProfileState.value !is Resource.Success) {
+            // If we're logged in but don't have user data, fetch it
+            android.util.Log.d("ProfileViewModel", "Auth state changed: user logged in, fetching user data")
+            fetchCurrentUser(true)
+        }
+    }
+    
+    // Initialize by fetching current user data and setting up auth listener
     init {
         fetchCurrentUser()
+        firebaseAuth.addAuthStateListener(authStateListener)
+    }
+    
+    override fun onCleared() {
+        super.onCleared()
+        // Remove the auth listener when viewmodel is cleared
+        firebaseAuth.removeAuthStateListener(authStateListener)
     }
     
     fun fetchCurrentUser(forceRefresh: Boolean = false) {

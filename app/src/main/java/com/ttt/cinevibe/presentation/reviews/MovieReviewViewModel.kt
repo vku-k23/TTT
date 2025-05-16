@@ -220,7 +220,22 @@ class MovieReviewViewModel @Inject constructor(
     fun updateReview(reviewId: Long, rating: Float, content: String, containsSpoilers: Boolean = false) {
         viewModelScope.launch {
             _reviewOperationState.value = ReviewOperationState.Loading
-            reviewRepository.updateReview(reviewId, rating, content, containsSpoilers)
+            
+            // Find the review to update so we can get its movie details
+            val reviewToUpdate = findReviewById(reviewId)
+            val tmdbMovieId = reviewToUpdate?.tmdbMovieId
+            val movieTitle = reviewToUpdate?.movieTitle
+            
+            android.util.Log.d("MovieReviewViewModel", "Updating review: id=$reviewId, movieId=$tmdbMovieId, title=$movieTitle")
+            
+            reviewRepository.updateReview(
+                reviewId = reviewId, 
+                rating = rating, 
+                content = content, 
+                containsSpoilers = containsSpoilers,
+                tmdbMovieId = tmdbMovieId,
+                movieTitle = movieTitle
+            )
                 .collectLatest { result ->
                     when (result) {
                         is Resource.Success -> {
@@ -232,6 +247,7 @@ class MovieReviewViewModel @Inject constructor(
                             resetOperationStateAfterDelay()
                         }
                         is Resource.Error -> {
+                            android.util.Log.e("MovieReviewViewModel", "Failed to update review: ${result.message}")
                             _reviewOperationState.value = ReviewOperationState.Error(
                                 result.message ?: "Failed to update review",
                                 OperationType.UPDATE
@@ -243,6 +259,25 @@ class MovieReviewViewModel @Inject constructor(
                     }
                 }
         }
+    }
+    
+    // Helper function to find a review by ID in the current state
+    private fun findReviewById(reviewId: Long): MovieReview? {
+        // First check movie reviews state
+        if (_movieReviewsState.value is MovieReviewsState.Success) {
+            val reviews = (_movieReviewsState.value as MovieReviewsState.Success).reviews
+            val review = reviews.find { it.id == reviewId }
+            if (review != null) return review
+        }
+        
+        // Then check user reviews state
+        if (_userReviewsState.value is MovieReviewsState.Success) {
+            val reviews = (_userReviewsState.value as MovieReviewsState.Success).reviews
+            val review = reviews.find { it.id == reviewId }
+            if (review != null) return review
+        }
+        
+        return null
     }
     
     // Function to delete a review

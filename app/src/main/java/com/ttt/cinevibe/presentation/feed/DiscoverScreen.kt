@@ -1,11 +1,11 @@
 package com.ttt.cinevibe.presentation.feed
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -74,30 +74,7 @@ fun DiscoverScreen(
                     )
                 }
 
-                // Popular Reviews section
-                item {
-                    Text(
-                        text = stringResource(R.string.popular_reviews),
-                        color = White,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                    )
-                }
-
-                items(popularReviews.take(5)) { review ->
-                    ReviewItem(
-                        review = review,
-                        onMovieClick = { onMovieClick(review.movieId) }
-                    )
-                    Divider(color = DarkGray.copy(alpha = 0.5f), thickness = 1.dp)
-                }
-
-                item {
-                    Spacer(modifier = Modifier.height(16.dp))
-                }
-
-                // Trending Discussions section
+                // Trending discussions section
                 item {
                     Text(
                         text = stringResource(R.string.trending_discussions),
@@ -108,10 +85,35 @@ fun DiscoverScreen(
                     )
                 }
 
-                items(trendingDiscussions) { discussion ->
+                items(trendingDiscussions) { review ->
                     ReviewItem(
-                        review = discussion,
-                        onMovieClick = { onMovieClick(discussion.movieId) }
+                        review = review,
+                        onMovieClick = { onMovieClick(review.tmdbMovieId.toInt()) }
+                    )
+                    Divider(color = DarkGray.copy(alpha = 0.5f), thickness = 1.dp)
+                }
+
+                item {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Divider(color = DarkGray.copy(alpha = 0.5f), thickness = 1.dp)
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
+
+                // Popular reviews section
+                item {
+                    Text(
+                        text = stringResource(R.string.popular_reviews),
+                        color = White,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                    )
+                }
+
+                items(popularReviews) { review ->
+                    ReviewItem(
+                        review = review,
+                        onMovieClick = { onMovieClick(review.tmdbMovieId.toInt()) }
                     )
                     Divider(color = DarkGray.copy(alpha = 0.5f), thickness = 1.dp)
                 }

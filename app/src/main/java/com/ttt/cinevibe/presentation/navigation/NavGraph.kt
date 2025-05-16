@@ -88,7 +88,7 @@ fun NavGraph(
         // Feed screen (replaced New & Hot)
         composable(route = Screens.FEED_ROUTE) {
             FeedScreen(
-                onNavigateToMovieDetails = { movieId ->
+                onMovieClick = { movieId ->
                     navController.navigate(Screens.movieDetailRoute(movieId.toString()))
                 }
             )

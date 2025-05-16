@@ -112,6 +112,7 @@ fun MovieDetailScreen(
     // Dialog state
     var showRatingDialog by remember { mutableStateOf(false) }    // Handle review operation result
     LaunchedEffect(reviewOperationState) {
+        android.util.Log.d("MovieDetailScreen", "Review operation state changed: $reviewOperationState")
         when (reviewOperationState) {
             is ReviewOperationState.Success -> {
                 // Check if the review was deleted (userReview is now null but hasReviewed was true)
@@ -124,6 +125,7 @@ fun MovieDetailScreen(
                     else -> "Review submitted successfully!"
                 }
                 
+                android.util.Log.d("MovieDetailScreen", "Review operation successful, closing dialog. hasReviewed=$hasReviewed")
                 // Show success message
                 Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                 showRatingDialog = false
@@ -135,6 +137,7 @@ fun MovieDetailScreen(
             }
             is ReviewOperationState.Error -> {
                 // Show error message
+                android.util.Log.e("MovieDetailScreen", "Review operation error: ${(reviewOperationState as ReviewOperationState.Error).message}")
                 Toast.makeText(context, (reviewOperationState as ReviewOperationState.Error).message, Toast.LENGTH_LONG).show()
             }
             else -> {}

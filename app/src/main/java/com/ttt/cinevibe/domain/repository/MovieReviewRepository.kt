@@ -13,7 +13,7 @@ interface MovieReviewRepository {
     
     suspend fun createReview(tmdbMovieId: Long, rating: Float, content: String, movieTitle: String, containsSpoilers: Boolean): Flow<Resource<MovieReview>>
     
-    suspend fun updateReview(reviewId: Long, rating: Float, content: String, containsSpoilers: Boolean): Flow<Resource<MovieReview>>
+    suspend fun updateReview(reviewId: Long, rating: Float, content: String, containsSpoilers: Boolean, tmdbMovieId: Long? = null, movieTitle: String? = null): Flow<Resource<MovieReview>>
     
     suspend fun deleteReview(reviewId: Long): Flow<Resource<Unit>>
     
@@ -24,4 +24,11 @@ interface MovieReviewRepository {
     suspend fun hasUserReviewedMovie(tmdbMovieId: Long): Flow<Resource<Boolean>>
     
     suspend fun getUserReviewForMovie(tmdbMovieId: Long): Flow<Resource<MovieReview>>
+    
+    // New methods for feed functionality
+    suspend fun getFollowingReviews(page: Int, size: Int): Flow<Resource<List<MovieReview>>>
+    
+    suspend fun getPopularReviews(page: Int, size: Int): Flow<Resource<List<MovieReview>>>
+    
+    suspend fun getTrendingReviews(page: Int, size: Int): Flow<Resource<List<MovieReview>>>
 }

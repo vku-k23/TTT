@@ -69,8 +69,8 @@ class UserRepositoryImpl @Inject constructor(
     override fun invalidateCache() {
         android.util.Log.d("UserRepository", "Invalidating user cache")
         lastFetchTime = 0
-        // We don't set cachedCurrentUser to null to avoid UI flashing,
-        // but we force next getCurrentUser to refresh from network
+        // Clear cached user data entirely to force a complete refresh
+        cachedCurrentUser = null
     }
 
     override suspend fun syncUser(

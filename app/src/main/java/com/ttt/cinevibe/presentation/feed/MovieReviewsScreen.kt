@@ -116,7 +116,7 @@ fun MovieReviewsScreen(
                 items(movieReviews) { review ->
                     ReviewItem(
                         review = review,
-                        onMovieClick = { onMovieClick(review.movieId) }
+                        onMovieClick = { onMovieClick(review.tmdbMovieId.toInt()) }
                     )
                     Divider(color = DarkGray.copy(alpha = 0.5f), thickness = 1.dp)
                 }
