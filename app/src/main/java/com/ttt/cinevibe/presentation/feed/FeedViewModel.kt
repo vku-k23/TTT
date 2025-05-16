@@ -191,7 +191,7 @@ class FeedViewModel @Inject constructor(
             userName = movieReview.userProfile.displayName,
             userProfileImageUrl = movieReview.userProfile.avatarUrl,
             tmdbMovieId = movieReview.tmdbMovieId,
-            movieTitle = "Movie Title", // This field might need to be sourced elsewhere
+            movieTitle = movieReview.movieTitle ?: "Movie Title", // Use actual movie title from server or fallback to "Movie Title"
             rating = movieReview.rating,
             reviewText = movieReview.content,
             containsSpoilers = false, // Default to false if not provided

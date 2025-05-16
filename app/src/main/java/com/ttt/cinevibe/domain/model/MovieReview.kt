@@ -13,7 +13,8 @@ data class MovieReview(
     val updatedAt: String,
     val likeCount: Int = 0,
     val userProfile: UserProfile,
-    val userHasLiked: Boolean = false
+    val userHasLiked: Boolean = false,
+    val movieTitle: String? = null
 ) {
     // Format date for display
     fun getFormattedDate(): String {

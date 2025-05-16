@@ -24,7 +24,8 @@ data class MovieReviewDto(
     val userHasLiked: Boolean = false,
     val userUid: String? = null,
     val userName: String? = null,
-    val userProfileImageUrl: String? = null
+    val userProfileImageUrl: String? = null,
+    val movieTitle: String? = null
 ) {
     fun toMovieReview(): MovieReview {
         val profile = when {
@@ -65,7 +66,8 @@ data class MovieReviewDto(
             updatedAt = updatedAt,
             likeCount = safeLikeCount, // Use the safe value
             userProfile = profile,
-            userHasLiked = userHasLiked
+            userHasLiked = userHasLiked,
+            movieTitle = movieTitle
         )
     }
 }
