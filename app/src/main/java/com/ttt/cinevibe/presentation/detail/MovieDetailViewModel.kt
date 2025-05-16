@@ -487,12 +487,19 @@ class MovieDetailViewModel @Inject constructor(
     fun updateReview(reviewId: Long, rating: Int, content: String) {
         viewModelScope.launch {
             _reviewOperationState.value = ReviewOperationState.Loading
+            android.util.Log.d("MovieDetailViewModel", "Updating review: reviewId=$reviewId, rating=$rating")
+            
+            // Get the current movie details for required fields
+            val movieId = _movieState.value.movie?.id?.toLong()
+            val movieTitle = _movieState.value.movie?.title
             
             movieReviewRepository.updateReview(
                 reviewId = reviewId, 
                 rating = rating.toFloat(), 
                 content = content,
-                containsSpoilers = false
+                containsSpoilers = false,
+                tmdbMovieId = movieId,
+                movieTitle = movieTitle
             )
                 .collectLatest { result ->
                     when (result) {
@@ -500,17 +507,24 @@ class MovieDetailViewModel @Inject constructor(
                             // Already set above
                         }
                         is Resource.Success -> {
+                            // Always set to success first to ensure the dialog closes
                             _reviewOperationState.value = ReviewOperationState.Success
+                            android.util.Log.d("MovieDetailViewModel", "Review update successful: ${result.data?.id}")
                             
                             // Update the userReview value with the updated review
                             if (result.data != null) {
                                 _userReview.value = result.data
                                 android.util.Log.d("MovieDetailViewModel", "Review updated successfully: ID=${result.data.id}")
                             } else {
-                                // If data is null but operation was successful, refresh the review data
-                                val movieId = _movieState.value.movie?.id?.toLong() ?: 0
-                                if (movieId > 0) {
-                                    fetchUserReview(movieId)
+                                // If data is null but operation was successful, try to refresh the review data
+                                // The operation is still considered successful even if this refresh fails
+                                if (movieId != null && movieId > 0) {
+                                    try {
+                                        fetchUserReview(movieId)
+                                    } catch (e: Exception) {
+                                        android.util.Log.e("MovieDetailViewModel", "Error fetching updated review, but update was successful: ${e.message}")
+                                        // The state remains Success
+                                    }
                                 } else {
                                     android.util.Log.w("MovieDetailViewModel", "Cannot fetch updated review - movie ID not available")
                                 }

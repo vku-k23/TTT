@@ -104,7 +104,9 @@ data class UpdateReviewRequest(
     val rating: Float,
     @SerialName("reviewText")
     val reviewText: String = "",
-    val containsSpoilers: Boolean = false
+    val containsSpoilers: Boolean = false,
+    val tmdbMovieId: Long? = null,
+    val movieTitle: String? = null
 )
 
 @Serializable

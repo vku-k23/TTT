@@ -13,7 +13,7 @@ interface MovieReviewRepository {
     
     suspend fun createReview(tmdbMovieId: Long, rating: Float, content: String, movieTitle: String, containsSpoilers: Boolean): Flow<Resource<MovieReview>>
     
-    suspend fun updateReview(reviewId: Long, rating: Float, content: String, containsSpoilers: Boolean): Flow<Resource<MovieReview>>
+    suspend fun updateReview(reviewId: Long, rating: Float, content: String, containsSpoilers: Boolean, tmdbMovieId: Long? = null, movieTitle: String? = null): Flow<Resource<MovieReview>>
     
     suspend fun deleteReview(reviewId: Long): Flow<Resource<Unit>>
     
