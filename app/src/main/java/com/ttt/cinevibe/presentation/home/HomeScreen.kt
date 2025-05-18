@@ -108,6 +108,10 @@ import com.ttt.cinevibe.ui.theme.NetflixRed
 import com.ttt.cinevibe.ui.theme.White
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import com.ttt.cinevibe.presentation.detail.MovieDetailViewModel
+import com.ttt.cinevibe.presentation.detail.FullScreenTrailerDialog
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -134,6 +138,8 @@ fun HomeScreen(
     val pagerState = rememberPagerState(initialPage = currentFeaturedMovieIndex) {
         featuredMovies.size.coerceAtLeast(1)
     }
+    
+    var autoPlayTrailer by remember { mutableStateOf(false) }
     
     // Keep pager in sync with view model
     LaunchedEffect(currentFeaturedMovieIndex) {
@@ -213,7 +219,12 @@ fun HomeScreen(
                                 movies = featuredMovies,
                                 pagerState = pagerState,
                                 onMovieClick = { viewModel.selectMovie(it) },
-                                onPlayClick = { /* Handle play click */ },
+                                onPlayClick = {
+                                    if (featuredMovies.isNotEmpty()) {
+                                        viewModel.selectMovie(featuredMovies[pagerState.currentPage])
+                                        autoPlayTrailer = true
+                                    }
+                                },
                                 onInfoClick = { movie -> viewModel.selectMovie(movie) },
                                 onPreviousClick = {
                                     coroutineScope.launch {
@@ -283,13 +294,17 @@ fun HomeScreen(
                 if (isMovieDetailsVisible && selectedMovie != null) {
                     MovieDetailsDialog(
                         movie = selectedMovie!!,
-                        onDismiss = { viewModel.closeMovieDetails() },
+                        onDismiss = {
+                            viewModel.closeMovieDetails()
+                            autoPlayTrailer = false
+                        },
                         onPlayClick = { /* Handle play click */ },
                         isVisible = isMovieDetailsVisible,
-                        onDetailsClick = { movie -> 
-                            viewModel.closeMovieDetails() // Close dialog first
-                            onNavigateToDetails(movie) // Navigate to dedicated details screen
-                        }
+                        onDetailsClick = { movie ->
+                            viewModel.closeMovieDetails()
+                            onNavigateToDetails(movie)
+                        },
+                        autoPlayTrailer = autoPlayTrailer
                     )
                 }
             }
@@ -871,43 +886,49 @@ fun MoviePoster(
 @Composable
 fun MovieDetailsDialog(
     movie: Movie,
-    isVisible: Boolean, // Add parameter to control visibility
+    isVisible: Boolean,
     onDismiss: () -> Unit = {},
     onPlayClick: () -> Unit = {},
-    onDetailsClick: (Movie) -> Unit = {} // New parameter for navigation
+    onDetailsClick: (Movie) -> Unit = {},
+    autoPlayTrailer: Boolean = false
 ) {
+    // Add trailer state management
+    val viewModel: MovieDetailViewModel = hiltViewModel()
+    val trailerState by viewModel.trailerState.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
+
+    // Fetch movie details and videos when dialog becomes visible
+    LaunchedEffect(isVisible, movie.id) {
+        if (isVisible) {
+            viewModel.getMovieById(movie.id)
+        }
+    }
+
+    // Show full screen trailer dialog when playing
+    if (trailerState.isPlayingInPlace && trailerState.videoKey != null) {
+        FullScreenTrailerDialog(
+            videoKey = trailerState.videoKey!!,
+            isPlaying = true,
+            onDismiss = { viewModel.stopTrailerInPlace() }
+        )
+    }
+
     // Log visibility state for debugging
     LaunchedEffect(isVisible) {
         Log.d("MovieDetailsDialog", "isVisible: $isVisible")
     }
 
-    // Full-screen semi-transparent overlay for dimming the background
-    AnimatedVisibility(
-        visible = isVisible,
-        enter = slideInVertically(
-            initialOffsetY = { fullHeight -> fullHeight }, // Slide in from bottom
-            animationSpec = tween(
-                durationMillis = 400,
-                easing = FastOutSlowInEasing
-            )
-        ) + fadeIn(
-            animationSpec = tween(
-                durationMillis = 350,
-                delayMillis = 50
-            )
-        ),
-        exit = slideOutVertically(
-            targetOffsetY = { fullHeight -> fullHeight }, // Slide out downward
-            animationSpec = tween(
-                durationMillis = 300,
-                easing = FastOutSlowInEasing
-            )
-        ) + fadeOut(
-            animationSpec = tween(
-                durationMillis = 250
-            )
-        )
-    ) {
+    var hasAutoPlayed by remember { mutableStateOf(false) }
+    LaunchedEffect(isVisible, trailerState.isAvailable, trailerState.videoKey, autoPlayTrailer) {
+        if (isVisible && autoPlayTrailer && trailerState.isAvailable && trailerState.videoKey != null && !hasAutoPlayed) {
+            viewModel.playTrailerInPlace()
+            hasAutoPlayed = true
+        }
+        if (!isVisible) hasAutoPlayed = false
+    }
+
+    if (isVisible) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -1066,9 +1087,17 @@ fun MovieDetailsDialog(
                             .padding(horizontal = 16.dp, vertical = 16.dp)
                     ) {
                         Button(
-                            onClick = onPlayClick,
+                            onClick = {
+                                if (trailerState.isAvailable && trailerState.videoKey != null) {
+                                    viewModel.playTrailerInPlace()
+                                } else {
+                                    coroutineScope.launch {
+                                        snackbarHostState.showSnackbar("No trailer available")
+                                    }
+                                }
+                            },
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = White
+                                containerColor = if (trailerState.isPlayingInPlace) NetflixRed else White
                             ),
                             shape = RoundedCornerShape(4.dp),
                             modifier = Modifier
@@ -1076,15 +1105,20 @@ fun MovieDetailsDialog(
                                 .height(48.dp)
                         ) {
                             Icon(
-                                imageVector = Icons.Filled.PlayArrow,
-                                contentDescription = "Play",
-                                tint = Black,
-                                modifier = Modifier.size(20.dp)
+                                imageVector = if (trailerState.isPlayingInPlace) Icons.Filled.Close else Icons.Filled.PlayArrow,
+                                contentDescription = if (trailerState.isPlayingInPlace) "Stop Trailer" else "Play",
+                                tint = if (trailerState.isPlayingInPlace) White else Black,
+                                modifier = Modifier.size(24.dp)
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = stringResource(R.string.play),
-                                color = Black,
+                                text = if (trailerState.isPlayingInPlace) 
+                                          stringResource(R.string.stop_trailer) 
+                                       else if (trailerState.isAvailable) 
+                                          stringResource(R.string.play_trailer) 
+                                       else 
+                                          stringResource(R.string.play),
+                                color = if (trailerState.isPlayingInPlace) White else Black,
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 16.sp
                             )
@@ -1231,6 +1265,10 @@ fun MovieDetailsDialog(
                     Spacer(modifier = Modifier.height(16.dp))
                 }
             }
+        }
+        // Show the Snackbar host
+        Box(Modifier.fillMaxSize()) {
+            SnackbarHost(hostState = snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter))
         }
     }
 }

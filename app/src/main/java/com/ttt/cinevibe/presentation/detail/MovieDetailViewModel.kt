@@ -157,19 +157,11 @@ class MovieDetailViewModel @Inject constructor(
                         
                         if (videos.isNotEmpty()) {
                             _videosList.value = videos
-                            
-                            // Set the primary trailer if not already set
-                            if (_trailerState.value.videoKey == null) {
-                                val mainTrailer = videos.find { it.type.equals("Trailer", ignoreCase = true) && it.official }
-                                    ?: videos.firstOrNull()
-                                
-                                mainTrailer?.let {
-                                    _trailerState.value = TrailerState(
-                                        isAvailable = true,
-                                        videoKey = it.key
-                                    )
-                                }
-                            }
+                            // Set trailer state to first fallback trailer if available
+                            _trailerState.value = TrailerState(
+                                isAvailable = true,
+                                videoKey = videos[0].key
+                            )
                             return@collect
                         }
                     }
@@ -259,6 +251,18 @@ class MovieDetailViewModel @Inject constructor(
         }
         
         _videosList.value = videos
+        // Set trailer state to first fallback trailer if available
+        if (videos.isNotEmpty()) {
+            _trailerState.value = TrailerState(
+                isAvailable = true,
+                videoKey = videos[0].key
+            )
+        } else {
+            _trailerState.value = TrailerState(
+                isAvailable = false,
+                videoKey = null
+            )
+        }
     }
     
     private fun fetchSimilarMovies(movieId: Int, languageCode: String) {
