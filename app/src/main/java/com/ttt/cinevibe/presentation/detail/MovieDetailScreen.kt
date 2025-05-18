@@ -79,6 +79,10 @@ import com.ttt.cinevibe.ui.theme.White
 import com.ttt.cinevibe.utils.LocalAppLocale
 import com.ttt.cinevibe.utils.LocaleConfigurationProvider
 import java.util.Locale
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarHost
+import kotlinx.coroutines.launch
+import androidx.compose.runtime.rememberCoroutineScope
 
 @Composable
 fun MovieDetailScreen(
@@ -100,6 +104,9 @@ fun MovieDetailScreen(
     val movieState by viewModel.movieState.collectAsState()
     val trailerState by viewModel.trailerState.collectAsState()
     val isFavorite by viewModel.isFavorite.collectAsState()
+    
+    val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
     
     // Fetch the movie details
     LaunchedEffect(movieId) {
@@ -153,11 +160,23 @@ fun MovieDetailScreen(
                 trailerState = trailerState,
                 isFavorite = isFavorite,
                 onBackClick = onBackClick,
-                onPlayTrailerClick = { viewModel.playTrailerInPlace() },
+                onPlayTrailerClick = {
+                    if (trailerState.isAvailable && trailerState.videoKey != null) {
+                        viewModel.playTrailerInPlace()
+                    } else {
+                        coroutineScope.launch {
+                            snackbarHostState.showSnackbar("No trailer available")
+                        }
+                    }
+                },
                 onCloseTrailerClick = { viewModel.stopTrailerInPlace() },
                 onToggleFavorite = { viewModel.toggleFavoriteStatus() },
                 onNavigateToDetails = onNavigateToDetails
             )
+            // Show the Snackbar host
+            Box(Modifier.fillMaxSize()) {
+                SnackbarHost(hostState = snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter))
+            }
         }
     }
 }
